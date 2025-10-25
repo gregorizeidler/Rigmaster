@@ -33,7 +33,6 @@
 - [Performance e Benchmarks](#-performance-e-benchmarks)
 - [Instalação](#-instalação)
 - [Uso](#-uso)
-- [Roadmap](#-roadmap)
 
 ---
 
@@ -892,53 +891,6 @@ Ctrl+Z     - Undo (planned)
 
 ---
 
-## 🗺️ Roadmap
-
-### ✅ v0.1.0 (Atual) - Initial Release
-
-- [x] 77 efeitos implementados e funcionais
-- [x] 4 amplificadores com EQ completo
-- [x] Cabinet simulator 7-stage (48 combinações)
-- [x] Sistema de gravação profissional (48kHz, WAV export)
-- [x] UI/UX moderna e responsiva
-- [x] Sistema de presets (save/load/export)
-- [x] Drag-and-drop reordering
-- [x] VU Meter e Spectrum Analyzer
-- [x] True bypass e wet/dry mix per effect
-- [x] Parameter smoothing (glitch-free)
-
-### 🚧 v0.2.0 (Em Desenvolvimento) - Q2 2024
-
-- [ ] **IR Loader**: Carregar impulse responses personalizados (.wav)
-- [ ] **Convolution Reverb**: Reverb por convolução com IRs
-- [ ] **Web Workers**: Processamento em threads separadas (reduz CPU main thread)
-- [ ] **Tuner Cromático**: Afinador visual em tempo real
-- [ ] **Expanded Spectrum Analyzer**: FFT com mais resolução
-- [ ] **20+ Novos Efeitos**: Pedais boutique e modernos
-- [ ] **Performance Optimizations**: SIMD, WASM (experimental)
-
-### 📅 v0.3.0 (Planejada) - Q3 2024
-
-- [ ] **MIDI Controller Support**: Mapeamento de CC para parâmetros
-- [ ] **Expression Pedal**: Wah, volume, whammy via MIDI
-- [ ] **DAW Integration**: OSC protocol para Reaper/Ableton
-- [ ] **Cloud Presets**: Compartilhar presets online
-- [ ] **Collaborative Jamming**: Múltiplos usuários em tempo real
-- [ ] **Mobile UI**: Interface otimizada para tablet/smartphone
-- [ ] **Touch Gestures**: Suporte a multi-touch
-
-### 🔮 v1.0.0 (Futuro) - 2024
-
-- [ ] **Native Desktop App**: Electron wrapper (menor latência)
-- [ ] **VST/AU Plugin Export**: Usar Guitrard como plugin em DAW
-- [ ] **AI Tone Matching**: Upload de áudio, IA recria o tone
-- [ ] **Professional IR Library**: 500+ IRs de estúdio
-- [ ] **Multi-Track Recorder**: 4 tracks simultâneas
-- [ ] **Stem Separation**: Dry + Wet export separados
-- [ ] **Advanced Routing**: Parallel chains, send/return loops
-
----
-
 ## 🛠️ Tecnologias Utilizadas
 
 ### Frontend
@@ -974,7 +926,7 @@ Convolution:         (Planned for IR loader)
 MIT License
 
 ```
-Copyright (c) 2024 Gregori Zeidler
+Copyright (c) 2025 Gregori Zeidler
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
