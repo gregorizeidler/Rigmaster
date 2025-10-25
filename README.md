@@ -40,6 +40,14 @@
 
 Rigmaster é uma plataforma de processamento de áudio profissional desenvolvida para guitarristas e engenheiros de som que exigem qualidade de estúdio em ambiente web. Utilizando algoritmos de DSP avançados e técnicas de processamento de sinal digital de última geração, oferecemos performance comparável a soluções nativas desktop como Bias FX, Amplitube, e Guitar Rig.
 
+### 📸 Screenshots
+
+![Rigmaster Interface - Main View](Screenshot%202025-10-25%20at%2000.31.40.png)
+*Interface principal com pedalboard, VU meter e spectrum analyzer*
+
+![Rigmaster Interface - Effects Chain](Screenshot%202025-10-25%20at%2000.32.45.png)
+*Cadeia de efeitos em ação com múltiplos pedais e amp simulator*
+
 ### ✨ Especificações Principais
 
 ```
