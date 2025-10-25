@@ -1,0 +1,269 @@
+.recorder-panel {
+  background: rgba(20, 20, 20, 0.8);
+  border: 1px solid #2a2a2a;
+  border-radius: 6px;
+  padding: 8px 16px;
+  margin: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  min-height: 45px;
+  flex: 1;
+}
+
+.recorder-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.recorder-header h3 {
+  margin: 0;
+  color: #888;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-shadow: none;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.recorder-duration {
+  font-size: 14px;
+  font-weight: bold;
+  color: #0f0;
+  font-family: 'Courier New', monospace;
+  text-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+  min-width: 45px;
+}
+
+.recorder-controls {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+}
+
+.recorder-btn {
+  padding: 6px 12px;
+  font-size: 10px;
+  font-weight: 600;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
+  opacity: 0.85;
+}
+
+.recorder-btn:hover {
+  opacity: 1;
+}
+
+.recorder-btn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.recorder-btn:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.recorder-btn:not(:disabled):active {
+  transform: translateY(0);
+}
+
+/* Record Button */
+.record-btn {
+  background: #cc0000;
+  color: white;
+}
+
+.record-btn.recording {
+  background: #ff3333;
+  animation: recordingPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes recordingPulse {
+  0%, 100% {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 12px rgba(255, 0, 0, 0.4);
+  }
+  50% {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 0, 0, 0.6);
+  }
+}
+
+/* Play Button */
+.play-btn {
+  background: #009900;
+  color: white;
+}
+
+.play-btn.playing {
+  background: #00cc00;
+  animation: playingPulse 2s ease-in-out infinite;
+}
+
+@keyframes playingPulse {
+  0%, 100% {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 12px rgba(0, 255, 0, 0.4);
+  }
+  50% {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 20px rgba(0, 255, 0, 0.6);
+  }
+}
+
+/* Clear Button */
+.clear-btn {
+  background: #555;
+  color: white;
+}
+
+.clear-btn:not(:disabled):hover {
+  background: #ff6600;
+}
+
+/* Export Button */
+.export-btn {
+  background: #0066cc;
+  color: white;
+}
+
+/* Volume Control */
+.recorder-volume {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  margin: 0;
+}
+
+.recorder-volume label {
+  color: #666;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 45px;
+  white-space: nowrap;
+}
+
+.recorder-volume input[type="range"] {
+  width: 80px;
+  height: 3px;
+  border-radius: 2px;
+  background: #333;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.recorder-volume input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #0f0;
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(0, 255, 0, 0.4);
+  transition: all 0.2s ease;
+}
+
+.recorder-volume input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 12px rgba(0, 255, 0, 0.6);
+}
+
+.recorder-volume input[type="range"]::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #0f0;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 6px rgba(0, 255, 0, 0.4);
+}
+
+.recorder-volume span {
+  color: #0f0;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+  min-width: 35px;
+  text-align: right;
+  text-shadow: 0 0 6px rgba(0, 255, 0, 0.3);
+}
+
+/* Status Indicator */
+.recorder-status {
+  display: flex;
+  align-items: center;
+  min-height: auto;
+  margin-left: auto;
+}
+
+.status-indicator {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.recording-indicator {
+  background: rgba(255, 0, 0, 0.15);
+  color: #ff3333;
+  border: 1px solid #ff3333;
+  animation: indicatorPulse 1s ease-in-out infinite;
+}
+
+.playing-indicator {
+  background: rgba(0, 255, 0, 0.15);
+  color: #00ff00;
+  border: 1px solid #00ff00;
+  animation: indicatorPulse 1s ease-in-out infinite;
+}
+
+.ready-indicator {
+  background: rgba(0, 150, 255, 0.15);
+  color: #0099ff;
+  border: 1px solid #0099ff;
+}
+
+@keyframes indicatorPulse {
+  0%, 100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .recorder-panel {
+    flex-wrap: wrap;
+  }
+  
+  .recorder-controls {
+    gap: 4px;
+  }
+  
+  .recorder-btn {
+    padding: 5px 10px;
+    font-size: 9px;
+  }
+}
+
+

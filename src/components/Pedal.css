@@ -1,0 +1,1019 @@
+.pedal {
+  width: 220px;
+  background: var(--pedal-gradient);
+  border-radius: 16px;
+  padding: 25px 20px;
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.9),
+    0 10px 20px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -2px 10px rgba(0, 0, 0, 0.6),
+    inset 0 0 0 3px var(--pedal-primary),
+    inset 0 0 0 5px rgba(0, 0, 0, 0.9);
+  position: relative;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  transform: perspective(1000px) rotateX(2deg);
+  border: 1px solid rgba(0, 0, 0, 0.8);
+}
+
+/* LARGE PEDALS (Timeline, Bigsky, etc) */
+.pedal[data-size="large"] {
+  width: 400px;
+  padding: 30px 25px;
+  min-height: 350px;
+}
+
+.pedal[data-size="large"] .pedal-controls {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px 12px;
+  padding: 15px 5px;
+  min-height: 180px;
+}
+
+.pedal[data-size="large"] .pedal-name {
+  font-size: 24px;
+  letter-spacing: 3px;
+}
+
+.pedal[data-size="large"] .pedal-header {
+  padding: 15px 12px;
+}
+
+.pedal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.pedal::after {
+  content: '';
+  position: absolute;
+  bottom: -20px;
+  left: 20px;
+  right: 20px;
+  height: 20px;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.5) 0%, transparent 70%);
+  filter: blur(10px);
+  z-index: -1;
+}
+
+.pedal:hover {
+  transform: perspective(1000px) rotateX(2deg) translateY(-8px);
+  box-shadow: 
+    0 35px 70px rgba(0, 0, 0, 1),
+    0 15px 30px rgba(0, 0, 0, 0.8),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -2px 10px rgba(0, 0, 0, 0.5),
+    inset 0 0 0 3px var(--pedal-primary),
+    inset 0 0 0 4px rgba(0, 0, 0, 0.8),
+    0 0 30px color-mix(in srgb, var(--pedal-primary) 30%, transparent);
+}
+
+.pedal.bypassed {
+  opacity: 0.5;
+  filter: grayscale(0.7);
+  transform: perspective(1000px) rotateX(2deg) scale(0.98);
+}
+
+.pedal-remove {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(255, 0, 0, 0.7);
+  border: none;
+  color: white;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.pedal:hover .pedal-remove {
+  opacity: 1;
+}
+
+.pedal-remove:hover {
+  background: rgba(255, 0, 0, 1);
+  transform: scale(1.1);
+}
+
+.pedal-header {
+  text-align: center;
+  border-bottom: 3px solid var(--pedal-primary);
+  padding-bottom: 15px;
+  margin-bottom: 8px;
+  position: relative;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  padding: 12px 10px;
+}
+
+.pedal-header::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    var(--pedal-primary) 50%, 
+    transparent 100%);
+  filter: blur(2px);
+}
+
+.pedal-brand {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--pedal-metal);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  opacity: 0.8;
+}
+
+.pedal-name {
+  font-size: 20px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 2.5px;
+  color: var(--pedal-primary);
+  margin: 5px 0;
+  text-shadow: 
+    0 0 25px var(--pedal-primary),
+    0 0 50px color-mix(in srgb, var(--pedal-primary) 50%, transparent),
+    0 3px 6px rgba(0, 0, 0, 0.9);
+  filter: drop-shadow(0 0 3px var(--pedal-primary));
+}
+
+.pedal-model {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 4px;
+  font-family: monospace;
+}
+
+.pedal-controls {
+  display: flex;
+  justify-content: space-around;
+  gap: 10px;
+  padding: 10px 0;
+  min-height: 100px;
+  align-items: center;
+}
+
+.pedal-footswitch {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: 
+    radial-gradient(circle at 30% 30%, #4a4a4a 0%, #2a2a2a 40%, #1a1a1a 100%);
+  border: 4px solid #0a0a0a;
+  cursor: pointer;
+  align-self: center;
+  position: relative;
+  transition: all 0.15s ease;
+  box-shadow: 
+    0 8px 16px rgba(0, 0, 0, 0.8),
+    0 4px 8px rgba(0, 0, 0, 0.6),
+    inset 0 2px 4px rgba(255, 255, 255, 0.1),
+    inset 0 -4px 8px rgba(0, 0, 0, 0.5);
+}
+
+.pedal-footswitch::before {
+  content: '';
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  right: 5px;
+  bottom: 5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.pedal-footswitch:hover {
+  transform: scale(1.05);
+}
+
+.pedal-footswitch:active {
+  transform: scale(0.95);
+  box-shadow: 
+    inset 3px 3px 8px rgba(0, 0, 0, 0.5);
+}
+
+.pedal-footswitch.active {
+  border-color: var(--pedal-primary);
+  box-shadow: 
+    0 0 20px var(--pedal-primary),
+    inset 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.footswitch-led {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #4a4a4a 0%, #1a1a1a 100%);
+  border: 1px solid #0a0a0a;
+  transition: all 0.2s ease;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.pedal-footswitch.active .footswitch-led {
+  background: radial-gradient(circle at 30% 30%, var(--pedal-primary) 0%, color-mix(in srgb, var(--pedal-primary) 60%, black) 100%);
+  box-shadow:
+    0 0 15px var(--pedal-primary),
+    0 0 30px var(--pedal-primary),
+    0 0 45px color-mix(in srgb, var(--pedal-primary) 50%, transparent),
+    inset 0 1px 2px rgba(255, 255, 255, 0.5);
+  border-color: var(--pedal-primary);
+  animation: led-pulse 2s ease-in-out infinite;
+}
+
+@keyframes led-pulse {
+  0%, 100% {
+    opacity: 1;
+    box-shadow:
+      0 0 15px var(--pedal-primary),
+      0 0 30px var(--pedal-primary),
+      0 0 45px color-mix(in srgb, var(--pedal-primary) 50%, transparent),
+      inset 0 1px 2px rgba(255, 255, 255, 0.5);
+  }
+  50% {
+    opacity: 0.7;
+    box-shadow:
+      0 0 10px var(--pedal-primary),
+      0 0 20px var(--pedal-primary),
+      0 0 30px color-mix(in srgb, var(--pedal-primary) 30%, transparent),
+      inset 0 1px 2px rgba(255, 255, 255, 0.3);
+  }
+}
+
+/* ============================================ */
+/* NEW DESIGN ENHANCEMENTS */
+/* ============================================ */
+
+/* PEDAL SUBTITLE */
+.pedal-subtitle {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 1px;
+  text-align: center;
+  margin-top: -8px;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* LCD/OLED DISPLAYS for Rack Effects */
+.pedal-display {
+  background: #000;
+  border-radius: 4px;
+  padding: 12px;
+  box-shadow: 
+    inset 0 2px 8px rgba(0, 0, 0, 0.9),
+    0 1px 0 rgba(255, 255, 255, 0.1);
+  margin: 5px 0;
+  min-height: 60px;
+}
+
+.display-screen {
+  background: linear-gradient(180deg, #0a0a0a 0%, #000 100%);
+  border-radius: 2px;
+  padding: 8px;
+  font-family: 'Courier New', monospace;
+  text-align: center;
+}
+
+/* LED Green Display (Eventide) */
+.led-green .display-screen {
+  background: #001a00;
+  color: #00ff00;
+  text-shadow: 0 0 10px #00ff00, 0 0 5px #00ff00;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Animated scanline effect */
+.led-green .display-screen::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(0, 255, 0, 0.6) 50%, 
+    transparent 100%
+  );
+  animation: scanline 2s linear infinite;
+  z-index: 10;
+}
+
+@keyframes scanline {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(50px); }
+}
+
+/* Audio waveform bars */
+.led-green .display-screen::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: 
+    repeating-linear-gradient(90deg,
+      transparent 0px,
+      transparent 3px,
+      rgba(0, 255, 0, 0.3) 3px,
+      rgba(0, 255, 0, 0.3) 4px
+    );
+  animation: audio-bars 0.5s ease-in-out infinite;
+}
+
+@keyframes audio-bars {
+  0%, 100% { 
+    clip-path: polygon(
+      0% 100%, 10% 80%, 20% 90%, 30% 70%, 40% 85%, 
+      50% 75%, 60% 90%, 70% 80%, 80% 95%, 90% 85%, 100% 100%
+    );
+  }
+  50% { 
+    clip-path: polygon(
+      0% 100%, 10% 70%, 20% 85%, 30% 60%, 40% 75%, 
+      50% 65%, 60% 80%, 70% 70%, 80% 85%, 90% 75%, 100% 100%
+    );
+  }
+}
+
+.led-green .display-text {
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  margin-bottom: 5px;
+  position: relative;
+  z-index: 5;
+  animation: text-flicker 3s ease-in-out infinite;
+}
+
+@keyframes text-flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.95; }
+}
+
+.led-green .display-params {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  font-size: 10px;
+  margin-top: 5px;
+  position: relative;
+  z-index: 5;
+}
+
+/* LCD Blue Display (Boss) */
+.lcd-blue .display-screen {
+  background: linear-gradient(180deg, #001f33 0%, #001a2a 100%);
+  color: #0099ff;
+  text-shadow: 0 0 8px #0099ff, 0 0 4px #0099ff;
+  position: relative;
+  overflow: hidden;
+}
+
+/* LCD grid pattern */
+.lcd-blue .display-screen::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    repeating-linear-gradient(0deg, 
+      transparent 0px, 
+      rgba(0, 153, 255, 0.03) 1px, 
+      transparent 2px
+    );
+  pointer-events: none;
+  z-index: 1;
+}
+
+.lcd-blue .display-text {
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 1.5px;
+  margin-bottom: 4px;
+}
+
+.lcd-blue .display-params {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  font-size: 9px;
+  margin-top: 4px;
+  border-top: 1px solid rgba(0, 153, 255, 0.3);
+  padding-top: 4px;
+}
+
+/* OLED White Display (Strymon) */
+.oled-white .display-screen {
+  background: #000;
+  color: #ffffff;
+  text-shadow: 0 0 6px #ffffff, 0 0 3px #ffffff;
+}
+
+.oled-white .display-text {
+  font-size: 16px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+}
+
+.oled-white .display-params {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  font-size: 11px;
+  margin-top: 6px;
+}
+
+/* LCD Color Display (H9) */
+.lcd-color .display-screen {
+  background: linear-gradient(135deg, #1a0033 0%, #0a001a 100%);
+  color: #00ffff;
+}
+
+.lcd-color-display {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lcd-waveform {
+  height: 30px;
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  border-radius: 2px;
+  padding: 3px;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.waveform-svg {
+  width: 100%;
+  height: 100%;
+  color: #00ffff;
+  filter: drop-shadow(0 0 3px #00ffff);
+}
+
+.waveform-svg path {
+  stroke-dasharray: 200;
+  stroke-dashoffset: 0;
+  animation: waveform-draw 2s ease-in-out infinite;
+}
+
+@keyframes waveform-draw {
+  0%, 100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  50% {
+    stroke-dashoffset: -100;
+    opacity: 0.7;
+  }
+}
+
+.lcd-text {
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+  color: #ff00ff;
+  text-shadow: 0 0 8px #ff00ff;
+}
+
+.lcd-params {
+  display: flex;
+  gap: 10px;
+  justify-content: space-around;
+  font-size: 10px;
+  color: #00ff00;
+  text-shadow: 0 0 5px #00ff00;
+}
+
+/* VU METER Display (SansAmp) */
+.vu-meter {
+  background: #000;
+}
+
+.vu-meter-display {
+  padding: 10px;
+}
+
+.vu-meter-bar {
+  height: 40px;
+  background: 
+    radial-gradient(circle at 50% 100%, #1a1a1a 0%, #000 100%);
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #333;
+}
+
+.vu-meter-needle {
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  width: 2px;
+  height: 30px;
+  background: linear-gradient(180deg, #ff0000 0%, #ff6600 50%, #ffff00 100%);
+  transform-origin: bottom center;
+  transition: transform 0.1s ease-out;
+  box-shadow: 
+    0 0 5px #ff6600,
+    0 0 10px rgba(255, 102, 0, 0.5);
+}
+
+.vu-meter-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 8px;
+  color: #00ff00;
+  margin-top: 4px;
+  padding: 0 10px;
+}
+
+/* MESA BOOGIE STRIPES */
+.mesa-stripes {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 15px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.mesa-stripes .stripe {
+  width: 4px;
+  height: 80%;
+  background: linear-gradient(180deg, 
+    #ff6600 0%, 
+    #ff8800 25%, 
+    #ffaa00 50%, 
+    #ff8800 75%, 
+    #ff6600 100%
+  );
+  box-shadow: 
+    0 0 10px rgba(255, 136, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+  border-radius: 2px;
+}
+
+/* LED CUSTOM COLORS */
+.footswitch-led {
+  background: var(--led-color, var(--pedal-primary));
+  transition: all 0.3s ease;
+}
+
+.pedal-footswitch:hover .footswitch-led {
+  transform: scale(1.1);
+}
+
+/* ============================================ */
+/* SPECIAL TEXTURES & SHAPES */
+/* ============================================ */
+
+/* SPARKLE TEXTURE (Klon Centaur) */
+.pedal-kloncentaur::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.6) 1px, transparent 1px),
+    radial-gradient(circle at 60% 70%, rgba(255, 255, 255, 0.4) 1px, transparent 1px),
+    radial-gradient(circle at 40% 50%, rgba(255, 255, 255, 0.5) 1px, transparent 1px),
+    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.7) 1px, transparent 1px);
+  background-size: 30px 30px;
+  pointer-events: none;
+  border-radius: 16px;
+  animation: sparkle 3s ease-in-out infinite;
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 0.4; }
+}
+
+/* HAND-PAINTED TEXTURE (Z.Vex) */
+.pedal-zvexfuzzfactory::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><path d="M10,50 Q30,20 50,40 T90,60 T130,50 T170,70" stroke="rgba(255,255,255,0.1)" fill="none" stroke-width="2"/><path d="M20,100 Q40,80 60,100 T100,120 T140,110 T180,130" stroke="rgba(255,255,255,0.15)" fill="none" stroke-width="2"/></svg>');
+  background-size: 100px 100px;
+  pointer-events: none;
+  border-radius: 16px;
+  opacity: 0.6;
+  mix-blend-mode: overlay;
+}
+
+/* ROUND SHAPE (Fuzz Face) */
+.pedal-fuzzface {
+  border-radius: 50%;
+  width: 280px;
+  height: 280px;
+  padding: 40px 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.pedal-fuzzface .pedal-controls {
+  display: flex;
+  flex-direction: row;
+  gap: 30px;
+  justify-content: center;
+}
+
+.pedal-fuzzface .pedal-header {
+  text-align: center;
+}
+
+.pedal-fuzzface .pedal-name {
+  font-size: 28px;
+  letter-spacing: 4px;
+  writing-mode: horizontal-tb;
+}
+
+/* WAH SHAPE (Cry Baby) */
+.pedal-crybabywah {
+  width: 200px;
+  height: 320px;
+  border-radius: 20px 20px 40px 40px;
+  position: relative;
+  padding: 30px 25px;
+  background: var(--pedal-gradient);
+}
+
+.pedal-crybabywah::after {
+  content: '';
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 140px;
+  height: 80px;
+  background: #1a1a1a;
+  border-radius: 8px;
+  box-shadow: 
+    inset 0 3px 10px rgba(0, 0, 0, 0.9),
+    0 2px 0 rgba(255, 255, 255, 0.1);
+}
+
+.pedal-crybabywah .pedal-footswitch {
+  width: 100px;
+  height: 60px;
+  margin-top: auto;
+  z-index: 2;
+}
+
+/* ============================================ */
+/* VINTAGE PEDAL STYLE */
+/* ============================================ */
+
+/* Vintage worn effect (CE-1, Memory Man) */
+.pedal-bossce1,
+.pedal-memoryman {
+  position: relative;
+}
+
+.pedal-bossce1::before,
+.pedal-memoryman::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(circle at 30% 40%, rgba(0, 0, 0, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 70% 60%, rgba(0, 0, 0, 0.15) 0%, transparent 50%);
+  border-radius: 16px;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+
+/* Brushed aluminum effect */
+.pedal-memoryman .pedal-header,
+.pedal-tech21sansamp .pedal-header {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.02) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 3px 100%;
+  border-radius: 4px;
+  padding: 12px 8px;
+}
+
+/* ============================================ */
+/* KNOB COLOR CUSTOMIZATION */
+/* ============================================ */
+
+/* Use metalColor from config for knobs */
+.pedal .knob-body {
+  background: radial-gradient(
+    circle at 30% 30%,
+    color-mix(in srgb, var(--pedal-metal) 100%, white 30%),
+    var(--pedal-metal)
+  );
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Chicken head knobs (Fender-style) */
+.pedal-tubescreamer .knob-body,
+.pedal-bossds1 .knob-body,
+.pedal-bossbd2 .knob-body,
+.pedal-bosssd1 .knob-body {
+  background: var(--pedal-metal);
+  border-radius: 50%;
+  position: relative;
+}
+
+.pedal-tubescreamer .knob-body::after,
+.pedal-bossds1 .knob-body::after,
+.pedal-bossbd2 .knob-body::after,
+.pedal-bosssd1 .knob-body::after {
+  content: '';
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3px;
+  height: 25%;
+  background: white;
+  border-radius: 2px;
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+}
+
+/* ============================================ */
+/* BRAND LOGOS & STYLING */
+/* ============================================ */
+
+/* BOSS Logo style */
+.pedal-bossds1 .pedal-brand,
+.pedal-bossbd2 .pedal-brand,
+.pedal-bosssd1 .pedal-brand,
+.pedal-bossce1 .pedal-brand,
+.pedal-bosstr2 .pedal-brand,
+.pedal-bossbf2 .pedal-brand,
+.pedal-bossdd500 .pedal-brand,
+.pedal-bossrv500 .pedal-brand {
+  font-family: 'Arial Black', sans-serif;
+  font-weight: 900;
+  letter-spacing: 3px;
+  color: #fff;
+  text-shadow: 
+    2px 2px 0 #000,
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000;
+}
+
+/* MXR Logo style */
+.pedal-mxrphase90 .pedal-brand,
+.pedal-mxrdynacomp .pedal-brand,
+.pedal-mxrcarboncopy .pedal-brand,
+.pedal-mxrdistortionplus .pedal-brand {
+  font-family: 'Impact', sans-serif;
+  letter-spacing: 4px;
+  color: #000;
+  text-shadow: 
+    1px 1px 0 #fff,
+    2px 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* EVENTIDE Logo style */
+.pedal-eventidetimefactor .pedal-brand,
+.pedal-eventidespace .pedal-brand,
+.pedal-eventideh9 .pedal-brand {
+  font-family: 'Helvetica', sans-serif;
+  font-weight: 300;
+  letter-spacing: 6px;
+  color: #00ff00;
+  text-transform: uppercase;
+}
+
+/* STRYMON Logo style */
+.pedal-timelinedelay .pedal-brand,
+.pedal-bigskyreverb .pedal-brand,
+.pedal-strymonmobius .pedal-brand {
+  font-family: 'Futura', 'Trebuchet MS', sans-serif;
+  font-weight: bold;
+  letter-spacing: 5px;
+  color: #fff;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+/* ============================================ */
+/* SCREWS & 3D DETAILS */
+/* ============================================ */
+
+/* Add screws to corners */
+.pedal::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: radial-gradient(circle, #888 0%, #444 100%);
+  border-radius: 50%;
+  box-shadow: 
+    inset 0 1px 2px rgba(255, 255, 255, 0.5),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.5),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+  top: 12px;
+  left: 12px;
+  pointer-events: none;
+}
+
+/* Additional screws */
+.pedal-remove::after,
+.pedal-remove::before {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: radial-gradient(circle, #888 0%, #444 100%);
+  border-radius: 50%;
+  box-shadow: 
+    inset 0 1px 2px rgba(255, 255, 255, 0.5),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.5),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+.pedal-remove::after {
+  top: 12px;
+  right: 50px;
+}
+
+.pedal-remove::before {
+  bottom: 12px;
+  left: 12px;
+}
+
+/* Screw slot detail */
+.pedal::after::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  width: 60%;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+/* ============================================ */
+/* PEDAL SELECTOR - For Multi-Effect Pedals */
+/* ============================================ */
+
+.pedal-selector-group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+  grid-column: 1 / -1; /* Ocupa toda a largura do grid */
+}
+
+.pedal-selector-group label {
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  text-align: center;
+}
+
+.pedal-selector {
+  width: 100%;
+  padding: 8px 12px;
+  background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
+  border: 2px solid #000;
+  border-radius: 6px;
+  color: #0f0;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: bold;
+  text-align: center;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.8),
+    inset 0 0 8px rgba(0, 255, 0, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+  transition: all 0.2s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2300ff00' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 12px 8px;
+  padding-right: 32px;
+}
+
+.pedal-selector:hover {
+  background: linear-gradient(180deg, #333 0%, #222 100%);
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.8),
+    inset 0 0 12px rgba(0, 255, 0, 0.3),
+    0 0 8px rgba(0, 255, 0, 0.3);
+}
+
+.pedal-selector:focus {
+  outline: none;
+  border-color: #0f0;
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.8),
+    inset 0 0 16px rgba(0, 255, 0, 0.4),
+    0 0 12px rgba(0, 255, 0, 0.5);
+}
+
+.pedal-selector option {
+  background: #1a1a1a;
+  color: #0f0;
+  padding: 8px;
+  font-weight: bold;
+}
+
+.pedal-selector optgroup {
+  background: #0a0a0a;
+  color: #ff0;
+  font-weight: bold;
+  font-size: 11px;
+  padding: 4px;
+}
+
+/* LCD Display Style Variant */
+.pedal[data-size="large"] .pedal-selector {
+  font-size: 13px;
+  padding: 10px 14px;
+  background: linear-gradient(180deg, #1a3a3a 0%, #0a2a2a 100%);
+  color: #0ff;
+  box-shadow: 
+    inset 0 2px 6px rgba(0, 0, 0, 0.9),
+    inset 0 0 12px rgba(0, 255, 255, 0.15),
+    0 2px 6px rgba(0, 0, 0, 0.6);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2300ffff' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+}
+
+.pedal[data-size="large"] .pedal-selector:hover {
+  background: linear-gradient(180deg, #2a4a4a 0%, #1a3a3a 100%);
+  box-shadow: 
+    inset 0 2px 6px rgba(0, 0, 0, 0.9),
+    inset 0 0 16px rgba(0, 255, 255, 0.25),
+    0 0 10px rgba(0, 255, 255, 0.4);
+}
+

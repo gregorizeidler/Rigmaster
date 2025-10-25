@@ -1,0 +1,2880 @@
+/* ========================================
+   MODERN AMP RIG - Realistic Amp Colors
+   Each amp type has brand-specific colors
+   ======================================== */
+
+.amp-rig-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  position: relative;
+  width: 100%;
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.amp-remove {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3a2a1f, #1f1610);
+  border: 2px solid #8f5a2a;
+  color: #ff6b35;
+  font-size: 24px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 100;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.amp-remove:hover {
+  background: linear-gradient(135deg, #ff4757, #c0392b);
+  border-color: #ff6b7a;
+  transform: scale(1.15) rotate(90deg);
+  box-shadow:
+    0 6px 20px rgba(255, 71, 87, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* ========================================
+   AMP HEAD
+   ======================================== */
+
+.amp-head {
+  background: linear-gradient(180deg, #1a2332 0%, #0f1621 100%);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+  border: 1px solid #2a3f5f;
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.amp-head.bypassed {
+  opacity: 0.4;
+  filter: grayscale(1);
+}
+
+.amp-head:hover {
+  box-shadow:
+    0 15px 50px rgba(255, 107, 53, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+  border-color: #8f5a3a;
+}
+
+/* Top Bar */
+.amp-head-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: linear-gradient(180deg, #242f42 0%, #1a2332 100%);
+  border-bottom: 2px solid #2a3f5f;
+  gap: 15px;
+}
+
+.amp-brand-logo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.brand-text {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #7a95b8;
+  text-transform: uppercase;
+}
+
+.model-text {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #ff6b35;
+  text-transform: uppercase;
+  text-shadow: 
+    0 0 10px rgba(255, 107, 53, 0.5),
+    0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.amp-type-selector {
+  background: linear-gradient(180deg, #2a3f5f, #1a2f4f);
+  border: 1px solid #3a5f8f;
+  border-radius: 6px;
+  padding: 6px 12px;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.amp-type-selector:hover {
+  background: linear-gradient(180deg, #5f3a2a, #4f2a1a);
+  border-color: #ff6b35;
+  box-shadow:
+    0 3px 12px rgba(255, 107, 53, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.amp-type-selector:focus {
+  outline: none;
+  border-color: #ff6b35;
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.2);
+}
+
+/* Power Switch */
+.amp-power-switch {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1a2332, #0f1621);
+  border: 3px solid #2a3f5f;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.amp-power-switch:hover {
+  transform: scale(1.1);
+  border-color: #3a6faf;
+}
+
+.amp-power-switch.active {
+  background: linear-gradient(135deg, #ff6b35, #ff8c42);
+  border-color: #ff6b35;
+  box-shadow:
+    0 6px 20px rgba(255, 107, 53, 0.5),
+    0 0 30px rgba(255, 107, 53, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.power-led {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #4a5568;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s ease;
+}
+
+.amp-power-switch.active .power-led {
+  background: #00ff88;
+  box-shadow:
+    0 0 15px rgba(0, 255, 136, 0.8),
+    0 0 30px rgba(0, 255, 136, 0.4),
+    inset 0 0 8px rgba(255, 255, 255, 0.6);
+  animation: power-led-pulse 2s ease-in-out infinite;
+}
+
+@keyframes power-led-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Control Panel */
+.amp-control-panel {
+  padding: 20px;
+  background: linear-gradient(180deg, #0f1621 0%, #1a2332 100%);
+}
+
+.amp-knobs-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.knob-group {
+  display: flex;
+  justify-content: space-around;
+  gap: 10px;
+}
+
+/* ========================================
+   CABINET
+   ======================================== */
+
+.amp-cabinet {
+  background: linear-gradient(180deg, #1a2332 0%, #0f1621 100%);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+  border: 1px solid #2a3f5f;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.amp-cabinet:hover {
+  box-shadow:
+    0 15px 50px rgba(255, 107, 53, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+  border-color: #8f5a3a;
+}
+
+/* Cabinet Config */
+.cabinet-config {
+  padding: 15px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: linear-gradient(180deg, #242f42 0%, #1a2332 100%);
+  border-bottom: 2px solid #2a3f5f;
+}
+
+.config-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.config-row label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #7a95b8;
+  min-width: 70px;
+}
+
+.config-row select {
+  flex: 1;
+  background: linear-gradient(180deg, #2a3f5f, #1a2f4f);
+  border: 1px solid #3a5f8f;
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.config-row select:hover {
+  background: linear-gradient(180deg, #5f3a2a, #4f2a1a);
+  border-color: #ff6b35;
+  box-shadow:
+    0 3px 10px rgba(255, 107, 53, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.config-row select:focus {
+  outline: none;
+  border-color: #ff6b35;
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.2);
+}
+
+.config-row option {
+  background: #1a2332;
+  color: #ffffff;
+}
+
+/* Speaker Grill */
+.cabinet-speaker-grill {
+  padding: 30px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  background: 
+    radial-gradient(circle at 30% 30%, #2a3f5f 0%, #1a2332 50%, #0f1621 100%);
+  position: relative;
+}
+
+.cabinet-speaker-grill::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: 
+    repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0, 0, 0, 0.2) 3px, rgba(0, 0, 0, 0.2) 4px),
+    repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(0, 0, 0, 0.2) 3px, rgba(0, 0, 0, 0.2) 4px);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.speaker-cone {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #3a4f6f, #1a2f4f, #0a1521);
+  border: 3px solid #2a3f5f;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.6),
+    inset 0 2px 10px rgba(0, 0, 0, 0.8),
+    inset 0 -2px 10px rgba(255, 255, 255, 0.05);
+  position: relative;
+}
+
+.speaker-cone::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40%;
+  height: 40%;
+  border-radius: 50%;
+  background: radial-gradient(circle, #1a2f4f, #0a1521);
+  border: 2px solid #2a3f5f;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.8),
+    inset 0 1px 4px rgba(0, 0, 0, 0.9);
+}
+
+.speaker-cone::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 15%;
+  height: 15%;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #5f4a2a, #3f2a1a);
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.8),
+    0 0 8px rgba(255, 107, 53, 0.2);
+}
+
+/* ========================================
+   AMP TYPE SPECIFIC COLORS
+   ======================================== */
+
+/* FENDER - Clean (Black Face with Silver) */
+.amp-head.amp-clean {
+  background: 
+    repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(255,255,255,0.03) 1px, rgba(255,255,255,0.03) 2px),
+    linear-gradient(180deg, #d8d8d8 0%, #b8b8b8 50%, #a0a0a0 100%);
+  border: 2px solid #707070;
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.6),
+    inset 0 2px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.amp-head.amp-clean::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.amp-head.amp-clean > * {
+  position: relative;
+  z-index: 1;
+}
+
+.amp-head.amp-clean .amp-head-top {
+  background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+  border-bottom: 3px solid #303030;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.amp-head.amp-clean .brand-text {
+  color: #c0c0c0;
+  font-size: 10px;
+  letter-spacing: 3px;
+}
+
+.amp-head.amp-clean .model-text {
+  color: #ffffff;
+  text-shadow: 
+    0 0 15px rgba(255, 255, 255, 0.6),
+    0 2px 4px rgba(0, 0, 0, 0.9);
+  font-size: 18px;
+}
+
+.amp-head.amp-clean .amp-control-panel {
+  background: linear-gradient(180deg, #0a0a0a 0%, #050505 100%);
+  border-top: 1px solid #1a1a1a;
+}
+
+.amp-head.amp-clean:hover {
+  box-shadow:
+    0 15px 50px rgba(255, 255, 255, 0.2),
+    inset 0 2px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.4);
+  border-color: #909090;
+}
+
+/* Fender Cabinet - Black/Silver */
+.amp-head.amp-clean ~ .amp-cabinet {
+  background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+  border: 2px solid #707070;
+}
+
+.amp-head.amp-clean ~ .amp-cabinet .cabinet-config {
+  background: linear-gradient(180deg, #0a0a0a 0%, #050505 100%);
+  border-bottom: 2px solid #303030;
+}
+
+.amp-head.amp-clean ~ .amp-cabinet .cabinet-speaker-grill {
+  background: radial-gradient(circle at 30% 30%, #2a2a2a 0%, #1a1a1a 50%, #0a0a0a 100%);
+}
+
+.amp-head.amp-clean ~ .amp-cabinet .speaker-cone {
+  background: linear-gradient(135deg, #3a3a3a, #1a1a1a);
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.8),
+    0 0 8px rgba(255, 255, 255, 0.1),
+    inset 0 0 15px rgba(255, 255, 255, 0.05);
+}
+
+/* MARSHALL - Crunch (Gold/Black) */
+.amp-head.amp-crunch {
+  background: 
+    repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(0,0,0,0.2) 3px, rgba(0,0,0,0.2) 6px),
+    linear-gradient(180deg, #0f0f0f 0%, #050505 100%);
+  border: 3px solid #c9a959;
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.8),
+    inset 0 2px 0 rgba(255, 255, 255, 0.03),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.5);
+  position: relative;
+}
+
+.amp-head.amp-crunch::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.amp-head.amp-crunch > * {
+  position: relative;
+  z-index: 1;
+}
+
+.amp-head.amp-crunch .amp-head-top {
+  background: linear-gradient(180deg, #e5c158 0%, #d4af37 50%, #b8941f 100%);
+  border-bottom: 3px solid #8b6914;
+  box-shadow: 
+    inset 0 2px 0 rgba(255, 235, 180, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+}
+
+.amp-head.amp-crunch .brand-text {
+  color: #000000;
+  font-weight: 900;
+  letter-spacing: 4px;
+}
+
+.amp-head.amp-crunch .model-text {
+  color: #000000;
+  text-shadow: 
+    0 0 10px rgba(255, 235, 180, 0.8),
+    0 1px 2px rgba(255, 255, 255, 0.4);
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.amp-head.amp-crunch .amp-control-panel {
+  background: linear-gradient(180deg, #0f0f0f 0%, #050505 100%);
+  border-top: 1px solid #1a1a1a;
+}
+
+.amp-head.amp-crunch:hover {
+  box-shadow:
+    0 15px 50px rgba(212, 175, 55, 0.4),
+    inset 0 2px 0 rgba(255, 255, 255, 0.05),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.5);
+  border-color: #e5c158;
+}
+
+.amp-head.amp-crunch .amp-type-selector {
+  background: linear-gradient(180deg, #e5c158, #d4af37);
+  border-color: #8b6914;
+  color: #000000;
+  font-weight: 800;
+}
+
+.amp-head.amp-crunch .amp-type-selector:hover {
+  background: linear-gradient(180deg, #f5d168, #e5c158);
+}
+
+/* Marshall Cabinet - Black with Gold trim */
+.amp-head.amp-crunch ~ .amp-cabinet {
+  background: linear-gradient(180deg, #0f0f0f 0%, #050505 100%);
+  border: 3px solid #c9a959;
+}
+
+.amp-head.amp-crunch ~ .amp-cabinet .cabinet-config {
+  background: linear-gradient(180deg, #1a1410 0%, #0f0a05 100%);
+  border-bottom: 2px solid #8b6914;
+}
+
+.amp-head.amp-crunch ~ .amp-cabinet .config-row label {
+  color: #d4af37;
+}
+
+.amp-head.amp-crunch ~ .amp-cabinet .cabinet-speaker-grill {
+  background: 
+    radial-gradient(circle at 30% 30%, #3a2a1a 0%, #1a1410 50%, #0a0805 100%);
+}
+
+.amp-head.amp-crunch ~ .amp-cabinet .speaker-cone {
+  background: linear-gradient(135deg, #654321, #3a2512);
+  border: 2px solid #8b6914;
+  box-shadow: 
+    0 2px 5px rgba(0, 0, 0, 0.9),
+    0 0 12px rgba(212, 175, 55, 0.2),
+    inset 0 0 15px rgba(139, 105, 20, 0.3);
+}
+
+/* MESA BOOGIE - Lead (Black with Red/Orange) */
+.amp-head.amp-lead {
+  background: 
+    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(139,0,0,0.1) 2px, rgba(139,0,0,0.1) 4px),
+    linear-gradient(180deg, #1a0808 0%, #0a0303 100%);
+  border: 3px solid #8b0000;
+  box-shadow: 
+    0 10px 40px rgba(139, 0, 0, 0.6),
+    inset 0 2px 0 rgba(255, 107, 53, 0.1),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.6);
+  position: relative;
+}
+
+.amp-head.amp-lead::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(139,0,0,0.05) 2px, rgba(139,0,0,0.05) 4px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.amp-head.amp-lead > * {
+  position: relative;
+  z-index: 1;
+}
+
+.amp-head.amp-lead .amp-head-top {
+  background: linear-gradient(180deg, #2a1010 0%, #1a0808 100%);
+  border-bottom: 3px solid #8b0000;
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 107, 53, 0.2),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+}
+
+.amp-head.amp-lead .brand-text {
+  color: #c0c0c0;
+  font-weight: 800;
+}
+
+.amp-head.amp-lead .model-text {
+  color: #ff6b35;
+  text-shadow: 
+    0 0 15px rgba(255, 107, 53, 0.8),
+    0 0 25px rgba(255, 107, 53, 0.4),
+    0 2px 4px rgba(0, 0, 0, 0.9);
+  font-size: 19px;
+  font-weight: 900;
+}
+
+.amp-head.amp-lead .amp-control-panel {
+  background: linear-gradient(180deg, #1a0808 0%, #0a0303 100%);
+  border-top: 1px solid #2a0a0a;
+}
+
+.amp-head.amp-lead:hover {
+  box-shadow:
+    0 15px 50px rgba(255, 107, 53, 0.4),
+    inset 0 2px 0 rgba(255, 107, 53, 0.2),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.6);
+  border-color: #c00000;
+}
+
+.amp-head.amp-lead .amp-type-selector {
+  background: linear-gradient(180deg, #3a1a1a, #2a0a0a);
+  border-color: #8b0000;
+  color: #ff6b35;
+  font-weight: 700;
+}
+
+.amp-head.amp-lead .amp-type-selector:hover {
+  background: linear-gradient(180deg, #4a2a2a, #3a1a1a);
+  border-color: #ff6b35;
+}
+
+/* Mesa Cabinet - Black with Red glow */
+.amp-head.amp-lead ~ .amp-cabinet {
+  background: linear-gradient(180deg, #1a0808 0%, #0a0303 100%);
+  border: 3px solid #8b0000;
+}
+
+.amp-head.amp-lead ~ .amp-cabinet .cabinet-config {
+  background: linear-gradient(180deg, #2a1010 0%, #1a0808 100%);
+  border-bottom: 2px solid #8b0000;
+}
+
+.amp-head.amp-lead ~ .amp-cabinet .config-row label {
+  color: #ff6b35;
+}
+
+.amp-head.amp-lead ~ .amp-cabinet .cabinet-speaker-grill {
+  background: 
+    radial-gradient(circle at 30% 30%, #2a0a0a 0%, #1a0505 50%, #0a0202 100%);
+}
+
+.amp-head.amp-lead ~ .amp-cabinet .speaker-cone {
+  background: linear-gradient(135deg, #2a0a0a, #1a0505);
+  border: 2px solid #8b0000;
+  box-shadow: 
+    0 2px 5px rgba(0, 0, 0, 0.9),
+    0 0 15px rgba(255, 107, 53, 0.3),
+    inset 0 0 20px rgba(139, 0, 0, 0.4);
+}
+
+/* ENGL - Metal (Black with Bright Red) */
+.amp-head.amp-metal {
+  background: 
+    repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(255,51,51,0.05) 1px, rgba(255,51,51,0.05) 2px),
+    linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+  border: 3px solid #ff3333;
+  box-shadow: 
+    0 10px 40px rgba(255, 51, 51, 0.6),
+    inset 0 2px 0 rgba(255, 51, 51, 0.1),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.6);
+  position: relative;
+}
+
+.amp-head.amp-metal::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.15) 2px, rgba(0,0,0,0.15) 4px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.amp-head.amp-metal > * {
+  position: relative;
+  z-index: 1;
+}
+
+.amp-head.amp-metal .amp-head-top {
+  background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
+  border-bottom: 3px solid #ff3333;
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 51, 51, 0.3),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+}
+
+.amp-head.amp-metal .brand-text {
+  color: #c0c0c0;
+  font-weight: 900;
+  letter-spacing: 3px;
+}
+
+.amp-head.amp-metal .model-text {
+  color: #ff3333;
+  text-shadow: 
+    0 0 15px rgba(255, 51, 51, 0.9),
+    0 0 30px rgba(255, 51, 51, 0.5),
+    0 2px 4px rgba(0, 0, 0, 0.9);
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.amp-head.amp-metal .amp-control-panel {
+  background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+  border-top: 1px solid #2a2a2a;
+}
+
+.amp-head.amp-metal:hover {
+  box-shadow:
+    0 15px 50px rgba(255, 51, 51, 0.5),
+    inset 0 2px 0 rgba(255, 51, 51, 0.2),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.6);
+  border-color: #ff6666;
+}
+
+.amp-head.amp-metal .amp-type-selector {
+  background: linear-gradient(180deg, #2a2a2a, #1a1a1a);
+  border-color: #ff3333;
+  color: #ff3333;
+  font-weight: 700;
+}
+
+.amp-head.amp-metal .amp-type-selector:hover {
+  background: linear-gradient(180deg, #3a3a3a, #2a2a2a);
+  border-color: #ff6666;
+}
+
+/* ENGL Cabinet - Black with Red accents */
+.amp-head.amp-metal ~ .amp-cabinet {
+  background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+  border: 3px solid #ff3333;
+}
+
+.amp-head.amp-metal ~ .amp-cabinet .cabinet-config {
+  background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
+  border-bottom: 2px solid #ff3333;
+}
+
+.amp-head.amp-metal ~ .amp-cabinet .config-row label {
+  color: #ff3333;
+}
+
+.amp-head.amp-metal ~ .amp-cabinet .cabinet-speaker-grill {
+  background: 
+    radial-gradient(circle at 30% 30%, #2a2a2a 0%, #1a1a1a 50%, #0a0a0a 100%);
+}
+
+.amp-head.amp-metal ~ .amp-cabinet .speaker-cone {
+  background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+  border: 2px solid #ff3333;
+  box-shadow: 
+    0 2px 5px rgba(0, 0, 0, 0.9),
+    0 0 15px rgba(255, 51, 51, 0.4),
+    inset 0 0 20px rgba(255, 51, 51, 0.2);
+}
+
+/* Power Switch - Type Specific Colors */
+.amp-head.amp-crunch .amp-power-switch.active {
+  background: linear-gradient(135deg, #e5c158, #d4af37);
+  border-color: #d4af37;
+  box-shadow:
+    0 6px 20px rgba(212, 175, 55, 0.6),
+    0 0 30px rgba(212, 175, 55, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.amp-head.amp-lead .amp-power-switch.active {
+  background: linear-gradient(135deg, #ff6b35, #ff8c42);
+  border-color: #ff6b35;
+  box-shadow:
+    0 6px 20px rgba(255, 107, 53, 0.6),
+    0 0 30px rgba(255, 107, 53, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.amp-head.amp-metal .amp-power-switch.active {
+  background: linear-gradient(135deg, #ff3333, #cc0000);
+  border-color: #ff3333;
+  box-shadow:
+    0 6px 20px rgba(255, 51, 51, 0.6),
+    0 0 30px rgba(255, 51, 51, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.amp-head.amp-clean .amp-power-switch.active {
+  background: linear-gradient(135deg, #f0f0f0, #d0d0d0);
+  border-color: #e0e0e0;
+  box-shadow:
+    0 6px 20px rgba(240, 240, 240, 0.6),
+    0 0 30px rgba(240, 240, 240, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* Cabinet Selects - Type Specific */
+.amp-head.amp-crunch ~ .amp-cabinet .config-row select {
+  background: linear-gradient(180deg, #2a1a10, #1a1008);
+  border-color: #8b6914;
+  color: #d4af37;
+}
+
+.amp-head.amp-crunch ~ .amp-cabinet .config-row select:hover {
+  background: linear-gradient(180deg, #3a2a18, #2a1a10);
+  border-color: #d4af37;
+}
+
+.amp-head.amp-crunch ~ .amp-cabinet .config-row select:focus {
+  border-color: #d4af37;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.3);
+}
+
+.amp-head.amp-lead ~ .amp-cabinet .config-row select {
+  background: linear-gradient(180deg, #2a1010, #1a0808);
+  border-color: #8b0000;
+  color: #ff6b35;
+}
+
+.amp-head.amp-lead ~ .amp-cabinet .config-row select:hover {
+  background: linear-gradient(180deg, #3a1818, #2a1010);
+  border-color: #ff6b35;
+}
+
+.amp-head.amp-lead ~ .amp-cabinet .config-row select:focus {
+  border-color: #ff6b35;
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.3);
+}
+
+.amp-head.amp-metal ~ .amp-cabinet .config-row select {
+  background: linear-gradient(180deg, #2a2a2a, #1a1a1a);
+  border-color: #ff3333;
+  color: #ff3333;
+}
+
+.amp-head.amp-metal ~ .amp-cabinet .config-row select:hover {
+  background: linear-gradient(180deg, #3a3a3a, #2a2a2a);
+  border-color: #ff5555;
+}
+
+.amp-head.amp-metal ~ .amp-cabinet .config-row select:focus {
+  border-color: #ff3333;
+  box-shadow: 0 0 0 3px rgba(255, 51, 51, 0.3);
+}
+
+.amp-head.amp-clean ~ .amp-cabinet .config-row select {
+  background: linear-gradient(180deg, #1a1a1a, #0a0a0a);
+  border-color: #707070;
+  color: #e0e0e0;
+}
+
+.amp-head.amp-clean ~ .amp-cabinet .config-row select:hover {
+  background: linear-gradient(180deg, #2a2a2a, #1a1a1a);
+  border-color: #909090;
+}
+
+.amp-head.amp-clean ~ .amp-cabinet .config-row select:focus {
+  border-color: #c0c0c0;
+  box-shadow: 0 0 0 3px rgba(192, 192, 192, 0.3);
+}
+
+.amp-head.amp-clean ~ .amp-cabinet .config-row label {
+  color: #c0c0c0;
+}
+
+/* Knobs - Inherit amp type accent colors */
+.amp-head.amp-clean .knob-container {
+  --knob-accent: #e0e0e0;
+}
+
+.amp-head.amp-crunch .knob-container {
+  --knob-accent: #d4af37;
+}
+
+.amp-head.amp-lead .knob-container {
+  --knob-accent: #ff6b35;
+}
+
+.amp-head.amp-metal .knob-container {
+  --knob-accent: #ff3333;
+}
+
+/* ========================================
+   NEW AMPLIFIERS (20)
+   ======================================== */
+
+/* ========================================
+   CLEAN/VINTAGE (5)
+   ======================================== */
+
+/* VOX AC30 - Brown/Tan with Gold */
+.amp-head.amp-vox_ac30 {
+  background: 
+    repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(212,175,55,0.05) 1px, rgba(212,175,55,0.05) 2px),
+    linear-gradient(180deg, #3a2a1a 0%, #2b1810 50%, #1f1008 100%);
+  border: 3px solid #d4af37;
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.7),
+    inset 0 2px 0 rgba(255, 215, 0, 0.2),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.5);
+}
+
+.amp-head.amp-vox_ac30 .amp-head-top {
+  background: linear-gradient(180deg, #8b7355 0%, #6b5645 100%);
+  border-bottom: 3px solid #4a3a2a;
+}
+
+.amp-head.amp-vox_ac30 .brand-text {
+  color: #ffd700;
+  letter-spacing: 5px;
+  font-weight: 900;
+}
+
+.amp-head.amp-vox_ac30 .model-text {
+  color: #ffffff;
+  text-shadow: 0 0 12px rgba(255, 215, 0, 0.6);
+}
+
+.amp-head.amp-vox_ac30 ~ .amp-cabinet {
+  background: linear-gradient(180deg, #3a2a1a 0%, #2b1810 100%);
+  border: 3px solid #d4af37;
+}
+
+.amp-head.amp-vox_ac30 ~ .amp-cabinet .speaker-cone {
+  background: linear-gradient(135deg, #8b7355, #6b5645);
+  border: 2px solid #d4af37;
+}
+
+/* FENDER DELUXE - Black/Silver */
+.amp-head.amp-fender_deluxe {
+  background: 
+    repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(255,255,255,0.02) 1px, rgba(255,255,255,0.02) 2px),
+    linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+  border: 2px solid #808080;
+}
+
+.amp-head.amp-fender_deluxe .amp-head-top {
+  background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+  border-bottom: 3px solid #303030;
+}
+
+.amp-head.amp-fender_deluxe .brand-text {
+  color: #c0c0c0;
+  letter-spacing: 3px;
+}
+
+.amp-head.amp-fender_deluxe .model-text {
+  color: #ffffff;
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+}
+
+.amp-head.amp-fender_deluxe ~ .amp-cabinet {
+  background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+  border: 2px solid #808080;
+}
+
+.amp-head.amp-fender_deluxe ~ .amp-cabinet .speaker-cone {
+  background: linear-gradient(135deg, #3a3a3a, #1a1a1a);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
+}
+
+/* FENDER BASSMAN - Tweed (Tan/Brown) */
+.amp-head.amp-fender_bassman {
+  background: 
+    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(139,105,20,0.2) 2px, rgba(139,105,20,0.2) 4px),
+    linear-gradient(180deg, #e5c88d 0%, #d4a574 50%, #c9b896 100%);
+  border: 3px solid #8b6914;
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.6),
+    inset 0 2px 0 rgba(255, 235, 180, 0.3);
+}
+
+.amp-head.amp-fender_bassman .amp-head-top {
+  background: linear-gradient(180deg, #3a2a1a 0%, #2b1810 100%);
+  border-bottom: 3px solid #654321;
+}
+
+.amp-head.amp-fender_bassman .brand-text {
+  color: #ffd700;
+  letter-spacing: 4px;
+}
+
+.amp-head.amp-fender_bassman .model-text {
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+}
+
+.amp-head.amp-fender_bassman ~ .amp-cabinet {
+  background: linear-gradient(180deg, #d4a574 0%, #c9b896 100%);
+  border: 3px solid #8b6914;
+}
+
+.amp-head.amp-fender_bassman ~ .amp-cabinet .speaker-cone {
+  background: linear-gradient(135deg, #654321, #3a2512);
+  border: 2px solid #8b6914;
+}
+
+/* ROLAND JC-120 - Black/Blue */
+.amp-head.amp-roland_jc120 {
+  background: 
+    linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 50%, #0a0a0a 100%);
+  border: 2px solid #4a9eff;
+  box-shadow: 
+    0 10px 40px rgba(74, 158, 255, 0.3),
+    inset 0 2px 0 rgba(74, 158, 255, 0.1);
+}
+
+.amp-head.amp-roland_jc120 .amp-head-top {
+  background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+  border-bottom: 3px solid #4a9eff;
+}
+
+.amp-head.amp-roland_jc120 .brand-text {
+  color: #4a9eff;
+  letter-spacing: 5px;
+  font-weight: 900;
+}
+
+.amp-head.amp-roland_jc120 .model-text {
+  color: #ffffff;
+  text-shadow: 0 0 15px rgba(74, 158, 255, 0.8);
+}
+
+.amp-head.amp-roland_jc120 ~ .amp-cabinet {
+  background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+  border: 2px solid #4a9eff;
+}
+
+.amp-head.amp-roland_jc120 ~ .amp-cabinet .speaker-cone {
+  background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+  box-shadow: 0 0 10px rgba(74, 158, 255, 0.3);
+}
+
+/* MATCHLESS DC-30 - Red/Gold */
+.amp-head.amp-matchless_dc30 {
+  background: 
+    repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,215,0,0.1) 2px, rgba(255,215,0,0.1) 4px),
+    linear-gradient(180deg, #a52a2a 0%, #8b0000 50%, #6b0000 100%);
+  border: 3px solid #ffd700;
+  box-shadow: 
+    0 10px 40px rgba(255, 215, 0, 0.3),
+    inset 0 2px 0 rgba(255, 215, 0, 0.2);
+}
+
+.amp-head.amp-matchless_dc30 .amp-head-top {
+  background: linear-gradient(180deg, #8b0000 0%, #6b0000 100%);
+  border-bottom: 3px solid #ffd700;
+}
+
+.amp-head.amp-matchless_dc30 .brand-text {
+  color: #ffd700;
+  letter-spacing: 3px;
+}
+
+.amp-head.amp-matchless_dc30 .model-text {
+  color: #ffffff;
+  text-shadow: 0 0 12px rgba(255, 215, 0, 0.6);
+}
+
+.amp-head.amp-matchless_dc30 ~ .amp-cabinet {
+  background: linear-gradient(180deg, #8b0000 0%, #6b0000 100%);
+  border: 3px solid #ffd700;
+}
+
+.amp-head.amp-matchless_dc30 ~ .amp-cabinet .speaker-cone {
+  background: linear-gradient(135deg, #654321, #3a2512);
+  border: 2px solid #ffd700;
+}
+
+/* ========================================
+   CRUNCH/BRITISH (5)
+   ======================================== */
+
+/* MARSHALL JCM800 - Black/Gold */
+.amp-head.amp-marshall_jcm800 {
+  background: 
+    repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(0,0,0,0.3) 3px, rgba(0,0,0,0.3) 6px),
+    linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+  border: 3px solid #d4af37;
+  box-shadow: 
+    0 10px 40px rgba(212, 175, 55, 0.4),
+    inset 0 2px 0 rgba(212, 175, 55, 0.1);
+}
+
+.amp-head.amp-marshall_jcm800 .amp-head-top {
+  background: linear-gradient(180deg, #e5c158 0%, #d4af37 50%, #b8941f 100%);
+  border-bottom: 3px solid #8b6914;
+}
+
+.amp-head.amp-marshall_jcm800 .brand-text {
+  color: #000000;
+  font-weight: 900;
+  letter-spacing: 5px;
+}
+
+.amp-head.amp-marshall_jcm800 .model-text {
+  color: #000000;
+  font-weight: 900;
+  text-shadow: 0 0 10px rgba(255, 235, 180, 0.8);
+}
+
+.amp-head.amp-marshall_jcm800 ~ .amp-cabinet {
+  background: linear-gradient(180deg, #0f0f0f 0%, #050505 100%);
+  border: 3px solid #d4af37;
+}
+
+.amp-head.amp-marshall_jcm800 ~ .amp-cabinet .speaker-cone {
+  background: linear-gradient(135deg, #3a3a3a, #1a1a1a);
+  border: 2px solid #d4af37;
+}
+
+/* ORANGE ROCKERVERB - Orange/White */
+.amp-head.amp-orange_rockerverb {
+  background: 
+    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,255,255,0.05) 2px, rgba(255,255,255,0.05) 4px),
+    linear-gradient(180deg, #ff9a00 0%, #ff8c00 50%, #ff7700 100%);
+  border: 3px solid #ffffff;
+  box-shadow: 
+    0 10px 40px rgba(255, 140, 0, 0.5),
+    inset 0 2px 0 rgba(255, 255, 255, 0.3);
+}
+
+.amp-head.amp-orange_rockerverb .amp-head-top {
+  background: linear-gradient(180deg, #000000 0%, #0a0a0a 100%);
+  border-bottom: 3px solid #ff8c00;
+}
+
+.amp-head.amp-orange_rockerverb .brand-text {
+  color: #ffffff;
+  font-weight: 900;
+  letter-spacing: 4px;
+}
+
+.amp-head.amp-orange_rockerverb .model-text {
+  color: #ff8c00;
+  text-shadow: 0 0 15px rgba(255, 140, 0, 0.8);
+}
+
+.amp-head.amp-orange_rockerverb ~ .amp-cabinet {
+  background: linear-gradient(180deg, #ff8c00 0%, #ff7700 100%);
+  border: 3px solid #ffffff;
+}
+
+.amp-head.amp-orange_rockerverb ~ .amp-cabinet .speaker-cone {
+  background: linear-gradient(135deg, #654321, #3a2512);
+  border: 2px solid #ffffff;
+}
+
+/* HIWATT DR103 - Blue/Silver */
+.amp-head.amp-hiwatt_dr103 {
+  background: 
+    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(70,130,180,0.1) 2px, rgba(70,130,180,0.1) 4px),
+    linear-gradient(180deg, #5a9fd4 0%, #4682b4 50%, #2f4f7f 100%);
+  border: 3px solid #c0c0c0;
+  box-shadow: 
+    0 10px 40px rgba(70, 130, 180, 0.4),
+    inset 0 2px 0 rgba(255, 255, 255, 0.2);
+}
+
+.amp-head.amp-hiwatt_dr103 .amp-head-top {
+  background: linear-gradient(180deg, #2f4f7f 0%, #1a3050 100%);
+  border-bottom: 3px solid #c0c0c0;
+}
+
+.amp-head.amp-hiwatt_dr103 .brand-text {
+  color: #ffffff;
+  letter-spacing: 5px;
+  font-weight: 900;
+}
+
+.amp-head.amp-hiwatt_dr103 .model-text {
+  color: #ffffff;
+  text-shadow: 0 0 15px rgba(192, 192, 192, 0.8);
+}
+
+.amp-head.amp-hiwatt_dr103 ~ .amp-cabinet {
+  background: linear-gradient(180deg, #4682b4 0%, #2f4f7f 100%);
+  border: 3px solid #c0c0c0;
+}
+
+.amp-head.amp-hiwatt_dr103 ~ .amp-cabinet .speaker-cone {
+  background: linear-gradient(135deg, #2f4f4f, #1a2a2a);
+  border: 2px solid #c0c0c0;
+}
+
+/* MARSHALL JTM45 - Black/Gold (Vintage) */
+.amp-head.amp-marshall_jtm45 {
+  background: 
+    repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(255,215,0,0.05) 3px, rgba(255,215,0,0.05) 6px),
+    linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+  border: 3px solid #ffd700;
+  box-shadow: 
+    0 10px 40px rgba(255, 215, 0, 0.3),
+    inset 0 2px 0 rgba(255, 215, 0, 0.1);
+}
+
+.amp-head.amp-marshall_jtm45 .amp-head-top {
+  background: linear-gradient(180deg, #ffd700 0%, #d4af37 100%);
+  border-bottom: 3px solid #8b6914;
+}
+
+.amp-head.amp-marshall_jtm45 .brand-text {
+  color: #000000;
+  font-weight: 900;
+  letter-spacing: 5px;
+}
+
+.amp-head.amp-marshall_jtm45 .model-text {
+  color: #000000;
+  font-weight: 800;
+  text-shadow: 0 0 8px rgba(255, 235, 180, 0.6);
+}
+
+.amp-head.amp-marshall_jtm45 ~ .amp-cabinet {
+  background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+  border: 3px solid #ffd700;
+}
+
+.amp-head.amp-marshall_jtm45 ~ .amp-cabinet .speaker-cone {
+  background: linear-gradient(135deg, #654321, #3a2512);
+  border: 2px solid #ffd700;
+}
+
+/* BAD CAT HOT CAT - Black/Red */
+.amp-head.amp-badcat_hotcat {
+  background: 
+    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,99,71,0.1) 2px, rgba(255,99,71,0.1) 4px),
+    linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 50%, #0a0a0a 100%);
+  border: 3px solid #ff6347;
+  box-shadow: 
+    0 10px 40px rgba(255, 99, 71, 0.4),
+    inset 0 2px 0 rgba(255, 99, 71, 0.15);
+}
+
+.amp-head.amp-badcat_hotcat .amp-head-top {
+  background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+  border-bottom: 3px solid #ff6347;
+}
+
+.amp-head.amp-badcat_hotcat .brand-text {
+  color: #ff6347;
+  font-weight: 900;
+  letter-spacing: 3px;
+}
+
+.amp-head.amp-badcat_hotcat .model-text {
+  color: #ffffff;
+  text-shadow: 0 0 15px rgba(255, 99, 71, 0.8);
+}
+
+.amp-head.amp-badcat_hotcat ~ .amp-cabinet {
+  background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+  border: 3px solid #ff6347;
+}
+
+.amp-head.amp-badcat_hotcat ~ .amp-cabinet .speaker-cone {
+  background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+  border: 2px solid #ff6347;
+}
+
+/* ========================================
+   HIGH GAIN/MODERN (5)
+   ======================================== */
+
+/* PEAVEY 5150 - Black/Red */
+.amp-head.amp-peavey_5150 {
+  background: 
+    repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,0,0,0.15) 2px, rgba(255,0,0,0.15) 4px),
+    linear-gradient(180deg, #1a0000 0%, #0a0000 50%, #000000 100%);
+  border: 3px solid #ff0000;
+  box-shadow: 
+    0 10px 40px rgba(255, 0, 0, 0.5),
+    inset 0 2px 0 rgba(255, 0, 0, 0.2);
+}
+
+.amp-head.amp-peavey_5150 .amp-head-top {
+  background: linear-gradient(180deg, #000000 0%, #0a0000 100%);
+  border-bottom: 3px solid #ff0000;
+}
+
+.amp-head.amp-peavey_5150 .brand-text {
+  color: #ff0000;
+  font-weight: 900;
+  letter-spacing: 5px;
+}
+
+.amp-head.amp-peavey_5150 .model-text {
+  color: #ffffff;
+  text-shadow: 0 0 20px rgba(255, 0, 0, 1);
+  font-size: 22px;
+}
+
+.amp-head.amp-peavey_5150 ~ .amp-cabinet {
+  background: linear-gradient(180deg, #0a0000 0%, #000000 100%);
+  border: 3px solid #ff0000;
+}
+
+.amp-head.amp-peavey_5150 ~ .amp-cabinet .speaker-cone {
+  background: linear-gradient(135deg, #1a1a1a, #0a0a0a);
+  border: 2px solid #ff0000;
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);
+}
+
+/* BOGNER ECSTASY - Dark Blue */
+.amp-head.amp-bogner_ecstasy {
+  background: 
+    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(74,158,255,0.1) 2px, rgba(74,158,255,0.1) 4px),
+    linear-gradient(180deg, #2a3a5a 0%, #1a2a4a 50%, #16213e 100%);
+  border: 3px solid #4a9eff;
+  box-shadow: 
+    0 10px 40px rgba(74, 158, 255, 0.4),
+    inset 0 2px 0 rgba(74, 158, 255, 0.2);
+}
+
+.amp-head.amp-bogner_ecstasy .amp-head-top {
+  background: linear-gradient(180deg, #16213e 0%, #0f1a2e 100%);
+  border-bottom: 3px solid #4a9eff;
+}
+
+.amp-head.amp-bogner_ecstasy .brand-text {
+  color: #4a9eff;
+  font-weight: 900;
+  letter-spacing: 4px;
+}
+
+.amp-head.amp-bogner_ecstasy .model-text {
+  color: #ffffff;
+  text-shadow: 0 0 15px rgba(74, 158, 255, 0.8);
+}
+
+.amp-head.amp-bogner_ecstasy ~ .amp-cabinet {
+  background: linear-gradient(180deg, #1a2a4a 0%, #16213e 100%);
+  border: 3px solid #4a9eff;
+}
+
+.amp-head.amp-bogner_ecstasy ~ .amp-cabinet .speaker-cone {
+  background: linear-gradient(135deg, #16213e, #0f1a2e);
+  border: 2px solid #4a9eff;
+}
+
+/* DIEZEL VH4 - Gray/White */
+.amp-head.amp-diezel_vh4 {
+  background: 
+    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(237,242,244,0.05) 2px, rgba(237,242,244,0.05) 4px),
+    linear-gradient(180deg, #3a3e52 0%, #2b2d42 50%, #1a1c2e 100%);
+  border: 3px solid #edf2f4;
+  box-shadow: 
+    0 10px 40px rgba(237, 242, 244, 0.3),
+    inset 0 2px 0 rgba(237, 242, 244, 0.1);
+}
+
+.amp-head.amp-diezel_vh4 .amp-head-top {
+  background: linear-gradient(180deg, #2b2d42 0%, #1a1c2e 100%);
+  border-bottom: 3px solid #edf2f4;
+}
+
+.amp-head.amp-diezel_vh4 .brand-text {
+  color: #edf2f4;
+  font-weight: 900;
+  letter-spacing: 5px;
+}
+
+.amp-head.amp-diezel_vh4 .model-text {
+  color: #ffffff;
+  text-shadow: 0 0 15px rgba(237, 242, 244, 0.8);
+}
+
+.amp-head.amp-diezel_vh4 ~ .amp-cabinet {
+  background: linear-gradient(180deg, #2b2d42 0%, #1a1c2e 100%);
+  border: 3px solid #edf2f4;
+}
+
+.amp-head.amp-diezel_vh4 ~ .amp-cabinet .speaker-cone {
+  background: linear-gradient(135deg, #1a1a1a, #0a0a0a);
+  border: 2px solid #edf2f4;
+}
+
+/* FRIEDMAN BE-100 - Black/Gold */
+.amp-head.amp-friedman_be100 {
+  background: 
+    repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(255,215,0,0.08) 3px, rgba(255,215,0,0.08) 6px),
+    linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+  border: 3px solid #ffd700;
+  box-shadow: 
+    0 10px 40px rgba(255, 215, 0, 0.4),
+    inset 0 2px 0 rgba(255, 215, 0, 0.1);
+}
+
+.amp-head.amp-friedman_be100 .amp-head-top {
+  background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+  border-bottom: 3px solid #ffd700;
+}
+
+.amp-head.amp-friedman_be100 .brand-text {
+  color: #ffd700;
+  font-weight: 900;
+  letter-spacing: 4px;
+}
+
+.amp-head.amp-friedman_be100 .model-text {
+  color: #ffffff;
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+}
+
+.amp-head.amp-friedman_be100 ~ .amp-cabinet {
+  background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+  border: 3px solid #ffd700;
+}
+
+.amp-head.amp-friedman_be100 ~ .amp-cabinet .speaker-cone {
+  background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+  border: 2px solid #ffd700;
+}
+
+/* SOLDANO SLO-100 - Red/Gold */
+.amp-head.amp-soldano_slo100 {
+  background: 
+    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,215,0,0.1) 2px, rgba(255,215,0,0.1) 4px),
+    linear-gradient(180deg, #a52a2a 0%, #8b0000 50%, #6b0000 100%);
+  border: 3px solid #ffd700;
+  box-shadow: 
+    0 10px 40px rgba(255, 215, 0, 0.4),
+    inset 0 2px 0 rgba(255, 215, 0, 0.2);
+}
+
+.amp-head.amp-soldano_slo100 .amp-head-top {
+  background: linear-gradient(180deg, #6b0000 0%, #4b0000 100%);
+  border-bottom: 3px solid #ffd700;
+}
+
+.amp-head.amp-soldano_slo100 .brand-text {
+  color: #ffd700;
+  font-weight: 900;
+  letter-spacing: 4px;
+}
+
+.amp-head.amp-soldano_slo100 .model-text {
+  color: #ffffff;
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+}
+
+.amp-head.amp-soldano_slo100 ~ .amp-cabinet {
+  background: linear-gradient(180deg, #8b0000 0%, #6b0000 100%);
+  border: 3px solid #ffd700;
+}
+
+.amp-head.amp-soldano_slo100 ~ .amp-cabinet .speaker-cone {
+  background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+  border: 2px solid #ffd700;
+}
+
+/* ========================================
+   BOUTIQUE/MODERN (5)
+   ======================================== */
+
+/* TWO-ROCK CLASSIC - Gray/Blue */
+.amp-head.amp-tworock_classic {
+  background: 
+    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(74,158,255,0.08) 2px, rgba(74,158,255,0.08) 4px),
+    linear-gradient(180deg, #5a5a5a 0%, #4a4a4a 50%, #3a3a3a 100%);
+  border: 3px solid #4a9eff;
+  box-shadow: 
+    0 10px 40px rgba(74, 158, 255, 0.3),
+    inset 0 2px 0 rgba(74, 158, 255, 0.15);
+}
+
+.amp-head.amp-tworock_classic .amp-head-top {
+  background: linear-gradient(180deg, #3a3a3a 0%, #2a2a2a 100%);
+  border-bottom: 3px solid #4a9eff;
+}
+
+.amp-head.amp-tworock_classic .brand-text {
+  color: #4a9eff;
+  font-weight: 900;
+  letter-spacing: 3px;
+}
+
+.amp-head.amp-tworock_classic .model-text {
+  color: #ffffff;
+  text-shadow: 0 0 15px rgba(74, 158, 255, 0.8);
+}
+
+.amp-head.amp-tworock_classic ~ .amp-cabinet {
+  background: linear-gradient(180deg, #4a4a4a 0%, #3a3a3a 100%);
+  border: 3px solid #4a9eff;
+}
+
+.amp-head.amp-tworock_classic ~ .amp-cabinet .speaker-cone {
+  background: linear-gradient(135deg, #5a5a5a, #3a3a3a);
+  border: 2px solid #4a9eff;
+}
+
+/* DUMBLE ODS - Gold/Brown */
+.amp-head.amp-dumble_ods {
+  background: 
+    repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(139,105,20,0.15) 2px, rgba(139,105,20,0.15) 4px),
+    linear-gradient(180deg, #e5c88d 0%, #d4af37 50%, #c9a959 100%);
+  border: 3px solid #654321;
+  box-shadow: 
+    0 10px 40px rgba(212, 175, 55, 0.4),
+    inset 0 2px 0 rgba(255, 235, 180, 0.3);
+}
+
+.amp-head.amp-dumble_ods .amp-head-top {
+  background: linear-gradient(180deg, #8b7355 0%, #654321 100%);
+  border-bottom: 3px solid #d4af37;
+}
+
+.amp-head.amp-dumble_ods .brand-text {
+  color: #ffd700;
+  font-weight: 900;
+  letter-spacing: 4px;
+}
+
+.amp-head.amp-dumble_ods .model-text {
+  color: #ffffff;
+  text-shadow: 0 0 12px rgba(255, 215, 0, 0.6);
+}
+
+.amp-head.amp-dumble_ods ~ .amp-cabinet {
+  background: linear-gradient(180deg, #d4af37 0%, #c9a959 100%);
+  border: 3px solid #654321;
+}
+
+.amp-head.amp-dumble_ods ~ .amp-cabinet .speaker-cone {
+  background: linear-gradient(135deg, #8b7355, #654321);
+  border: 2px solid #d4af37;
+}
+
+/* MESA MARK V - Black/Orange */
+.amp-head.amp-mesa_mark_v {
+  background: 
+    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,165,0,0.1) 2px, rgba(255,165,0,0.1) 4px),
+    linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+  border: 3px solid #ffa500;
+  box-shadow: 
+    0 10px 40px rgba(255, 165, 0, 0.4),
+    inset 0 2px 0 rgba(255, 165, 0, 0.15);
+}
+
+.amp-head.amp-mesa_mark_v .amp-head-top {
+  background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+  border-bottom: 3px solid #ffa500;
+}
+
+.amp-head.amp-mesa_mark_v .brand-text {
+  color: #ffa500;
+  font-weight: 900;
+  letter-spacing: 4px;
+}
+
+.amp-head.amp-mesa_mark_v .model-text {
+  color: #ffffff;
+  text-shadow: 0 0 15px rgba(255, 165, 0, 0.8);
+}
+
+.amp-head.amp-mesa_mark_v ~ .amp-cabinet {
+  background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+  border: 3px solid #ffa500;
+}
+
+.amp-head.amp-mesa_mark_v ~ .amp-cabinet .speaker-cone {
+  background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+  border: 2px solid #ffa500;
+}
+
+/* SUHR BADGER - Black/Blue */
+.amp-head.amp-suhr_badger {
+  background: 
+    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(74,158,255,0.1) 2px, rgba(74,158,255,0.1) 4px),
+    linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 50%, #0a0a0a 100%);
+  border: 3px solid #4a9eff;
+  box-shadow: 
+    0 10px 40px rgba(74, 158, 255, 0.4),
+    inset 0 2px 0 rgba(74, 158, 255, 0.15);
+}
+
+.amp-head.amp-suhr_badger .amp-head-top {
+  background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+  border-bottom: 3px solid #4a9eff;
+}
+
+.amp-head.amp-suhr_badger .brand-text {
+  color: #4a9eff;
+  font-weight: 900;
+  letter-spacing: 4px;
+}
+
+.amp-head.amp-suhr_badger .model-text {
+  color: #ffffff;
+  text-shadow: 0 0 15px rgba(74, 158, 255, 0.8);
+}
+
+.amp-head.amp-suhr_badger ~ .amp-cabinet {
+  background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+  border: 3px solid #4a9eff;
+}
+
+.amp-head.amp-suhr_badger ~ .amp-cabinet .speaker-cone {
+  background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+  border: 2px solid #4a9eff;
+}
+
+/* VICTORY DUCHESS - Red/Silver */
+.amp-head.amp-victory_duchess {
+  background: 
+    repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(192,192,192,0.1) 2px, rgba(192,192,192,0.1) 4px),
+    linear-gradient(180deg, #a52a2a 0%, #8b0000 50%, #6b0000 100%);
+  border: 3px solid #c0c0c0;
+  box-shadow: 
+    0 10px 40px rgba(192, 192, 192, 0.3),
+    inset 0 2px 0 rgba(192, 192, 192, 0.2);
+}
+
+.amp-head.amp-victory_duchess .amp-head-top {
+  background: linear-gradient(180deg, #6b0000 0%, #4b0000 100%);
+  border-bottom: 3px solid #c0c0c0;
+}
+
+.amp-head.amp-victory_duchess .brand-text {
+  color: #c0c0c0;
+  font-weight: 900;
+  letter-spacing: 4px;
+}
+
+.amp-head.amp-victory_duchess .model-text {
+  color: #ffffff;
+  text-shadow: 0 0 15px rgba(192, 192, 192, 0.8);
+}
+
+.amp-head.amp-victory_duchess ~ .amp-cabinet {
+  background: linear-gradient(180deg, #8b0000 0%, #6b0000 100%);
+  border: 3px solid #c0c0c0;
+}
+
+.amp-head.amp-victory_duchess ~ .amp-cabinet .speaker-cone {
+  background: linear-gradient(135deg, #654321, #3a2512);
+  border: 2px solid #c0c0c0;
+}
+
+/* ========================================
+   SPECIFIC AMP CONTROLS
+   ======================================== */
+
+.amp-specific-controls {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.specific-controls-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 107, 53, 0.3), transparent);
+  margin: 8px 0;
+}
+
+.specific-controls-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  padding: 8px;
+}
+
+/* Toggle Switches */
+.toggle-switch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.toggle-switch label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #ff6b35;
+  text-shadow: 0 0 5px rgba(255, 107, 53, 0.5);
+}
+
+.toggle-switch input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 36px;
+  height: 18px;
+  background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+  border: 2px solid #3a3a3a;
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.8),
+    0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.toggle-switch input[type="checkbox"]::before {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  top: 1px;
+  left: 1px;
+  background: linear-gradient(135deg, #5a5a5a 0%, #3a3a3a 100%);
+  border: 1px solid #2a2a2a;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.toggle-switch input[type="checkbox"]:checked {
+  background: linear-gradient(180deg, #ff6b35 0%, #d94a1f 100%);
+  border-color: #ff8c5a;
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.3),
+    0 0 10px rgba(255, 107, 53, 0.5);
+}
+
+.toggle-switch input[type="checkbox"]:checked::before {
+  left: 19px;
+  background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
+  border-color: #ff6b35;
+  box-shadow:
+    0 2px 6px rgba(255, 107, 53, 0.8),
+    0 0 8px rgba(255, 107, 53, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.toggle-switch input[type="checkbox"]:hover {
+  border-color: #ff6b35;
+}
+
+.toggle-switch input[type="checkbox"]:active::before {
+  width: 16px;
+}
+
+/* ========================================= */
+/* MAIN LAYOUT: AMP STACK + ADVANCED CONTROLS */
+/* ========================================= */
+
+.amp-main-layout {
+  display: flex;
+  gap: 50px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.amp-stack-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+/* ========================================= */
+/* ADVANCED CONTROLS SECTION */
+/* ========================================= */
+
+.amp-advanced-section {
+  flex: 1;
+  min-width: 300px;
+  max-width: 450px;
+  align-self: stretch;
+}
+
+.advanced-toggle {
+  width: 100%;
+  min-height: 60px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  border: 2px solid #ff6b35;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.advanced-toggle::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 107, 53, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.advanced-toggle:hover::before {
+  left: 100%;
+}
+
+.advanced-toggle:hover {
+  background: linear-gradient(135deg, #2d2d2d 0%, #3a3a3a 100%);
+  border-color: #ff8555;
+  box-shadow: 0 0 15px rgba(255, 107, 53, 0.4);
+  transform: translateY(-2px);
+}
+
+.advanced-toggle:active {
+  transform: translateY(0);
+}
+
+.advanced-toggle span:first-child {
+  font-size: 12px;
+  transition: transform 0.3s ease;
+}
+
+.pro-badge {
+  position: absolute;
+  right: 15px;
+  padding: 3px 8px;
+  background: linear-gradient(135deg, #ff6b35, #ff8555);
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 5px rgba(255, 107, 53, 0.5);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 2px 5px rgba(255, 107, 53, 0.5);
+  }
+  50% {
+    box-shadow: 0 2px 15px rgba(255, 107, 53, 0.8);
+  }
+}
+
+.advanced-controls-panel {
+  margin-top: 15px;
+  padding: 20px;
+  background: linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 100%);
+  border: 2px solid rgba(255, 107, 53, 0.3);
+  border-radius: 10px;
+  overflow-y: auto;
+  max-height: 600px;
+}
+
+.advanced-section {
+  margin-bottom: 25px;
+}
+
+.advanced-section:last-child {
+  margin-bottom: 0;
+}
+
+.advanced-section h4 {
+  margin: 0 0 15px 0;
+  padding: 8px 15px;
+  background: linear-gradient(135deg, #ff6b35, #ff8555);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+}
+
+.advanced-controls-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 15px;
+  align-items: start;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.control-group label {
+  font-size: 11px;
+  color: #aaa;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.control-group select {
+  padding: 8px 10px;
+  background: #1a1a1a;
+  border: 1px solid #444;
+  border-radius: 5px;
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.control-group select:hover {
+  border-color: #ff6b35;
+  box-shadow: 0 0 8px rgba(255, 107, 53, 0.3);
+}
+
+.control-group select:focus {
+  outline: none;
+  border-color: #ff6b35;
+  box-shadow: 0 0 12px rgba(255, 107, 53, 0.5);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .amp-main-layout {
+    flex-direction: column;
+  }
+
+  .amp-advanced-section {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .amp-stack-wrapper {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .amp-rig-container {
+    width: 100%;
+  }
+  
+  .knob-group {
+    gap: 5px;
+  }
+
+  .specific-controls-group {
+    gap: 8px;
+  }
+
+  .toggle-switch input[type="checkbox"] {
+    width: 32px;
+    height: 16px;
+  }
+
+  .toggle-switch input[type="checkbox"]::before {
+    width: 10px;
+    height: 10px;
+  }
+
+  .toggle-switch input[type="checkbox"]:checked::before {
+    left: 16px;
+  }
+
+  .advanced-controls-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ============================================
+   ULTRA-REALISTIC TOLEX TEXTURES
+   ======================================== */
+
+/* TWEED TEXTURE (Fender Bassman) */
+.amp-head.amp-fender_bassman::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4"><rect width="4" height="4" fill="%23d4a574"/><path d="M0 0h2v2H0zM2 2h2v2H2z" fill="%23c9b896"/></svg>'),
+    repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(139,105,20,0.1) 2px, rgba(139,105,20,0.1) 4px),
+    repeating-linear-gradient(-45deg, transparent, transparent 2px, rgba(160,120,50,0.08) 2px, rgba(160,120,50,0.08) 4px);
+  background-size: 4px 4px, 6px 6px, 6px 6px;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  opacity: 0.8;
+}
+
+/* Tweed wear/tear effect */
+.amp-head.amp-fender_bassman::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(0,0,0,0.15) 0%, transparent 30%),
+    radial-gradient(circle at 80% 70%, rgba(0,0,0,0.1) 0%, transparent 25%),
+    radial-gradient(circle at 50% 50%, rgba(0,0,0,0.08) 0%, transparent 40%);
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+
+/* BLACK TOLEX (Fender Twin, Marshall) */
+.amp-head.amp-twin_reverb::before,
+.amp-head.amp-plexi_lead::before,
+.amp-head.amp-fender_deluxe::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(255,255,255,0.02) 1px, rgba(255,255,255,0.02) 2px),
+    repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(255,255,255,0.015) 1px, rgba(255,255,255,0.015) 2px);
+  background-size: 100% 2px, 2px 100%;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* Black tolex scuffs */
+.amp-head.amp-twin_reverb::after,
+.amp-head.amp-plexi_lead::after,
+.amp-head.amp-fender_deluxe::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(ellipse at 15% 25%, rgba(255,255,255,0.03) 0%, transparent 15%),
+    radial-gradient(ellipse at 75% 60%, rgba(255,255,255,0.02) 0%, transparent 20%),
+    radial-gradient(ellipse at 40% 80%, rgba(255,255,255,0.025) 0%, transparent 18%);
+  pointer-events: none;
+}
+
+/* ORANGE TOLEX (Orange Rockerverb) */
+.amp-head.amp-orange_rockerverb::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(255,136,0,0.15) 3px, rgba(255,136,0,0.15) 6px),
+    repeating-linear-gradient(-45deg, transparent, transparent 3px, rgba(255,102,0,0.1) 3px, rgba(255,102,0,0.1) 6px);
+  background-size: 8px 8px;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  opacity: 0.7;
+}
+
+/* VOX BROWN/FAWN TOLEX */
+.amp-head.amp-vox_ac30::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="6" height="6"><rect width="6" height="6" fill="%233a2a1a"/><path d="M0 0h3v3H0zM3 3h3v3H3z" fill="%232b1810"/></svg>'),
+    repeating-linear-gradient(30deg, transparent, transparent 2px, rgba(139,115,85,0.2) 2px, rgba(139,115,85,0.2) 4px);
+  background-size: 6px 6px, 10px 10px;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  opacity: 0.75;
+}
+
+/* BASKETWEAVE GRILL (Marshall, Orange) */
+.amp-cabinet.cab-4x12::before {
+  content: '';
+  position: absolute;
+  top: 50px;
+  left: 40px;
+  right: 40px;
+  bottom: 40px;
+  background-image: 
+    repeating-linear-gradient(0deg, transparent, transparent 4px, rgba(0,0,0,0.4) 4px, rgba(0,0,0,0.4) 8px),
+    repeating-linear-gradient(90deg, transparent, transparent 4px, rgba(0,0,0,0.4) 4px, rgba(0,0,0,0.4) 8px);
+  background-size: 8px 8px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* DIAMOND GRILL (Vox) */
+.amp-head.amp-vox_ac30 ~ .amp-cabinet::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(212,175,55,0.1) 8px, rgba(212,175,55,0.1) 12px),
+    repeating-linear-gradient(-45deg, transparent, transparent 8px, rgba(212,175,55,0.08) 8px, rgba(212,175,55,0.08) 12px);
+  background-size: 16px 16px;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  opacity: 0.5;
+}
+
+/* SILVER/WHEAT CLOTH (Fender) */
+.amp-head.amp-twin_reverb ~ .amp-cabinet .speaker-grid::before,
+.amp-head.amp-fender_deluxe ~ .amp-cabinet .speaker-grid::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    repeating-linear-gradient(0deg, #d4d4aa 0px, #d4d4aa 2px, #c0c0a0 2px, #c0c0a0 4px),
+    repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(0,0,0,0.05) 1px, rgba(0,0,0,0.05) 2px);
+  background-size: 100% 4px, 2px 100%;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+/* MESA BOOGIE WICKER GRILL */
+.amp-head.amp-dual_rectifier ~ .amp-cabinet::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.3) 2px, rgba(0,0,0,0.3) 3px),
+    repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(0,0,0,0.25) 3px, rgba(0,0,0,0.25) 4px);
+  background-size: 100% 3px, 4px 100%;
+  pointer-events: none;
+  opacity: 0.7;
+  z-index: 1;
+}
+
+/* ROLAND JC-120 SILVER SPARKLE */
+.amp-head.amp-roland_jc120::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(circle at 15% 20%, rgba(255,255,255,0.6) 1px, transparent 1px),
+    radial-gradient(circle at 45% 35%, rgba(255,255,255,0.4) 1px, transparent 1px),
+    radial-gradient(circle at 75% 55%, rgba(255,255,255,0.5) 1px, transparent 1px),
+    radial-gradient(circle at 25% 70%, rgba(255,255,255,0.3) 1px, transparent 1px),
+    radial-gradient(circle at 85% 25%, rgba(255,255,255,0.7) 1px, transparent 1px),
+    radial-gradient(circle at 60% 80%, rgba(255,255,255,0.4) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  animation: sparkle-amp 4s ease-in-out infinite;
+  opacity: 0.8;
+}
+
+@keyframes sparkle-amp {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 0.4; }
+}
+
+/* VINTAGE WEAR & TEAR */
+.amp-head.amp-vox_ac30,
+.amp-head.amp-fender_bassman,
+.amp-head.amp-marshall_jtm45 {
+  position: relative;
+}
+
+.amp-head.amp-vox_ac30::after,
+.amp-head.amp-fender_bassman::after,
+.amp-head.amp-marshall_jtm45::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(ellipse at 20% 30%, rgba(0,0,0,0.2) 0%, transparent 25%),
+    radial-gradient(ellipse at 70% 60%, rgba(0,0,0,0.15) 0%, transparent 30%),
+    radial-gradient(ellipse at 40% 80%, rgba(0,0,0,0.1) 0%, transparent 20%),
+    linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.1) 100%);
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  opacity: 0.5;
+}
+
+/* CORNER PROTECTION (Metal corners) */
+.amp-head::before,
+.amp-cabinet::before {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(128, 128, 128, 0.6);
+  border-bottom: none;
+  border-right: none;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.amp-head::after,
+.amp-cabinet::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(128, 128, 128, 0.6);
+  border-bottom: none;
+  border-left: none;
+  top: 0;
+  right: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* HANDLES (Leather/Vinyl) */
+.amp-head-top::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 25px;
+  background: linear-gradient(180deg, #654321 0%, #4a3214 50%, #3a2411 100%);
+  border-radius: 12px 12px 4px 4px;
+  box-shadow: 
+    inset 0 2px 6px rgba(0,0,0,0.6),
+    inset 0 -1px 2px rgba(255,255,255,0.1),
+    0 4px 8px rgba(0,0,0,0.4);
+  border: 1px solid #2a1a0a;
+}
+
+/* Handle stitching */
+.amp-head-top::after {
+  content: '';
+  position: absolute;
+  top: 13px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 110px;
+  height: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 8px,
+    rgba(0,0,0,0.4) 8px,
+    rgba(0,0,0,0.4) 10px
+  );
+}
+
+/* RUBBER FEET */
+.amp-cabinet::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 30px;
+  width: 25px;
+  height: 8px;
+  background: radial-gradient(ellipse at center, #1a1a1a 0%, #0a0a0a 100%);
+  border-radius: 50% 50% 0 0;
+  box-shadow: 
+    0 2px 4px rgba(0,0,0,0.6),
+    150px 0 0 #1a1a1a,
+    300px 0 0 #1a1a1a;
+}
+
+/* INPUT JACKS (1/4") */
+.amp-controls::before {
+  content: '♪';
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  background: radial-gradient(circle, #2a2a2a 0%, #1a1a1a 100%);
+  border-radius: 50%;
+  box-shadow: 
+    inset 0 2px 4px rgba(0,0,0,0.8),
+    0 1px 2px rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #666;
+}
+
+/* POWER LED GLOW */
+.amp-power-led {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  width: 8px;
+  height: 8px;
+  background: #ff0000;
+  border-radius: 50%;
+  box-shadow: 
+    0 0 10px #ff0000,
+    0 0 20px rgba(255,0,0,0.6),
+    inset 0 1px 2px rgba(255,255,255,0.5);
+  animation: power-pulse 2s ease-in-out infinite;
+}
+
+@keyframes power-pulse {
+  0%, 100% { 
+    opacity: 1;
+    box-shadow: 
+      0 0 10px #ff0000,
+      0 0 20px rgba(255,0,0,0.6),
+      inset 0 1px 2px rgba(255,255,255,0.5);
+  }
+  50% { 
+    opacity: 0.6;
+    box-shadow: 
+      0 0 5px #ff0000,
+      0 0 10px rgba(255,0,0,0.3),
+      inset 0 1px 2px rgba(255,255,255,0.3);
+  }
+}
+
+/* TOLEX SEAMS */
+.amp-head,
+.amp-cabinet {
+  position: relative;
+}
+
+.amp-head-body::before,
+.amp-cabinet-body::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(0,0,0,0.3) 20%,
+    rgba(0,0,0,0.4) 50%,
+    rgba(0,0,0,0.3) 80%,
+    transparent 100%
+  );
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* PIPING (Edge trim) */
+.amp-head-body::after,
+.amp-cabinet-body::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.1) 0%,
+    rgba(255,255,255,0.05) 50%,
+    rgba(255,255,255,0.1) 100%
+  );
+  border-radius: 3px 3px 0 0;
+  pointer-events: none;
+}
+
+/* ============================================
+   TUBE GLOW ANIMATION (Warm-up & Running)
+   ======================================== */
+
+/* Tubes container on amp top */
+.amp-head-top::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 40px;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 8px;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Tube glass elements */
+.amp-head:not(.bypassed)::before {
+  content: '';
+  position: absolute;
+  top: 20px;
+  right: 50px;
+  width: 12px;
+  height: 30px;
+  background: linear-gradient(180deg, 
+    rgba(255, 102, 0, 0.8) 0%,
+    rgba(255, 140, 0, 0.6) 30%,
+    rgba(255, 165, 0, 0.4) 60%,
+    rgba(255, 180, 0, 0.2) 100%
+  );
+  border-radius: 6px;
+  box-shadow: 
+    0 0 20px rgba(255, 102, 0, 0.8),
+    0 0 40px rgba(255, 102, 0, 0.5),
+    0 0 60px rgba(255, 102, 0, 0.3),
+    inset 0 -10px 20px rgba(255, 140, 0, 0.6);
+  animation: tube-glow 3s ease-in-out infinite, tube-warm-up 2s ease-out;
+  filter: blur(1px);
+  z-index: 100;
+}
+
+/* Second tube */
+.amp-head:not(.bypassed)::after {
+  content: '';
+  position: absolute;
+  top: 20px;
+  right: 70px;
+  width: 12px;
+  height: 30px;
+  background: linear-gradient(180deg, 
+    rgba(255, 102, 0, 0.8) 0%,
+    rgba(255, 140, 0, 0.6) 30%,
+    rgba(255, 165, 0, 0.4) 60%,
+    rgba(255, 180, 0, 0.2) 100%
+  );
+  border-radius: 6px;
+  box-shadow: 
+    0 0 20px rgba(255, 102, 0, 0.8),
+    0 0 40px rgba(255, 102, 0, 0.5),
+    0 0 60px rgba(255, 102, 0, 0.3),
+    inset 0 -10px 20px rgba(255, 140, 0, 0.6);
+  animation: tube-glow 3s ease-in-out infinite 0.5s, tube-warm-up 2s ease-out 0.3s;
+  filter: blur(1px);
+  z-index: 100;
+}
+
+/* Tube warm-up animation (on load) */
+@keyframes tube-warm-up {
+  0% {
+    opacity: 0;
+    box-shadow: 0 0 5px rgba(255, 102, 0, 0.3);
+    background: linear-gradient(180deg, 
+      rgba(100, 50, 0, 0.5) 0%,
+      rgba(150, 80, 0, 0.3) 100%
+    );
+  }
+  30% {
+    opacity: 0.3;
+    box-shadow: 0 0 10px rgba(255, 102, 0, 0.4);
+  }
+  60% {
+    opacity: 0.7;
+    box-shadow: 0 0 15px rgba(255, 102, 0, 0.6);
+  }
+  100% {
+    opacity: 1;
+    box-shadow: 
+      0 0 20px rgba(255, 102, 0, 0.8),
+      0 0 40px rgba(255, 102, 0, 0.5);
+  }
+}
+
+/* Tube glow pulse (continuous) */
+@keyframes tube-glow {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 
+      0 0 20px rgba(255, 102, 0, 0.8),
+      0 0 40px rgba(255, 102, 0, 0.5),
+      0 0 60px rgba(255, 102, 0, 0.3);
+    filter: blur(1px);
+  }
+  50% {
+    opacity: 0.85;
+    box-shadow: 
+      0 0 15px rgba(255, 102, 0, 0.7),
+      0 0 30px rgba(255, 102, 0, 0.4),
+      0 0 45px rgba(255, 102, 0, 0.2);
+    filter: blur(1.5px);
+  }
+}
+
+/* Tube flicker effect (random) */
+@keyframes tube-flicker {
+  0%, 100% { opacity: 1; }
+  2% { opacity: 0.95; }
+  4% { opacity: 1; }
+  6% { opacity: 0.92; }
+  8% { opacity: 1; }
+}
+
+/* Tube glass reflections */
+.amp-controls::after {
+  content: '';
+  position: absolute;
+  top: -25px;
+  right: 50px;
+  width: 12px;
+  height: 30px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 20%,
+    rgba(255, 255, 255, 0.2) 40%,
+    transparent 100%
+  );
+  border-radius: 6px;
+  pointer-events: none;
+  animation: glass-shine 4s ease-in-out infinite;
+  z-index: 101;
+}
+
+@keyframes glass-shine {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translateX(0);
+  }
+  50% {
+    opacity: 0.6;
+    transform: translateX(2px);
+  }
+}
+
+/* Tube heat waves */
+.amp-head:not(.bypassed) {
+  position: relative;
+}
+
+.amp-head:not(.bypassed) .amp-head-top {
+  position: relative;
+  overflow: visible;
+}
+
+.amp-head:not(.bypassed) .amp-head-top::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  right: 30px;
+  width: 60px;
+  height: 40px;
+  background: 
+    radial-gradient(ellipse at center bottom, 
+      rgba(255, 140, 0, 0.15) 0%,
+      rgba(255, 165, 0, 0.1) 30%,
+      transparent 70%
+    );
+  filter: blur(10px);
+  animation: heat-wave 2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 99;
+}
+
+@keyframes heat-wave {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-5px) scale(1.1);
+    opacity: 0.3;
+  }
+}
+
+/* Tube sockets glow (ambient light on panel) */
+.amp-controls {
+  position: relative;
+}
+
+.amp-head:not(.bypassed) .amp-controls::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  right: 40px;
+  width: 80px;
+  height: 60px;
+  background: 
+    radial-gradient(ellipse at center, 
+      rgba(255, 140, 0, 0.08) 0%,
+      rgba(255, 165, 0, 0.04) 50%,
+      transparent 100%
+    );
+  filter: blur(15px);
+  pointer-events: none;
+  animation: ambient-glow 3s ease-in-out infinite;
+  z-index: 1;
+}
+
+@keyframes ambient-glow {
+  0%, 100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* Byp
+
+assed state - cold tubes */
+.amp-head.bypassed::before,
+.amp-head.bypassed::after {
+  animation: none;
+  opacity: 0.1;
+  box-shadow: 0 0 5px rgba(100, 100, 100, 0.3);
+  background: linear-gradient(180deg, 
+    rgba(80, 80, 80, 0.3) 0%,
+    rgba(60, 60, 60, 0.2) 100%
+  );
+  filter: grayscale(1);
+}
+
+/* High gain amps - extra tube */
+.amp-head.amp-dual_rectifier:not(.bypassed) .amp-head-top::after,
+.amp-head.amp-metal:not(.bypassed) .amp-head-top::after,
+.amp-head.amp-peavey_5150:not(.bypassed) .amp-head-top::after,
+.amp-head.amp-diezel_vh4:not(.bypassed) .amp-head-top::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 90px;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 30px;
+  background: linear-gradient(180deg, 
+    rgba(255, 0, 0, 0.8) 0%,
+    rgba(255, 60, 0, 0.6) 50%,
+    rgba(255, 100, 0, 0.3) 100%
+  );
+  border-radius: 6px;
+  box-shadow: 
+    0 0 25px rgba(255, 0, 0, 0.9),
+    0 0 50px rgba(255, 60, 0, 0.6);
+  animation: tube-glow-hot 2.5s ease-in-out infinite 1s;
+  filter: blur(1px);
+  z-index: 100;
+}
+
+/* Hotter glow for high-gain amps */
+@keyframes tube-glow-hot {
+  0%, 100% {
+    box-shadow: 
+      0 0 25px rgba(255, 0, 0, 0.9),
+      0 0 50px rgba(255, 60, 0, 0.6),
+      0 0 75px rgba(255, 100, 0, 0.3);
+  }
+  50% {
+    box-shadow: 
+      0 0 30px rgba(255, 0, 0, 1),
+      0 0 60px rgba(255, 60, 0, 0.8),
+      0 0 90px rgba(255, 100, 0, 0.5);
+  }
+}
+
+/* ============================================
+   SPRING REVERB SPLASH ANIMATION
+   ======================================== */
+
+/* Spring reverb tank visual (for amps with spring reverb) */
+.amp-head.amp-twin_reverb .amp-head-body::after,
+.amp-head.amp-fender_deluxe .amp-head-body::after,
+.amp-head.amp-fender_bassman .amp-head-body::after {
+  content: '';
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 8px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(192, 192, 192, 0.6) 20%,
+    rgba(192, 192, 192, 0.8) 50%,
+    rgba(192, 192, 192, 0.6) 80%,
+    transparent 100%
+  );
+  border-radius: 4px;
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.5),
+    inset 0 1px 2px rgba(255, 255, 255, 0.3);
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Spring coils visual */
+.amp-head.amp-twin_reverb .amp-head-body::before,
+.amp-head.amp-fender_deluxe .amp-head-body::before,
+.amp-head.amp-fender_bassman .amp-head-body::before {
+  content: '';
+  position: absolute;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 4px;
+  background-image: 
+    repeating-linear-gradient(90deg,
+      transparent 0px,
+      transparent 2px,
+      rgba(150, 150, 150, 0.5) 2px,
+      rgba(150, 150, 150, 0.5) 3px
+    );
+  pointer-events: none;
+  z-index: 6;
+  animation: spring-vibrate 0.3s ease-in-out;
+}
+
+/* Spring vibration animation (triggered on knob change) */
+@keyframes spring-vibrate {
+  0%, 100% {
+    transform: translateX(-50%) scaleX(1);
+  }
+  10% {
+    transform: translateX(-50%) scaleX(1.05);
+  }
+  20% {
+    transform: translateX(-50%) scaleX(0.95);
+  }
+  30% {
+    transform: translateX(-50%) scaleX(1.03);
+  }
+  40% {
+    transform: translateX(-50%) scaleX(0.97);
+  }
+  50% {
+    transform: translateX(-50%) scaleX(1.01);
+  }
+  60% {
+    transform: translateX(-50%) scaleX(0.99);
+  }
+  70% {
+    transform: translateX(-50%) scaleX(1);
+  }
+}
+
+/* Reverb splash ripple effect */
+.knob-container:has([label*="Reverb"]) .knob:active ~ .reverb-splash,
+.knob-container:has([label*="Spring"]) .knob:active ~ .reverb-splash {
+  display: block;
+  animation: splash-ripple 0.8s ease-out;
+}
+
+.reverb-splash {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  pointer-events: none;
+  z-index: 100;
+}
+
+@keyframes splash-ripple {
+  0% {
+    width: 40px;
+    height: 40px;
+    opacity: 0.8;
+    box-shadow: 
+      0 0 0 2px rgba(0, 153, 255, 0.8),
+      0 0 0 4px rgba(0, 153, 255, 0.6),
+      0 0 20px rgba(0, 153, 255, 0.4);
+  }
+  50% {
+    width: 80px;
+    height: 80px;
+    opacity: 0.5;
+    box-shadow: 
+      0 0 0 2px rgba(0, 153, 255, 0.5),
+      0 0 0 6px rgba(0, 153, 255, 0.3),
+      0 0 30px rgba(0, 153, 255, 0.2);
+  }
+  100% {
+    width: 120px;
+    height: 120px;
+    opacity: 0;
+    box-shadow: 
+      0 0 0 2px rgba(0, 153, 255, 0),
+      0 0 0 8px rgba(0, 153, 255, 0),
+      0 0 40px rgba(0, 153, 255, 0);
+  }
+}
+
+/* Water droplet particles */
+.reverb-splash::before,
+.reverb-splash::after {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: radial-gradient(circle, rgba(0, 153, 255, 0.8), transparent);
+  border-radius: 50%;
+  animation: droplet 0.6s ease-out;
+}
+
+.reverb-splash::before {
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation-delay: 0.1s;
+}
+
+.reverb-splash::after {
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation-delay: 0.15s;
+}
+
+@keyframes droplet {
+  0% {
+    transform: translate(-50%, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -20px) scale(0.5);
+    opacity: 0;
+  }
+}
+
+/* Reverb glow on cabinet when active */
+.amp-head.amp-twin_reverb:not(.bypassed) ~ .amp-cabinet,
+.amp-head.amp-fender_deluxe:not(.bypassed) ~ .amp-cabinet {
+  position: relative;
+}
+
+.amp-head.amp-twin_reverb:not(.bypassed) ~ .amp-cabinet::before,
+.amp-head.amp-fender_deluxe:not(.bypassed) ~ .amp-cabinet::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(ellipse at 50% 50%, 
+      rgba(0, 153, 255, 0.08) 0%, 
+      transparent 60%
+    );
+  pointer-events: none;
+  animation: reverb-ambiance 3s ease-in-out infinite;
+  z-index: 1;
+}
+
+@keyframes reverb-ambiance {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(1.05);
+  }
+}
+

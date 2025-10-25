@@ -1,0 +1,260 @@
+.knob-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+}
+
+.knob {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 30%, #3a3a3a 0%, #1a1a1a 50%, #0a0a0a 100%);
+  box-shadow:
+    inset 0 2px 4px rgba(255, 255, 255, 0.1),
+    inset 0 -2px 8px rgba(0, 0, 0, 0.8),
+    inset 0 0 15px rgba(0, 0, 0, 0.6),
+    0 4px 8px rgba(0, 0, 0, 0.6),
+    0 8px 16px rgba(0, 0, 0, 0.4),
+    0 1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+  cursor: grab;
+  transform: rotate(var(--rotation, -135deg));
+  transition: transform 0.15s cubic-bezier(0.4, 0.0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #0a0a0a;
+  will-change: transform;
+}
+
+.knob::before {
+  content: '';
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.15) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.knob::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #0a0a0a;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+.knob.dragging {
+  cursor: grabbing;
+  box-shadow: 
+    inset 3px 3px 6px rgba(0, 0, 0, 0.6),
+    inset -3px -3px 6px rgba(60, 60, 60, 0.2);
+}
+
+.knob-indicator {
+  position: absolute;
+  width: 4px;
+  height: 22px;
+  background: linear-gradient(180deg, #ff6b35 0%, #ff8c42 50%, #f7931e 100%);
+  border-radius: 2px;
+  top: 4px;
+  box-shadow: 
+    0 0 8px rgba(255, 107, 53, 1),
+    0 0 15px rgba(255, 107, 53, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  z-index: 10;
+}
+
+.knob-label-value {
+  position: absolute;
+  font-size: 10px;
+  color: #888;
+  font-weight: 600;
+  transform: rotate(calc(-1 * var(--rotation, -135deg)));
+}
+
+.knob-label {
+  font-size: 11px;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* ============================================
+   KNOB TOOLTIP
+   ======================================== */
+
+.knob-tooltip {
+  position: absolute;
+  bottom: calc(100% + 15px);
+  left: 50%;
+  transform: translateX(-50%) rotate(calc(-1 * var(--rotation, -135deg)));
+  background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
+  border-radius: 8px;
+  padding: 10px 12px;
+  min-width: 180px;
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(255, 107, 53, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  z-index: 1000;
+  pointer-events: none;
+  animation: tooltip-appear 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(255, 107, 53, 0.3);
+}
+
+@keyframes tooltip-appear {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(5px) rotate(calc(-1 * var(--rotation, -135deg)));
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) rotate(calc(-1 * var(--rotation, -135deg)));
+  }
+}
+
+/* Tooltip arrow */
+.knob-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid #1a1a1a;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+.tooltip-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.tooltip-icon {
+  font-size: 16px;
+  filter: drop-shadow(0 0 4px rgba(255, 107, 53, 0.6));
+}
+
+.tooltip-title {
+  font-size: 13px;
+  font-weight: bold;
+  color: #ff6b35;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.tooltip-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 107, 53, 0.3) 50%,
+    transparent 100%
+  );
+  margin-bottom: 8px;
+}
+
+.tooltip-value {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.value-number {
+  font-size: 24px;
+  font-weight: bold;
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(255, 107, 53, 0.6);
+}
+
+.value-unit {
+  font-size: 12px;
+  color: #ff6b35;
+  font-weight: 600;
+}
+
+.tooltip-range {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+  color: #999;
+  margin-bottom: 8px;
+}
+
+.range-label {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.range-values {
+  color: #ccc;
+}
+
+.tooltip-bar {
+  height: 6px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 3px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8);
+  position: relative;
+}
+
+.tooltip-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff6b35 0%, #ff8c42 50%, #f7931e 100%);
+  border-radius: 3px;
+  transition: width 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    0 0 10px rgba(255, 107, 53, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  position: relative;
+}
+
+.tooltip-bar-fill::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
+}
+
+/* Knob hover state */
+.knob:hover {
+  box-shadow:
+    inset 0 2px 4px rgba(255, 255, 255, 0.15),
+    inset 0 -2px 8px rgba(0, 0, 0, 0.8),
+    inset 0 0 15px rgba(0, 0, 0, 0.6),
+    0 4px 8px rgba(0, 0, 0, 0.6),
+    0 8px 16px rgba(0, 0, 0, 0.4),
+    0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 15px rgba(255, 107, 53, 0.3);
+}
+
+.knob:hover .knob-indicator {
+  box-shadow: 
+    0 0 12px rgba(255, 107, 53, 1),
+    0 0 20px rgba(255, 107, 53, 0.8),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
