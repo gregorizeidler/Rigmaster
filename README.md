@@ -42,10 +42,12 @@ Rigmaster é uma plataforma de processamento de áudio profissional desenvolvida
 
 ### 📸 Screenshots
 
-![Rigmaster Interface - Main View](Screenshot%202025-10-25%20at%2000.31.40.png)
+<img src="Screenshot%202025-10-25%20at%2000.31.40.png" width="100%" alt="Rigmaster Interface - Main View">
+
 *Interface principal com pedalboard, VU meter e spectrum analyzer*
 
-![Rigmaster Interface - Effects Chain](Screenshot%202025-10-25%20at%2000.32.45.png)
+<img src="Screenshot%202025-10-25%20at%2000.32.45.png" width="100%" alt="Rigmaster Interface - Effects Chain">
+
 *Cadeia de efeitos em ação com múltiplos pedais e amp simulator*
 
 ### ✨ Especificações Principais
