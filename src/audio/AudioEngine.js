@@ -10,7 +10,7 @@ class AudioEngine {
     this.recorder = null;
   }
 
-  async initialize() {
+  async initialize(deviceId = null) {
     try {
       // Create AudioContext with optimal settings for guitar processing
       const contextOptions = {
@@ -44,6 +44,12 @@ class AudioEngine {
           autoGainControlType: 'none'
         }
       };
+
+      // Add deviceId if specified
+      if (deviceId) {
+        constraints.audio.deviceId = { exact: deviceId };
+        console.log(`🎤 Using device: ${deviceId}`);
+      }
       
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       
@@ -51,6 +57,8 @@ class AudioEngine {
       const audioTrack = stream.getAudioTracks()[0];
       const settings = audioTrack.getSettings();
       console.log('🎤 Input Settings:', {
+        deviceId: settings.deviceId,
+        label: audioTrack.label,
         sampleRate: settings.sampleRate,
         channelCount: settings.channelCount,
         latency: settings.latency,
@@ -74,6 +82,7 @@ class AudioEngine {
       return true;
     } catch (error) {
       console.error('❌ Failed to initialize audio:', error);
+      alert(`Failed to initialize audio: ${error.message}\n\nPlease check your audio device permissions and connections.`);
       return false;
     }
   }

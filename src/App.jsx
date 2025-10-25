@@ -91,6 +91,8 @@ import PresetBrowser from './components/PresetBrowser';
 import SignalFlow from './components/SignalFlow';
 import EffectIcon from './components/EffectIcon';
 import RecorderPanel from './components/RecorderPanel';
+import InputMonitor from './components/InputMonitor';
+import AudioDeviceSelector from './components/AudioDeviceSelector';
 import PresetManager from './utils/PresetManager';
 import { useTheme } from './contexts/ThemeContext';
 import useKeyboardShortcuts from './hooks/useKeyboardShortcuts';
@@ -103,6 +105,7 @@ function App() {
   const [isAudioActive, setIsAudioActive] = useState(false);
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [showPresetMenu, setShowPresetMenu] = useState(false);
+  const [selectedAudioDevice, setSelectedAudioDevice] = useState(null);
   const [presets, setPresets] = useState([]);
   const [selectedEffect, setSelectedEffect] = useState(null);
   const [backendConnected, setBackendConnected] = useState(false);
@@ -158,12 +161,39 @@ function App() {
 
   const startAudio = async () => {
     if (audioEngineRef.current && !isAudioActive) {
-      const success = await audioEngineRef.current.initialize();
+      const success = await audioEngineRef.current.initialize(selectedAudioDevice);
       if (success) {
         // Wait for audioContext to be fully ready
         await new Promise(resolve => setTimeout(resolve, 100));
         setIsAudioActive(true);
         // Re-add existing effects to the new audio context
+        effects.forEach(effect => {
+          addEffectToEngine(effect.type, effect);
+        });
+      }
+    }
+  };
+
+  const handleDeviceChange = async (deviceId, deviceInfo) => {
+    console.log('Selected device:', deviceInfo);
+    setSelectedAudioDevice(deviceId);
+    
+    // If audio is already active, restart with new device
+    if (isAudioActive) {
+      // Stop current audio
+      if (audioEngineRef.current) {
+        audioEngineRef.current.stop();
+      }
+      setIsAudioActive(false);
+      
+      // Wait a bit
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      // Restart with new device
+      const success = await audioEngineRef.current.initialize(deviceId);
+      if (success) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        setIsAudioActive(true);
         effects.forEach(effect => {
           addEffectToEngine(effect.type, effect);
         });
@@ -812,12 +842,20 @@ function App() {
               inputNode={audioEngineRef.current?.inputNode}
             />
           </div>
-          <RecorderPanel audioEngine={audioEngineRef.current} />
         </>
       )}
 
       {/* SIDEBAR */}
       <aside className="sidebar">
+        {/* Audio Device Selector - Always Visible */}
+        <AudioDeviceSelector 
+          onDeviceChange={handleDeviceChange}
+          currentDevice={selectedAudioDevice}
+        />
+
+        {/* Input Monitor - Always Visible */}
+        <InputMonitor audioEngine={audioEngineRef.current} isActive={isAudioActive} />
+
         <div className="sidebar-section">
           <h3>🎚️ Global</h3>
           <div className="sidebar-controls">
@@ -858,6 +896,9 @@ function App() {
             Clear All
           </button>
         </div>
+
+        {/* Recorder Panel - Always at bottom */}
+        <RecorderPanel audioEngine={audioEngineRef.current} />
       </aside>
 
       <Reorder.Group 
