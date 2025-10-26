@@ -288,8 +288,8 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       // HIWATT - Simple (Bass, Mid, Treble only)
       hiwatt_dr103: [],
       
-      // TWO-ROCK - Reverb + Presence
-      tworock_classic: ['reverb', 'presence', 'boost'],
+      // TWO-ROCK - Full control suite
+      tworock_classic: ['tworock_channel', 'channel_volume', 'presence', 'depth', 'reverb', 'reverb_decay', 'boost', 'cabinet_enabled'],
       
       // DUMBLE - OD/Clean + Presence
       dumble_ods: ['oddrive', 'presence', 'ratio'],
@@ -493,6 +493,33 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
             />
           </div>
         );
+      
+      // ============================================
+      // TWO-ROCK CLASSIC REVERB SPECIFIC CONTROLS
+      // ============================================
+      case 'tworock_channel':
+        return (
+          <div key="tworock_channel" className="toggle-switch">
+            <label>Channel</label>
+            <select 
+              value={amp.params?.channel || 0}
+              onChange={(e) => onUpdate(amp.id, 'channel', parseInt(e.target.value))}
+              className="channel-select"
+            >
+              <option value={0}>🎸 Clean</option>
+              <option value={1}>🔥 Lead</option>
+            </select>
+          </div>
+        );
+      
+      case 'reverb_decay':
+        return (
+          <div key="reverb_decay" style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+            <Knob label="Decay" value={amp.params?.reverb_decay || 45} onChange={handleKnobChange('reverb_decay')} size={28} />
+            <span style={{ fontSize: '9px', color: '#999', textAlign: 'center' }}>Rev Decay</span>
+          </div>
+        );
+      
       case 'deepcontrol':
         return <Knob key="deepcontrol" label="Deep" value={amp.params?.deepcontrol || 50} onChange={handleKnobChange('deepcontrol')} size={32} />;
       case 'tightswitch':

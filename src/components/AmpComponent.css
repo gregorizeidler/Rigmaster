@@ -1985,6 +1985,72 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
+/* ============================================
+   TWO-ROCK CLASSIC REVERB SPECIFIC STYLES
+   ============================================ */
+
+.amp-head.amp-tworock_classic .toggle-switch label {
+  color: #4a9eff;
+  text-shadow: 0 0 8px rgba(74, 158, 255, 0.6);
+}
+
+.amp-head.amp-tworock_classic .toggle-switch select,
+.amp-head.amp-tworock_classic .channel-select {
+  background: linear-gradient(180deg, #4a4a4a 0%, #3a3a3a 100%);
+  border: 2px solid #4a9eff;
+  border-radius: 4px;
+  color: #ffffff;
+  padding: 4px 8px;
+  font-size: 9px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.amp-head.amp-tworock_classic .toggle-switch select:hover,
+.amp-head.amp-tworock_classic .channel-select:hover {
+  background: linear-gradient(180deg, #5a5a5a 0%, #4a4a4a 100%);
+  border-color: #6ab9ff;
+  box-shadow:
+    0 3px 10px rgba(74, 158, 255, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.amp-head.amp-tworock_classic .toggle-switch select:focus,
+.amp-head.amp-tworock_classic .channel-select:focus {
+  border-color: #6ab9ff;
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(74, 158, 255, 0.3),
+    0 3px 10px rgba(74, 158, 255, 0.5);
+}
+
+.amp-head.amp-tworock_classic .toggle-switch select option,
+.amp-head.amp-tworock_classic .channel-select option {
+  background: #3a3a3a;
+  color: #ffffff;
+}
+
+/* Two-Rock cabinet selects */
+.amp-head.amp-tworock_classic ~ .amp-cabinet .config-row select {
+  background: linear-gradient(180deg, #3a3a3a, #2a2a2a);
+  border-color: #4a9eff;
+  color: #ffffff;
+}
+
+.amp-head.amp-tworock_classic ~ .amp-cabinet .config-row select:hover {
+  background: linear-gradient(180deg, #4a4a4a, #3a3a3a);
+  border-color: #6ab9ff;
+}
+
+.amp-head.amp-tworock_classic ~ .amp-cabinet .config-row select:focus {
+  border-color: #6ab9ff;
+  box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.3);
+}
+
 /* ========================================= */
 /* MAIN LAYOUT: AMP STACK + ADVANCED CONTROLS */
 /* ========================================= */
