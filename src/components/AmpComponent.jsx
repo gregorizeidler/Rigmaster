@@ -256,7 +256,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       vox_ac30: ['vox_channel', 'vox_normal_volume', 'vox_brilliance', 'vox_tremolo', 'vox_vibrato', 'vox_reverb', 'vox_cut', 'vox_pentode_triode'],
       
       // ROLAND - Built-in Chorus
-      roland_jc120: ['chorus', 'distortion'],
+      roland_jc120: ['chorus', 'vibrato_enabled', 'distortion', 'cabinet_enabled'],
       
       // MARSHALL - Presence + Resonance
       crunch: ['presence', 'resonance'],
@@ -454,6 +454,28 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
               type="checkbox" 
               checked={amp.params?.distortion || false}
               onChange={(e) => onUpdate(amp.id, 'distortion', e.target.checked)}
+            />
+          </div>
+        );
+      case 'vibrato_enabled':
+        return (
+          <div key="vibrato_enabled" className="toggle-switch">
+            <label>Vibrato</label>
+            <input 
+              type="checkbox" 
+              checked={amp.params?.vibrato_enabled || false}
+              onChange={(e) => onUpdate(amp.id, 'vibrato_enabled', e.target.checked)}
+            />
+          </div>
+        );
+      case 'cabinet_enabled':
+        return (
+          <div key="cabinet_enabled" className="toggle-switch">
+            <label>Cabinet</label>
+            <input 
+              type="checkbox" 
+              checked={amp.params?.cabinet_enabled !== false}
+              onChange={(e) => onUpdate(amp.id, 'cabinet_enabled', e.target.checked)}
             />
           </div>
         );
@@ -859,6 +881,32 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                     <Knob label="Master" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={36} />
                   </>
                 )}
+              </div>
+            ) : amp.ampType === 'roland_jc120' ? (
+              /* ROLAND JC-120 - Authentic Jazz Chorus layout */
+              <div className="jc120-knobs-layout" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <div className="knob-group" style={{ display: 'flex', gap: '8px', flexDirection: 'column', alignItems: 'center', padding: '8px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#4a9eff', textTransform: 'uppercase' }}>Volume & Tone</span>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <Knob label="Volume" value={amp.params?.ch1_volume || 50} onChange={handleKnobChange('ch1_volume')} size={36} />
+                    <Knob label="Bass" value={amp.params?.bass || 50} onChange={handleKnobChange('bass')} size={36} />
+                    <Knob label="Mid" value={amp.params?.mid || 45} onChange={handleKnobChange('mid')} size={36} />
+                    <Knob label="Treble" value={amp.params?.treble || 60} onChange={handleKnobChange('treble')} size={36} />
+                  </div>
+                </div>
+                <div className="knob-group" style={{ display: 'flex', gap: '8px', flexDirection: 'column', alignItems: 'center', padding: '8px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#4a9eff', textTransform: 'uppercase' }}>Chorus</span>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <Knob label="Rate" value={amp.params?.chorus_rate || 40} onChange={handleKnobChange('chorus_rate')} size={36} />
+                    <Knob label="Depth" value={amp.params?.chorus_depth || 50} onChange={handleKnobChange('chorus_depth')} size={36} />
+                  </div>
+                </div>
+                <div className="knob-group" style={{ display: 'flex', gap: '8px', flexDirection: 'column', alignItems: 'center', padding: '8px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#4a9eff', textTransform: 'uppercase' }}>Master</span>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <Knob label="Master" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={36} />
+                  </div>
+                </div>
               </div>
             ) : amp.ampType === 'suhr_badger' ? (
               /* SUHR BADGER - Complete control layout */
