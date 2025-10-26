@@ -4,6 +4,11 @@ import './SignalFlow.css';
 const SignalFlow = ({ effects }) => {
   const [cables, setCables] = useState([]);
   const containerRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const indicatorRef = useRef(null);
+  const [hasBeenDragged, setHasBeenDragged] = useState(false);
 
   useEffect(() => {
     if (!containerRef.current || effects.length === 0) return;
@@ -65,6 +70,68 @@ const SignalFlow = ({ effects }) => {
       observer.disconnect();
     };
   }, [effects]);
+
+  // Posicionar ao lado do primeiro pedal/amp
+  useEffect(() => {
+    if (hasBeenDragged || !containerRef.current) return;
+
+    const positionNextToFirst = () => {
+      const pedalboard = containerRef.current.closest('.main-content');
+      if (!pedalboard) return;
+
+      const firstElement = pedalboard.querySelector('.pedal, .amp-rig-container');
+      if (!firstElement) return;
+
+      const rect = firstElement.getBoundingClientRect();
+      setPosition({
+        x: rect.right + 20, // 20px à direita do primeiro elemento
+        y: rect.top
+      });
+    };
+
+    positionNextToFirst();
+    window.addEventListener('resize', positionNextToFirst);
+
+    return () => {
+      window.removeEventListener('resize', positionNextToFirst);
+    };
+  }, [effects, hasBeenDragged]);
+
+  // Drag handlers para o Signal Flow Indicator
+  const handleMouseDown = (e) => {
+    setIsDragging(true);
+    setHasBeenDragged(true);
+    const rect = indicatorRef.current.getBoundingClientRect();
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isDragging) return;
+      
+      setPosition({
+        x: e.clientX - dragOffset.x,
+        y: e.clientY - dragOffset.y
+      });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, dragOffset]);
 
   const getCableColor = (type) => {
     if (!type) return '#ff6b35';
@@ -211,7 +278,19 @@ const SignalFlow = ({ effects }) => {
       </svg>
 
       {/* Signal Flow Indicator */}
-      <div className="signal-flow-indicator">
+      <div 
+        ref={indicatorRef}
+        className="signal-flow-indicator"
+        onMouseDown={handleMouseDown}
+        style={{
+          position: position.x !== 0 || position.y !== 0 ? 'fixed' : 'relative',
+          left: position.x !== 0 || position.y !== 0 ? `${position.x}px` : 'auto',
+          top: position.x !== 0 || position.y !== 0 ? `${position.y}px` : 'auto',
+          cursor: isDragging ? 'grabbing' : 'grab',
+          zIndex: isDragging ? 1000 : position.x !== 0 || position.y !== 0 ? 100 : 'auto',
+          userSelect: 'none'
+        }}
+      >
         <div className="flow-icon">🎸</div>
         <div className="flow-arrow">→</div>
         {effects.map((effect, i) => (
@@ -225,6 +304,20 @@ const SignalFlow = ({ effects }) => {
         ))}
         <div className="flow-arrow">→</div>
         <div className="flow-icon">🔈</div>
+        {hasBeenDragged && (
+          <button 
+            className="flow-reset-button" 
+            onClick={(e) => {
+              e.stopPropagation();
+              setPosition({ x: 0, y: 0 });
+              setHasBeenDragged(false);
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+            title="Voltar ao lado do primeiro pedal/amp"
+          >
+            ↺
+          </button>
+        )}
       </div>
     </div>
   );

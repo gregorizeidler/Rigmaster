@@ -6,11 +6,12 @@
 .amp-rig-container {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 6px;
   position: relative;
   width: 100%;
   flex-basis: 100%;
   margin: 0;
+  max-width: 100%;
 }
 
 .amp-remove {
@@ -80,10 +81,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 20px;
+  padding: 5px 10px;
   background: linear-gradient(180deg, #242f42 0%, #1a2332 100%);
   border-bottom: 2px solid #2a3f5f;
-  gap: 15px;
+  gap: 8px;
 }
 
 .amp-brand-logo {
@@ -115,10 +116,10 @@
 .amp-type-selector {
   background: linear-gradient(180deg, #2a3f5f, #1a2f4f);
   border: 1px solid #3a5f8f;
-  border-radius: 6px;
-  padding: 6px 12px;
+  border-radius: 4px;
+  padding: 3px 8px;
   color: #ffffff;
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -145,11 +146,11 @@
 
 /* Power Switch */
 .amp-power-switch {
-  width: 50px;
-  height: 50px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   background: linear-gradient(135deg, #1a2332, #0f1621);
-  border: 3px solid #2a3f5f;
+  border: 2px solid #2a3f5f;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
@@ -176,8 +177,8 @@
 }
 
 .power-led {
-  width: 12px;
-  height: 12px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: #4a5568;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
@@ -200,20 +201,20 @@
 
 /* Control Panel */
 .amp-control-panel {
-  padding: 20px;
+  padding: 8px 10px;
   background: linear-gradient(180deg, #0f1621 0%, #1a2332 100%);
 }
 
 .amp-knobs-section {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 6px;
 }
 
 .knob-group {
   display: flex;
   justify-content: space-around;
-  gap: 10px;
+  gap: 8px;
 }
 
 /* ========================================
@@ -222,30 +223,28 @@
 
 .amp-cabinet {
   background: linear-gradient(180deg, #1a2332 0%, #0f1621 100%);
-  border-radius: 12px;
+  border-radius: 8px;
   overflow: hidden;
   box-shadow:
-    0 10px 40px rgba(0, 0, 0, 0.6),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+    0 5px 20px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
   border: 1px solid #2a3f5f;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .amp-cabinet:hover {
   box-shadow:
-    0 15px 50px rgba(255, 107, 53, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+    0 10px 35px rgba(255, 107, 53, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
   border-color: #8f5a3a;
 }
 
 /* Cabinet Config */
 .cabinet-config {
-  padding: 15px 20px;
+  padding: 4px 6px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 3px;
   background: linear-gradient(180deg, #242f42 0%, #1a2332 100%);
   border-bottom: 2px solid #2a3f5f;
 }
@@ -253,26 +252,26 @@
 .config-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 5px;
 }
 
 .config-row label {
-  font-size: 10px;
+  font-size: 6px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.6px;
   color: #7a95b8;
-  min-width: 70px;
+  min-width: 44px;
 }
 
 .config-row select {
   flex: 1;
   background: linear-gradient(180deg, #2a3f5f, #1a2f4f);
   border: 1px solid #3a5f8f;
-  border-radius: 6px;
-  padding: 6px 10px;
+  border-radius: 3px;
+  padding: 2px 4px;
   color: #ffffff;
-  font-size: 11px;
+  font-size: 7px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -302,13 +301,14 @@
 
 /* Speaker Grill */
 .cabinet-speaker-grill {
-  padding: 30px;
+  padding: 6px;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+  gap: 5px;
   background: 
     radial-gradient(circle at 30% 30%, #2a3f5f 0%, #1a2332 50%, #0f1621 100%);
   position: relative;
+  min-height: 72px;
 }
 
 .cabinet-speaker-grill::before {
@@ -326,11 +326,11 @@
   aspect-ratio: 1;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #3a4f6f, #1a2f4f, #0a1521);
-  border: 3px solid #2a3f5f;
+  border: 1.5px solid #2a3f5f;
   box-shadow:
-    0 4px 20px rgba(0, 0, 0, 0.6),
-    inset 0 2px 10px rgba(0, 0, 0, 0.8),
-    inset 0 -2px 10px rgba(255, 255, 255, 0.05);
+    0 1px 8px rgba(0, 0, 0, 0.4),
+    inset 0 1px 4px rgba(0, 0, 0, 0.6),
+    inset 0 -1px 4px rgba(255, 255, 255, 0.03);
   position: relative;
 }
 
@@ -340,14 +340,14 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 40%;
-  height: 40%;
+  width: 38%;
+  height: 38%;
   border-radius: 50%;
   background: radial-gradient(circle, #1a2f4f, #0a1521);
-  border: 2px solid #2a3f5f;
+  border: 1px solid #2a3f5f;
   box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.8),
-    inset 0 1px 4px rgba(0, 0, 0, 0.9);
+    0 1px 3px rgba(0, 0, 0, 0.5),
+    inset 0 1px 2px rgba(0, 0, 0, 0.7);
 }
 
 .speaker-cone::after {
@@ -356,13 +356,13 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 15%;
-  height: 15%;
+  width: 14%;
+  height: 14%;
   border-radius: 50%;
   background: linear-gradient(135deg, #5f4a2a, #3f2a1a);
   box-shadow: 
-    0 1px 3px rgba(0, 0, 0, 0.8),
-    0 0 8px rgba(255, 107, 53, 0.2);
+    0 1px 2px rgba(0, 0, 0, 0.6),
+    0 0 3px rgba(255, 107, 53, 0.15);
 }
 
 /* ========================================
@@ -914,39 +914,41 @@
 /* VOX AC30 - Brown/Tan with Gold */
 .amp-head.amp-vox_ac30 {
   background: 
-    repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(212,175,55,0.05) 1px, rgba(212,175,55,0.05) 2px),
-    linear-gradient(180deg, #3a2a1a 0%, #2b1810 50%, #1f1008 100%);
-  border: 3px solid #d4af37;
+    repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(100,80,60,0.15) 1px, rgba(100,80,60,0.15) 2px),
+    linear-gradient(180deg, #4a3526 0%, #3d2d1f 50%, #2f2115 100%);
+  border: 3px solid #8b7355;
   box-shadow: 
     0 10px 40px rgba(0, 0, 0, 0.7),
-    inset 0 2px 0 rgba(255, 215, 0, 0.2),
-    inset 0 -2px 0 rgba(0, 0, 0, 0.5);
+    inset 0 2px 0 rgba(139, 115, 85, 0.3),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.6);
 }
 
 .amp-head.amp-vox_ac30 .amp-head-top {
-  background: linear-gradient(180deg, #8b7355 0%, #6b5645 100%);
-  border-bottom: 3px solid #4a3a2a;
+  background: linear-gradient(180deg, #5a4538 0%, #4a3526 100%);
+  border-bottom: 3px solid #8b7355;
 }
 
 .amp-head.amp-vox_ac30 .brand-text {
-  color: #ffd700;
-  letter-spacing: 5px;
+  color: #d4af37;
+  letter-spacing: 6px;
   font-weight: 900;
+  text-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
 }
 
 .amp-head.amp-vox_ac30 .model-text {
-  color: #ffffff;
-  text-shadow: 0 0 12px rgba(255, 215, 0, 0.6);
+  color: #f5f5dc;
+  text-shadow: 0 0 10px rgba(245, 245, 220, 0.4);
+  font-weight: 700;
 }
 
 .amp-head.amp-vox_ac30 ~ .amp-cabinet {
-  background: linear-gradient(180deg, #3a2a1a 0%, #2b1810 100%);
-  border: 3px solid #d4af37;
+  background: linear-gradient(180deg, #4a3526 0%, #3d2d1f 100%);
+  border: 3px solid #8b7355;
 }
 
 .amp-head.amp-vox_ac30 ~ .amp-cabinet .speaker-cone {
-  background: linear-gradient(135deg, #8b7355, #6b5645);
-  border: 2px solid #d4af37;
+  background: linear-gradient(135deg, #b8956f, #9b7d5a);
+  border: 2px solid #8b7355;
 }
 
 /* FENDER DELUXE - Black/Silver */
@@ -1288,40 +1290,43 @@
 /* PEAVEY 5150 - Black/Red */
 .amp-head.amp-peavey_5150 {
   background: 
-    repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,0,0,0.15) 2px, rgba(255,0,0,0.15) 4px),
-    linear-gradient(180deg, #1a0000 0%, #0a0000 50%, #000000 100%);
-  border: 3px solid #ff0000;
+    repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(20,20,20,0.3) 1px, rgba(20,20,20,0.3) 2px),
+    linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 50%, #000000 100%);
+  border: 3px solid #cc0000;
   box-shadow: 
-    0 10px 40px rgba(255, 0, 0, 0.5),
-    inset 0 2px 0 rgba(255, 0, 0, 0.2);
+    0 10px 40px rgba(0, 0, 0, 0.8),
+    inset 0 2px 0 rgba(204, 0, 0, 0.15),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.7);
 }
 
 .amp-head.amp-peavey_5150 .amp-head-top {
-  background: linear-gradient(180deg, #000000 0%, #0a0000 100%);
-  border-bottom: 3px solid #ff0000;
+  background: linear-gradient(180deg, #0f0f0f 0%, #000000 100%);
+  border-bottom: 3px solid #cc0000;
 }
 
 .amp-head.amp-peavey_5150 .brand-text {
-  color: #ff0000;
+  color: #ff2020;
   font-weight: 900;
   letter-spacing: 5px;
+  text-shadow: 0 0 15px rgba(255, 32, 32, 0.6);
 }
 
 .amp-head.amp-peavey_5150 .model-text {
   color: #ffffff;
-  text-shadow: 0 0 20px rgba(255, 0, 0, 1);
+  text-shadow: 0 0 12px rgba(255, 32, 32, 0.5);
   font-size: 22px;
+  font-weight: 700;
 }
 
 .amp-head.amp-peavey_5150 ~ .amp-cabinet {
-  background: linear-gradient(180deg, #0a0000 0%, #000000 100%);
-  border: 3px solid #ff0000;
+  background: linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 100%);
+  border: 3px solid #cc0000;
 }
 
 .amp-head.amp-peavey_5150 ~ .amp-cabinet .speaker-cone {
-  background: linear-gradient(135deg, #1a1a1a, #0a0a0a);
-  border: 2px solid #ff0000;
-  box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);
+  background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+  border: 2px solid #cc0000;
+  box-shadow: 0 0 10px rgba(204, 0, 0, 0.3);
 }
 
 /* BOGNER ECSTASY - Dark Blue */
@@ -1667,19 +1672,19 @@
 
 .amp-specific-controls {
   width: 100%;
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
 .specific-controls-divider {
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(255, 107, 53, 0.3), transparent);
-  margin: 8px 0;
+  margin: 6px 0;
 }
 
 .specific-controls-group {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 8px;
   justify-content: center;
   align-items: center;
   padding: 8px;
@@ -1705,11 +1710,11 @@
 .toggle-switch input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
-  width: 36px;
-  height: 18px;
+  width: 32px;
+  height: 16px;
   background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
   border: 2px solid #3a3a3a;
-  border-radius: 12px;
+  border-radius: 10px;
   position: relative;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -1721,8 +1726,8 @@
 .toggle-switch input[type="checkbox"]::before {
   content: '';
   position: absolute;
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   top: 1px;
   left: 1px;
@@ -1743,7 +1748,7 @@
 }
 
 .toggle-switch input[type="checkbox"]:checked::before {
-  left: 19px;
+  left: 17px;
   background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
   border-color: #ff6b35;
   box-shadow:
@@ -1757,7 +1762,7 @@
 }
 
 .toggle-switch input[type="checkbox"]:active::before {
-  width: 16px;
+  width: 14px;
 }
 
 /* ========================================
@@ -3021,5 +3026,190 @@ assed state - cold tubes */
     opacity: 0.3;
     transform: scale(1.05);
   }
+}
+
+/* ========================================
+   VOX AC30 SPECIFIC CONTROLS
+   ======================================== */
+
+.vox-channel-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px;
+  background: linear-gradient(135deg, rgba(74, 53, 38, 0.5), rgba(61, 45, 31, 0.5));
+  border-radius: 5px;
+  border: 2px solid rgba(139, 115, 85, 0.6);
+  box-shadow: 
+    0 3px 10px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(139, 115, 85, 0.2);
+}
+
+.vox-channel-selector label {
+  font-size: 7px;
+  font-weight: bold;
+  color: #d4af37;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.vox-channel-selector select {
+  padding: 4px 6px;
+  font-size: 9px;
+  font-weight: 600;
+  background: linear-gradient(180deg, #3d2d1f, #2f2115);
+  color: #d4af37;
+  border: 2px solid #8b7355;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.5),
+    0 1px 2px rgba(212, 175, 55, 0.2);
+}
+
+.vox-channel-selector select:hover {
+  background: linear-gradient(180deg, #4a3526, #3d2d1f);
+  border-color: #a08968;
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.5),
+    0 2px 6px rgba(212, 175, 55, 0.4);
+}
+
+.vox-channel-selector select:focus {
+  outline: none;
+  border-color: #d4af37;
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.5),
+    0 0 0 2px rgba(212, 175, 55, 0.3);
+}
+
+.vox-effect-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px;
+  background: linear-gradient(135deg, rgba(47, 33, 21, 0.6), rgba(26, 15, 9, 0.6));
+  border-radius: 5px;
+  border: 1px solid rgba(139, 115, 85, 0.3);
+  box-shadow: 
+    0 3px 10px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(139, 115, 85, 0.15);
+  transition: all 0.3s ease;
+}
+
+.vox-effect-group:hover {
+  background: linear-gradient(135deg, rgba(61, 45, 31, 0.7), rgba(47, 33, 21, 0.7));
+  border-color: rgba(139, 115, 85, 0.5);
+  box-shadow: 
+    0 6px 16px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.vox-effect-group label {
+  font-size: 11px;
+  font-weight: bold;
+  color: #d4af37;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.vox-power-switch {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  background: linear-gradient(135deg, rgba(61, 45, 31, 0.6), rgba(47, 33, 21, 0.4));
+  border-radius: 5px;
+  border: 2px solid rgba(139, 115, 85, 0.5);
+  box-shadow: 
+    0 3px 10px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(139, 115, 85, 0.2);
+  transition: all 0.3s ease;
+}
+
+.vox-power-switch:hover {
+  background: linear-gradient(135deg, rgba(74, 53, 38, 0.7), rgba(61, 45, 31, 0.5));
+  border-color: rgba(160, 137, 104, 0.7);
+  box-shadow: 
+    0 5px 14px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(139, 115, 85, 0.3);
+}
+
+.vox-power-switch label {
+  font-size: 9px;
+  font-weight: bold;
+  color: #d4af37;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* VOX AC30 Knobs Layout */
+.vox-knobs-layout {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  padding: 6px 10px;
+  flex-wrap: wrap;
+}
+
+/* VOX AC30 Amp Head Styling */
+.amp-vox_ac30 {
+  background: linear-gradient(180deg, #4a3526 0%, #3d2d1f 100%);
+  border-color: #8b7355;
+  box-shadow:
+    0 8px 30px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(139, 115, 85, 0.15);
+}
+
+.amp-vox_ac30 .amp-head-top {
+  background: linear-gradient(180deg, #5a4538 0%, #4a3526 100%);
+  border-bottom-color: #8b7355;
+}
+
+.amp-vox_ac30 .amp-control-panel {
+  background: linear-gradient(180deg, #3d2d1f 0%, #2f2115 100%);
+}
+
+.amp-vox_ac30:hover {
+  box-shadow:
+    0 12px 40px rgba(139, 115, 85, 0.25),
+    inset 0 1px 0 rgba(139, 115, 85, 0.25);
+  border-color: #a08968;
+}
+
+/* VOX AC30 Cabinet Grill - Tan/Wheat cloth look */
+.amp-vox_ac30 + .amp-cabinet .cabinet-speaker-grill {
+  background: 
+    repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(160,137,104,0.15) 1px, rgba(160,137,104,0.15) 2px),
+    repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(160,137,104,0.15) 1px, rgba(160,137,104,0.15) 2px),
+    radial-gradient(circle at 50% 50%, #c9b896, #a08968);
+  border-color: #8b7355;
+}
+
+/* PEAVEY 5150 Cabinet Grill - Black metal mesh */
+.amp-head.amp-peavey_5150 ~ .amp-cabinet .cabinet-speaker-grill {
+  background: 
+    repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(30,30,30,0.6) 1px, rgba(30,30,30,0.6) 2px),
+    repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(30,30,30,0.6) 1px, rgba(30,30,30,0.6) 2px),
+    radial-gradient(circle at 50% 50%, #2a2a2a, #0f0f0f);
+  border-color: #cc0000;
+}
+
+/* PEAVEY 5150 Control Panel Styling */
+.amp-head.amp-peavey_5150 .amp-control-panel {
+  background: linear-gradient(180deg, #0f0f0f 0%, #000000 100%);
+}
+
+.amp-head.amp-peavey_5150 .knob-label {
+  color: #ffffff;
+  text-shadow: 0 0 8px rgba(255, 32, 32, 0.4);
 }
 
