@@ -297,8 +297,8 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       // SUHR - Boost + Presence
       suhr_badger: ['boost', 'presence', 'variac'],
       
-      // VICTORY - Gain Structure
-      victory_duchess: ['presence', 'depth', 'gainstructure'],
+      // VICTORY DUCHESS - Full British boutique control
+      victory_duchess: ['victory_channel', 'channel_volume', 'resonance', 'voicing', 'cabinet_enabled'],
     };
     return controls[type] || [];
   };
@@ -514,8 +514,53 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
         return <Knob key="ratio" label="Ratio" value={amp.params?.ratio || 50} onChange={handleKnobChange('ratio')} size={32} />;
       case 'variac':
         return <Knob key="variac" label="Variac" value={amp.params?.variac || 100} onChange={handleKnobChange('variac')} size={32} />;
-      case 'gainstructure':
-        return <Knob key="gainstructure" label="Struct" value={amp.params?.gainstructure || 50} onChange={handleKnobChange('gainstructure')} size={32} />;
+      
+      // ============================================
+      // VICTORY DUCHESS SPECIFIC CONTROLS
+      // ============================================
+      case 'victory_channel':
+        return (
+          <div key="victory_channel" className="toggle-switch">
+            <label>Channel</label>
+            <select 
+              value={amp.params?.channel || 2}
+              onChange={(e) => onUpdate(amp.id, 'channel', parseInt(e.target.value))}
+              className="channel-select"
+            >
+              <option value={1}>Low Gain</option>
+              <option value={2}>High Gain</option>
+            </select>
+          </div>
+        );
+      case 'channel_volume':
+        return <Knob key="channel_volume" label="Ch.Vol" value={amp.params?.channel_volume || 70} onChange={handleKnobChange('channel_volume')} size={32} />;
+      case 'resonance':
+        return <Knob key="resonance" label="Resonance" value={amp.params?.resonance || 50} onChange={handleKnobChange('resonance')} size={32} />;
+      case 'voicing':
+        return (
+          <div key="voicing" className="toggle-switch">
+            <label>Voicing</label>
+            <select 
+              value={amp.params?.voicing || 'modern'}
+              onChange={(e) => onUpdate(amp.id, 'voicing', e.target.value)}
+              className="voicing-select"
+            >
+              <option value="vintage">Vintage</option>
+              <option value="modern">Modern</option>
+            </select>
+          </div>
+        );
+      case 'cabinet_enabled':
+        return (
+          <div key="cabinet_enabled" className="toggle-switch">
+            <label>Cabinet</label>
+            <input 
+              type="checkbox" 
+              checked={amp.params?.cabinet_enabled !== false}
+              onChange={(e) => onUpdate(amp.id, 'cabinet_enabled', e.target.checked)}
+            />
+          </div>
+        );
       case 'channel':
         // Mesa Dual Rectifier channels
         return (
