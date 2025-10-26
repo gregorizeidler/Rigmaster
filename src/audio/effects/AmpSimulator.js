@@ -1,11 +1,51 @@
 import BaseEffect from './BaseEffect';
 import CabinetSimulator from '../amps/CabinetSimulator';
 
+// Import ALL individual amp models (25 total)
+import CleanAmp from '../amps/CleanAmp';
+import CrunchAmp from '../amps/CrunchAmp';
+import LeadAmp from '../amps/LeadAmp';
+import MetalAmp from '../amps/MetalAmp';
+import Peavey5150Amp from '../amps/Peavey5150Amp';
+import VoxAC30Amp from '../amps/VoxAC30Amp';
+import FenderDeluxeReverbAmp from '../amps/FenderDeluxeReverbAmp';
+import MarshallJCM800Amp from '../amps/MarshallJCM800Amp';
+import MesaDualRectifierAmp from '../amps/MesaDualRectifierAmp';
+import DumbleODSAmp from '../amps/DumbleODSAmp';
+import FenderBassmanAmp from '../amps/FenderBassmanAmp';
+import RolandJC120Amp from '../amps/RolandJC120Amp';
+import MatchlessDC30Amp from '../amps/MatchlessDC30Amp';
+import OrangeRockerverbAmp from '../amps/OrangeRockerverbAmp';
+import HiwattDR103Amp from '../amps/HiwattDR103Amp';
+import MarshallJTM45Amp from '../amps/MarshallJTM45Amp';
+import BadCatHotCatAmp from '../amps/BadCatHotCatAmp';
+import BognerEcstasyAmp from '../amps/BognerEcstasyAmp';
+import DiezelVH4Amp from '../amps/DiezelVH4Amp';
+import FriedmanBE100Amp from '../amps/FriedmanBE100Amp';
+import SoldanoSLO100Amp from '../amps/SoldanoSLO100Amp';
+import TwoRockClassicReverbAmp from '../amps/TwoRockClassicReverbAmp';
+import MesaMarkVAmp from '../amps/MesaMarkVAmp';
+import SuhrBadgerAmp from '../amps/SuhrBadgerAmp';
+import VictoryDuchessAmp from '../amps/VictoryDuchessAmp';
+
 class AmpSimulator extends BaseEffect {
   constructor(audioContext, id, ampType = 'clean') {
     super(audioContext, id, `${ampType} Amp`, 'amp');
     
     this.ampType = ampType;
+    this.audioContext = audioContext;
+    
+    // Check if this amp has a dedicated class
+    this.dedicatedAmp = null;
+    this.useDedicatedAmp = this.initializeDedicatedAmp(ampType);
+    
+    // If using dedicated amp, skip the old initialization
+    if (this.useDedicatedAmp) {
+      // Connect dedicated amp
+      this.input.connect(this.dedicatedAmp.input);
+      this.dedicatedAmp.connect(this.output);
+      return;
+    }
     
     // Input calibration
     this.inputGain = audioContext.createGain();
@@ -284,6 +324,49 @@ class AmpSimulator extends BaseEffect {
     this.input.connect(this.dryGain);
     this.dryGain.connect(this.output);
     this.dryGain.gain.value = 0; // Default to fully wet
+  }
+
+  initializeDedicatedAmp(ampType) {
+    // Map ALL amp types to their dedicated classes (25 total)
+    const ampClasses = {
+      // Basic 4
+      'clean': CleanAmp,
+      'crunch': CrunchAmp,
+      'lead': LeadAmp,
+      'metal': MetalAmp,
+      // Dedicated 21
+      'peavey_5150': Peavey5150Amp,
+      'vox_ac30': VoxAC30Amp,
+      'fender_deluxe': FenderDeluxeReverbAmp,
+      'marshall_jcm800': MarshallJCM800Amp,
+      'mesa_dual_rectifier': MesaDualRectifierAmp,
+      'dumble_ods': DumbleODSAmp,
+      'fender_bassman': FenderBassmanAmp,
+      'roland_jc120': RolandJC120Amp,
+      'matchless_dc30': MatchlessDC30Amp,
+      'orange_rockerverb': OrangeRockerverbAmp,
+      'hiwatt_dr103': HiwattDR103Amp,
+      'marshall_jtm45': MarshallJTM45Amp,
+      'badcat_hotcat': BadCatHotCatAmp,
+      'bogner_ecstasy': BognerEcstasyAmp,
+      'diezel_vh4': DiezelVH4Amp,
+      'friedman_be100': FriedmanBE100Amp,
+      'soldano_slo100': SoldanoSLO100Amp,
+      'tworock_classic': TwoRockClassicReverbAmp,
+      'mesa_mark_v': MesaMarkVAmp,
+      'suhr_badger': SuhrBadgerAmp,
+      'victory_duchess': VictoryDuchessAmp
+    };
+    
+    const AmpClass = ampClasses[ampType];
+    if (AmpClass) {
+      this.dedicatedAmp = new AmpClass(this.audioContext, this.id);
+      console.log(`✅ Using dedicated amp class: ${ampType}`);
+      return true;
+    }
+    
+    console.warn(`⚠️ No dedicated amp class for: ${ampType}`);
+    return false;
   }
 
   setAmpType(type) {
@@ -1450,6 +1533,12 @@ class AmpSimulator extends BaseEffect {
   }
 
   updateParameter(parameter, value) {
+    // Delegate to dedicated amp if present
+    if (this.useDedicatedAmp && this.dedicatedAmp) {
+      this.dedicatedAmp.updateParameter(parameter, value);
+      return;
+    }
+    
     const now = this.audioContext.currentTime;
     
     switch (parameter) {
