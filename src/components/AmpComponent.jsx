@@ -277,7 +277,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       bogner_ecstasy: ['presence', 'depth', 'boost'],
       diezel_vh4: ['presence', 'depth', 'deepcontrol'],
       friedman_be100: ['presence', 'depth', 'tightswitch'],
-      soldano_slo100: ['presence', 'depth'],
+      soldano_slo100: ['soldano_channel', 'master_gain', 'presence', 'depth', 'bright', 'gate', 'cabinet_enabled'],
       
       // MATCHLESS - Master/Cut
       matchless_dc30: ['cut', 'mastervolume'],
@@ -659,6 +659,22 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
             </select>
           </div>
         );
+      case 'soldano_channel':
+        // Soldano SLO-100 channels
+        return (
+          <div key="soldano_channel" className="amp-channel-switch">
+            <label>Channel</label>
+            <select 
+              value={amp.params?.channel || 1}
+              onChange={(e) => onUpdate(amp.id, 'channel', parseInt(e.target.value))}
+            >
+              <option value="0">Normal</option>
+              <option value="1">Overdrive</option>
+            </select>
+          </div>
+        );
+      case 'master_gain':
+        return <Knob key="master_gain" label="Pre-Master" value={amp.params?.master_gain || 70} onChange={handleKnobChange('master_gain')} size={32} />;
       case 'gate':
         return (
           <div key="gate" className="toggle-switch">
