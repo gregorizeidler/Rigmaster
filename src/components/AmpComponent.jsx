@@ -125,6 +125,13 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
         logo: '5150',
         brand: 'PEAVEY'
       },
+      mesa_dual_rectifier: {
+        color: '#8b0000',
+        accent: '#ffa500',
+        grill: '#1a1a1a',
+        logo: 'DUAL RECT',
+        brand: 'MESA'
+      },
       bogner_ecstasy: {
         color: '#1a1a2e',
         accent: '#4a9eff',
@@ -217,6 +224,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       // MESA BOOGIE - Graphic EQ + Presence
       lead: ['presence', 'graphiceq'],
       mesa_mark_v: ['presence', 'graphiceq', 'soloboost'],
+      mesa_dual_rectifier: ['presence', 'resonance', 'channel', 'bold_spongy', 'tube_silicon', 'multi_watt'],
       
       // ORANGE - Shape Control
       orange_rockerverb: ['shape', 'presence'],
@@ -368,6 +376,56 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
         return <Knob key="variac" label="Variac" value={amp.params?.variac || 100} onChange={handleKnobChange('variac')} size={40} />;
       case 'gainstructure':
         return <Knob key="gainstructure" label="Struct" value={amp.params?.gainstructure || 50} onChange={handleKnobChange('gainstructure')} size={40} />;
+      case 'channel':
+        return (
+          <div key="channel" className="amp-channel-switch">
+            <label>Channel</label>
+            <select 
+              value={amp.params?.channel || 'modern'}
+              onChange={(e) => onUpdate(amp.id, 'channel', e.target.value)}
+            >
+              <option value="clean">Clean</option>
+              <option value="vintage">Vintage</option>
+              <option value="modern">Modern</option>
+            </select>
+          </div>
+        );
+      case 'bold_spongy':
+        return (
+          <div key="bold_spongy" className="toggle-switch">
+            <label>{amp.params?.bold_spongy !== false ? 'BOLD' : 'SPONGY'}</label>
+            <input 
+              type="checkbox" 
+              checked={amp.params?.bold_spongy !== false}
+              onChange={(e) => onUpdate(amp.id, 'bold_spongy', e.target.checked)}
+            />
+          </div>
+        );
+      case 'tube_silicon':
+        return (
+          <div key="tube_silicon" className="toggle-switch">
+            <label>{amp.params?.tube_silicon !== false ? 'SILICON' : 'TUBE'}</label>
+            <input 
+              type="checkbox" 
+              checked={amp.params?.tube_silicon !== false}
+              onChange={(e) => onUpdate(amp.id, 'tube_silicon', e.target.checked)}
+            />
+          </div>
+        );
+      case 'multi_watt':
+        return (
+          <div key="multi_watt" className="amp-watt-switch">
+            <label>Power</label>
+            <select 
+              value={amp.params?.multi_watt || '100'}
+              onChange={(e) => onUpdate(amp.id, 'multi_watt', e.target.value)}
+            >
+              <option value="50">50W</option>
+              <option value="100">100W</option>
+              <option value="150">150W</option>
+            </select>
+          </div>
+        );
       default:
         return null;
     }
@@ -427,6 +485,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
             
             <optgroup label="🤘 HIGH GAIN/MODERN">
               <option value="peavey_5150">Peavey 5150</option>
+              <option value="mesa_dual_rectifier">Mesa Dual Rectifier</option>
               <option value="bogner_ecstasy">Bogner Ecstasy</option>
               <option value="diezel_vh4">Diezel VH4</option>
               <option value="friedman_be100">Friedman BE-100</option>

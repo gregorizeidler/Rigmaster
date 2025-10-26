@@ -251,7 +251,7 @@ makeTubeScreamerCurve(drive) {
     y += 0.12 * Math.tanh(x * gain * 4);
     
     curve[i] = y * 0.85;
-  }
+    }
   return curve;
 }
 ```

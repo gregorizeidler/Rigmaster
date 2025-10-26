@@ -460,6 +460,14 @@ class AmpSimulator extends BaseEffect {
         this.midPeak.gain.value = 7;
         this.highShelf.gain.value = 3;
         break;
+      case 'mesa_dual_rectifier':
+        this.preAmpGain.gain.value = 15;
+        this.saturation.curve = this.makeMesaDualRectifierCurve();
+        this.masterGain.gain.value = 0.3;
+        this.lowMid.gain.value = 8; // Heavy bass
+        this.midPeak.gain.value = -3; // Mid scoop
+        this.highShelf.gain.value = 6; // Aggressive highs
+        break;
       case 'suhr_badger':
         this.preAmpGain.gain.value = 5;
         this.saturation.curve = this.makeSuhrBadgerCurve();
@@ -1103,6 +1111,71 @@ class AmpSimulator extends BaseEffect {
       if (x > 0) y *= 1.15;
       
       curve[i] = y * 0.77;
+    }
+    return curve;
+  }
+
+  makeMesaDualRectifierCurve() {
+    const samples = 44100;
+    const curve = new Float32Array(samples);
+    for (let i = 0; i < samples; i++) {
+      const x = (i * 2) / samples - 1;
+      // MESA/BOOGIE DUAL RECTIFIER: Modern high-gain monster
+      // 3 channels (Clean, Vintage, Modern), Tube/Silicon rectifier modes
+      // Used by Metallica, Dream Theater, Lamb of God
+      
+      // === MODERN CHANNEL (Red) - MOST AGGRESSIVE ===
+      
+      // STAGE 1: Massive gain (4+ preamp stages)
+      let y = Math.tanh(x * 15);
+      
+      // STAGE 2: Additional cascading
+      y = Math.tanh(y * 1.6);
+      
+      // STAGE 3: Final gain stage
+      y = Math.tanh(y * 1.2);
+      
+      // === DUAL RECTIFIER CHARACTERISTICS ===
+      
+      // TUBE RECTIFIER MODE (saggy, compressed)
+      // vs SILICON MODE (tight, aggressive) - simulating SILICON
+      if (Math.abs(y) > 0.5) {
+        const excess = Math.abs(y) - 0.5;
+        y = Math.sign(y) * (0.5 + excess * 0.35); // Hard compression
+      }
+      
+      // MASSIVE BASS (low-end thump)
+      if (x < -0.15) {
+        y *= 1.12; // Heavy bass response
+      }
+      
+      // EXTREME MID SCOOP (V-shaped EQ signature)
+      if (Math.abs(x) > 0.2 && Math.abs(x) < 0.65) {
+        y *= 0.82; // Extreme mid scoop (scooped mids = Rectifier sound)
+      }
+      
+      // AGGRESSIVE HIGHS (cutting presence)
+      if (Math.abs(x) > 0.7) {
+        y += 0.12 * Math.tanh(x * 30); // Sharp highs
+      }
+      
+      // BOLD/SPONGY POWER (simulating BOLD mode - tighter)
+      y += 0.08 * Math.tanh(x * 25); // Tight harmonics
+      
+      // MULTI-WATT (simulating 100W mode - more headroom)
+      y += 0.05 * Math.tanh(x * 40); // Extra saturation
+      
+      // 6L6 POWER TUBES (tight, modern)
+      if (x > 0) {
+        y *= 1.22; // Strong asymmetry
+      } else {
+        y *= 1.05; // Tight negative cycle
+      }
+      
+      // PRESENCE CONTROL (high-frequency emphasis)
+      y += 0.1 * Math.sin(x * Math.PI * 9);
+      
+      curve[i] = y * 0.68;
     }
     return curve;
   }
