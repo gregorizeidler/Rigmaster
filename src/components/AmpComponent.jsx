@@ -265,7 +265,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       
       // MESA BOOGIE - Graphic EQ + Presence
       lead: ['presence', 'graphiceq'],
-      mesa_mark_v: ['presence', 'graphiceq', 'soloboost'],
+      mesa_mark_v: ['mesa_mark_v_controls'],
       mesa_dual_rectifier: ['presence', 'resonance', 'channel', 'bold_spongy', 'tube_silicon', 'multi_watt'],
       
       // ORANGE - Full Rockerverb Controls
@@ -786,6 +786,220 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
             </select>
           </div>
         );
+      
+      // ============================================
+      // MESA MARK V - COMPLETE CONTROLS
+      // ============================================
+      case 'mesa_mark_v_controls':
+        return (
+          <div key="mesa_mark_v_controls" className="mesa-mark-v-full-controls" style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '15px',
+            padding: '15px',
+            background: 'linear-gradient(135deg, rgba(0,0,0,0.4), rgba(255,165,0,0.1))',
+            borderRadius: '10px',
+            border: '2px solid rgba(255,165,0,0.3)',
+            width: '100%',
+            maxWidth: '900px'
+          }}>
+            {/* CHANNEL & MODE SELECTORS */}
+            <div style={{ display: 'flex', gap: '15px', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: 'rgba(0,0,0,0.3)', borderRadius: '8px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                <label style={{ fontSize: '9px', fontWeight: 'bold', color: '#ffa500', textTransform: 'uppercase' }}>Channel</label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button 
+                    onClick={() => onUpdate(amp.id, 'channel', 1)}
+                    style={{
+                      padding: '8px 16px',
+                      background: amp.params?.channel === 1 ? '#ffa500' : 'rgba(0,0,0,0.5)',
+                      border: '2px solid #ffa500',
+                      color: amp.params?.channel === 1 ? '#000' : '#ffa500',
+                      borderRadius: '5px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '11px'
+                    }}
+                  >CH 1</button>
+                  <button 
+                    onClick={() => onUpdate(amp.id, 'channel', 2)}
+                    style={{
+                      padding: '8px 16px',
+                      background: amp.params?.channel === 2 ? '#ffa500' : 'rgba(0,0,0,0.5)',
+                      border: '2px solid #ffa500',
+                      color: amp.params?.channel === 2 ? '#000' : '#ffa500',
+                      borderRadius: '5px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '11px'
+                    }}
+                  >CH 2</button>
+                  <button 
+                    onClick={() => onUpdate(amp.id, 'channel', 3)}
+                    style={{
+                      padding: '8px 16px',
+                      background: amp.params?.channel === 3 ? '#ffa500' : 'rgba(0,0,0,0.5)',
+                      border: '2px solid #ffa500',
+                      color: amp.params?.channel === 3 ? '#000' : '#ffa500',
+                      borderRadius: '5px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '11px'
+                    }}
+                  >CH 3</button>
+                </div>
+              </div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                <label style={{ fontSize: '9px', fontWeight: 'bold', color: '#ffa500', textTransform: 'uppercase' }}>Mode</label>
+                <select 
+                  value={amp.params?.mode || 'iic+'}
+                  onChange={(e) => onUpdate(amp.id, 'mode', e.target.value)}
+                  style={{
+                    padding: '8px 12px',
+                    background: 'rgba(0,0,0,0.7)',
+                    border: '2px solid #ffa500',
+                    color: '#ffa500',
+                    borderRadius: '5px',
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {(amp.params?.channel === 1 || amp.params?.channel === '1') ? (
+                    <>
+                      <option value="clean">CLEAN</option>
+                      <option value="fat">FAT</option>
+                      <option value="tweed">TWEED</option>
+                    </>
+                  ) : (amp.params?.channel === 2 || amp.params?.channel === '2') ? (
+                    <>
+                      <option value="edge">EDGE</option>
+                      <option value="crunch">CRUNCH</option>
+                      <option value="mark_i">MARK I</option>
+                    </>
+                  ) : (
+                    <>
+                      <option value="iic+">IIC+</option>
+                      <option value="mark_iv">MARK IV</option>
+                      <option value="extreme">EXTREME</option>
+                    </>
+                  )}
+                </select>
+              </div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                <label style={{ fontSize: '9px', fontWeight: 'bold', color: '#ffa500', textTransform: 'uppercase' }}>Variac Power</label>
+                <select 
+                  value={amp.params?.variac_power || 90}
+                  onChange={(e) => onUpdate(amp.id, 'variac_power', parseInt(e.target.value))}
+                  style={{
+                    padding: '8px 12px',
+                    background: 'rgba(0,0,0,0.7)',
+                    border: '2px solid #ffa500',
+                    color: '#ffa500',
+                    borderRadius: '5px',
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value="90">FULL (90W)</option>
+                  <option value="45">VARIAC (45W)</option>
+                  <option value="10">TWEED (10W)</option>
+                </select>
+              </div>
+            </div>
+            
+            {/* MAIN KNOBS */}
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', padding: '10px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
+              <Knob label="Gain" value={amp.params?.gain || 70} onChange={handleKnobChange('gain')} size={40} />
+              <Knob label="Bass" value={amp.params?.bass || 60} onChange={handleKnobChange('bass')} size={40} />
+              <Knob label="Mid" value={amp.params?.middle || 50} onChange={handleKnobChange('middle')} size={40} />
+              <Knob label="Treble" value={amp.params?.treble || 70} onChange={handleKnobChange('treble')} size={40} />
+              <Knob label="Presence" value={amp.params?.presence || 65} onChange={handleKnobChange('presence')} size={40} />
+            </div>
+            
+            {/* GRAPHIC EQ */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '12px', background: 'rgba(0,0,0,0.3)', borderRadius: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#ffa500', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  5-Band Graphic EQ
+                </label>
+                <div className="toggle-switch">
+                  <label style={{ fontSize: '10px', color: '#ffa500' }}>
+                    {amp.params?.eq_enabled ? 'ON' : 'OFF'}
+                  </label>
+                  <input 
+                    type="checkbox" 
+                    checked={amp.params?.eq_enabled || false}
+                    onChange={(e) => onUpdate(amp.id, 'eq_enabled', e.target.checked)}
+                  />
+                </div>
+              </div>
+              
+              <div style={{ display: 'flex', gap: '15px', justifyContent: 'space-around', opacity: amp.params?.eq_enabled ? 1 : 0.3 }}>
+                {[
+                  { param: 'eq_80', label: '80Hz' },
+                  { param: 'eq_240', label: '240Hz' },
+                  { param: 'eq_750', label: '750Hz' },
+                  { param: 'eq_2200', label: '2.2kHz' },
+                  { param: 'eq_6600', label: '6.6kHz' }
+                ].map(({ param, label }) => (
+                  <div key={param} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                    <input 
+                      type="range"
+                      orient="vertical"
+                      min="0"
+                      max="100"
+                      value={amp.params?.[param] || 50}
+                      onChange={(e) => onUpdate(amp.id, param, parseInt(e.target.value))}
+                      disabled={!amp.params?.eq_enabled}
+                      style={{
+                        width: '80px',
+                        height: '15px',
+                        transform: 'rotate(-90deg)',
+                        transformOrigin: '40px 40px',
+                        margin: '40px 0'
+                      }}
+                    />
+                    <span style={{ fontSize: '9px', color: '#ffa500', fontWeight: 'bold' }}>{label}</span>
+                    <span style={{ fontSize: '8px', color: '#999' }}>
+                      {((amp.params?.[param] || 50) - 50) / 4.17 > 0 ? '+' : ''}{(((amp.params?.[param] || 50) - 50) / 4.17).toFixed(1)}dB
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* MASTERS & OPTIONS */}
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
+              <Knob label="Ch Master" value={amp.params?.channel_master || 70} onChange={handleKnobChange('channel_master')} size={38} />
+              <Knob label="Master" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={42} />
+              
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <div className="toggle-switch">
+                  <label style={{ fontSize: '9px', color: '#ffa500' }}>V-Curve</label>
+                  <input 
+                    type="checkbox" 
+                    checked={amp.params?.vcurve_enabled || false}
+                    onChange={(e) => onUpdate(amp.id, 'vcurve_enabled', e.target.checked)}
+                  />
+                </div>
+                
+                <div className="toggle-switch">
+                  <label style={{ fontSize: '9px', color: '#ffa500' }}>Cabinet</label>
+                  <input 
+                    type="checkbox" 
+                    checked={amp.params?.cabinet_enabled !== false}
+                    onChange={(e) => onUpdate(amp.id, 'cabinet_enabled', e.target.checked)}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      
       default:
         return null;
     }

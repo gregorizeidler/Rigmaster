@@ -23,6 +23,33 @@ class MesaMarkVAmp extends BaseAmp {
     this.channel3Mode = 'iic+'; // 'iic+', 'mark_iv', 'extreme'
     
     // ============================================
+    // MARK SERIES VOICING FILTERS (Shared)
+    // ============================================
+    // Input HPF - controls low-end boom
+    this.inputHPF = audioContext.createBiquadFilter();
+    this.inputHPF.type = 'highpass';
+    this.inputHPF.frequency.value = 70;
+    this.inputHPF.Q.value = 0.707;
+    
+    // Pull Bright - high frequency shelf
+    this.brightShelf = audioContext.createBiquadFilter();
+    this.brightShelf.type = 'highshelf';
+    this.brightShelf.frequency.value = 3000;
+    this.brightShelf.gain.value = 0;
+    
+    // Lead Tight HPF - high-gain tightness
+    this.leadTightHPF = audioContext.createBiquadFilter();
+    this.leadTightHPF.type = 'highpass';
+    this.leadTightHPF.frequency.value = 100;
+    this.leadTightHPF.Q.value = 0.707;
+    
+    // Pre-power LPF - tames fizz before power section
+    this.preLPF = audioContext.createBiquadFilter();
+    this.preLPF.type = 'lowpass';
+    this.preLPF.frequency.value = 9500;
+    this.preLPF.Q.value = 0.707;
+    
+    // ============================================
     // PREAMP (5 cascading 12AX7 stages)
     // ============================================
     this.preamp1 = audioContext.createGain();
@@ -56,7 +83,6 @@ class MesaMarkVAmp extends BaseAmp {
     this.bass = audioContext.createBiquadFilter();
     this.middle = audioContext.createBiquadFilter();
     this.treble = audioContext.createBiquadFilter();
-    this.presence = audioContext.createBiquadFilter();
     
     this.bass.type = 'lowshelf';
     this.bass.frequency.value = 100;
@@ -70,10 +96,6 @@ class MesaMarkVAmp extends BaseAmp {
     this.treble.type = 'highshelf';
     this.treble.frequency.value = 2500;
     this.treble.gain.value = 0;
-    
-    this.presence.type = 'highshelf';
-    this.presence.frequency.value = 4500;
-    this.presence.gain.value = 0;
     
     // ============================================
     // MARK SERIES GRAPHIC EQ (5-band)
@@ -111,14 +133,18 @@ class MesaMarkVAmp extends BaseAmp {
     this.graphicEQ[4].Q.value = 1.0;
     this.graphicEQ[4].gain.value = 0;
     
+    // Graphic EQ Bypass node
+    this.geqBypass = audioContext.createGain();
+    this.geqBypass.gain.value = 0; // 0 = off, 1 = on
+    
     // ============================================
-    // MARK SERIES "V-CURVE" (Signature scoop)
+    // MARK SERIES "V-CURVE" (Optional mid scoop)
     // ============================================
     this.vCurve = audioContext.createBiquadFilter();
     this.vCurve.type = 'peaking';
     this.vCurve.frequency.value = 650;
     this.vCurve.Q.value = 2.0;
-    this.vCurve.gain.value = -6; // Mid scoop
+    this.vCurve.gain.value = 0; // disabled by default, user can enable
     
     // ============================================
     // POWER AMP (4x 6L6 or 2x EL34 - Simul-Class)
@@ -137,6 +163,47 @@ class MesaMarkVAmp extends BaseAmp {
     this.powerComp.release.value = 0.08;
     
     // ============================================
+    // CABINET & OUTPUT
+    // ============================================
+    // DC Block (essential for high-gain)
+    this.dcBlock = audioContext.createBiquadFilter();
+    this.dcBlock.type = 'highpass';
+    this.dcBlock.frequency.value = 20;
+    this.dcBlock.Q.value = 0.707;
+    
+    // Cabinet IR (simulated for now, can be replaced with real IR)
+    this.cabinetSim = audioContext.createBiquadFilter();
+    this.cabinetSim.type = 'lowpass';
+    this.cabinetSim.frequency.value = 5200; // Mesa 4x12 V30
+    this.cabinetSim.Q.value = 1.5;
+    
+    // Microphone simulation
+    this.micSim = audioContext.createBiquadFilter();
+    this.micSim.type = 'peaking';
+    this.micSim.frequency.value = 5000; // SM57 presence peak
+    this.micSim.Q.value = 1.2;
+    this.micSim.gain.value = 4;
+    
+    // Presence (post-cabinet as in real Mark V)
+    this.presence = audioContext.createBiquadFilter();
+    this.presence.type = 'highshelf';
+    this.presence.frequency.value = 4500;
+    this.presence.gain.value = 0;
+    
+    // Cabinet enabled flag
+    this.cabinetEnabled = true;
+    
+    // ============================================
+    // NOISE GATE (for channel 3)
+    // ============================================
+    this.noiseGate = audioContext.createDynamicsCompressor();
+    this.noiseGate.threshold.value = -52;
+    this.noiseGate.knee.value = 0;
+    this.noiseGate.ratio.value = 20;
+    this.noiseGate.attack.value = 0.001;
+    this.noiseGate.release.value = 0.08;
+    
+    // ============================================
     // MASTER SECTION
     // ============================================
     this.channelMaster = audioContext.createGain();
@@ -148,10 +215,8 @@ class MesaMarkVAmp extends BaseAmp {
     this.variacPower = 90; // 90, 45, 10
     
     // ============================================
-    // ROUTING - CHANNEL 3, MODE IIC+ (DEFAULT)
+    // INITIALIZE PARAMS BEFORE ROUTING!
     // ============================================
-    this.setupChannel3();
-    
     this.params = {
       channel: 3, // 1, 2, 3
       mode: 'iic+', // depends on channel
@@ -172,22 +237,37 @@ class MesaMarkVAmp extends BaseAmp {
       eq_750: 50,
       eq_2200: 50,
       eq_6600: 50,
+      eq_enabled: false, // GEQ on/off
+      
+      // V-Curve (optional mid scoop)
+      vcurve_enabled: false,
       
       // Power
       variac_power: 90,
+      
+      // Cabinet
+      cabinet_enabled: true,
+      cabinet: '4x12_vintage',
+      microphone: 'sm57',
+      micPosition: 'edge',
       
       // Output Master
       master: 70
     };
     
+    // Setup routing AFTER params are initialized
+    this.setupChannel3();
     this.applyInitialSettings();
+    this.applyModeVoicing();
   }
   
   setupChannel1() {
     // CHANNEL 1 - CLEAN/FAT/TWEED (2 gain stages)
     this.disconnectAll();
     
-    this.input.connect(this.channel1);
+    this.input.connect(this.inputHPF);
+    this.inputHPF.connect(this.brightShelf);
+    this.brightShelf.connect(this.channel1);
     this.channel1.connect(this.preamp1);
     this.preamp1.connect(this.saturation1);
     this.saturation1.connect(this.preamp2);
@@ -195,22 +275,32 @@ class MesaMarkVAmp extends BaseAmp {
     this.saturation2.connect(this.bass);
     this.bass.connect(this.middle);
     this.middle.connect(this.treble);
-    this.treble.connect(this.presence);
     
-    // Graphic EQ chain
-    this.presence.connect(this.graphicEQ[0]);
+    // Graphic EQ chain (with bypass)
+    this.treble.connect(this.graphicEQ[0]);
     this.graphicEQ[0].connect(this.graphicEQ[1]);
     this.graphicEQ[1].connect(this.graphicEQ[2]);
     this.graphicEQ[2].connect(this.graphicEQ[3]);
     this.graphicEQ[3].connect(this.graphicEQ[4]);
     
-    this.graphicEQ[4].connect(this.channelMaster);
+    this.graphicEQ[4].connect(this.preLPF);
+    this.preLPF.connect(this.channelMaster);
     this.channelMaster.connect(this.powerComp);
     this.powerComp.connect(this.powerAmp);
     this.powerAmp.connect(this.powerSaturation);
-    this.powerSaturation.connect(this.outputMaster);
-    this.outputMaster.connect(this.output);
+    this.powerSaturation.connect(this.dcBlock);
     
+    // Cabinet routing
+    if (this.cabinetEnabled) {
+      this.dcBlock.connect(this.cabinetSim);
+      this.cabinetSim.connect(this.micSim);
+      this.micSim.connect(this.presence);
+      this.presence.connect(this.outputMaster);
+    } else {
+      this.dcBlock.connect(this.outputMaster);
+    }
+    
+    this.outputMaster.connect(this.output);
     this.activeChannel = 1;
   }
   
@@ -218,79 +308,111 @@ class MesaMarkVAmp extends BaseAmp {
     // CHANNEL 2 - EDGE/CRUNCH/MARK I (3 gain stages)
     this.disconnectAll();
     
-    this.input.connect(this.channel2);
+    this.input.connect(this.inputHPF);
+    this.inputHPF.connect(this.brightShelf);
+    this.brightShelf.connect(this.channel2);
     this.channel2.connect(this.preamp1);
     this.preamp1.connect(this.saturation1);
     this.saturation1.connect(this.preamp2);
     this.preamp2.connect(this.saturation2);
-    this.saturation2.connect(this.preamp3);
+    this.saturation2.connect(this.leadTightHPF);
+    this.leadTightHPF.connect(this.preamp3);
     this.preamp3.connect(this.saturation3);
     this.saturation3.connect(this.bass);
     this.bass.connect(this.middle);
     this.middle.connect(this.treble);
-    this.treble.connect(this.presence);
     
     // Graphic EQ chain
-    this.presence.connect(this.graphicEQ[0]);
+    this.treble.connect(this.graphicEQ[0]);
     this.graphicEQ[0].connect(this.graphicEQ[1]);
     this.graphicEQ[1].connect(this.graphicEQ[2]);
     this.graphicEQ[2].connect(this.graphicEQ[3]);
     this.graphicEQ[3].connect(this.graphicEQ[4]);
     
-    this.graphicEQ[4].connect(this.channelMaster);
+    this.graphicEQ[4].connect(this.preLPF);
+    this.preLPF.connect(this.channelMaster);
     this.channelMaster.connect(this.powerComp);
     this.powerComp.connect(this.powerAmp);
     this.powerAmp.connect(this.powerSaturation);
-    this.powerSaturation.connect(this.outputMaster);
-    this.outputMaster.connect(this.output);
+    this.powerSaturation.connect(this.dcBlock);
     
+    // Cabinet routing
+    if (this.cabinetEnabled) {
+      this.dcBlock.connect(this.cabinetSim);
+      this.cabinetSim.connect(this.micSim);
+      this.micSim.connect(this.presence);
+      this.presence.connect(this.outputMaster);
+    } else {
+      this.dcBlock.connect(this.outputMaster);
+    }
+    
+    this.outputMaster.connect(this.output);
     this.activeChannel = 2;
   }
   
   setupChannel3() {
-    // CHANNEL 3 - IIC+/MARK IV/EXTREME (5 gain stages)
+    // CHANNEL 3 - IIC+/MARK IV/EXTREME (5 gain stages with noise gate)
     this.disconnectAll();
     
-    this.input.connect(this.channel3);
-    this.channel3.connect(this.preamp1);
+    this.input.connect(this.inputHPF);
+    this.inputHPF.connect(this.brightShelf);
+    this.brightShelf.connect(this.channel3);
+    this.channel3.connect(this.noiseGate); // Gate before gain stages
+    this.noiseGate.connect(this.preamp1);
     this.preamp1.connect(this.saturation1);
     this.saturation1.connect(this.preamp2);
     this.preamp2.connect(this.saturation2);
     this.saturation2.connect(this.preamp3);
     this.preamp3.connect(this.saturation3);
-    this.saturation3.connect(this.preamp4);
+    this.saturation3.connect(this.leadTightHPF); // Tight HPF before last stages
+    this.leadTightHPF.connect(this.preamp4);
     this.preamp4.connect(this.saturation4);
     this.saturation4.connect(this.preamp5);
     this.preamp5.connect(this.saturation5);
-    this.saturation5.connect(this.vCurve);
+    this.saturation5.connect(this.vCurve); // Optional V-curve
     this.vCurve.connect(this.bass);
     this.bass.connect(this.middle);
     this.middle.connect(this.treble);
-    this.treble.connect(this.presence);
     
     // Graphic EQ chain
-    this.presence.connect(this.graphicEQ[0]);
+    this.treble.connect(this.graphicEQ[0]);
     this.graphicEQ[0].connect(this.graphicEQ[1]);
     this.graphicEQ[1].connect(this.graphicEQ[2]);
     this.graphicEQ[2].connect(this.graphicEQ[3]);
     this.graphicEQ[3].connect(this.graphicEQ[4]);
     
-    this.graphicEQ[4].connect(this.channelMaster);
+    this.graphicEQ[4].connect(this.preLPF);
+    this.preLPF.connect(this.channelMaster);
     this.channelMaster.connect(this.powerComp);
     this.powerComp.connect(this.powerAmp);
     this.powerAmp.connect(this.powerSaturation);
-    this.powerSaturation.connect(this.outputMaster);
-    this.outputMaster.connect(this.output);
+    this.powerSaturation.connect(this.dcBlock);
     
+    // Cabinet routing
+    if (this.cabinetEnabled) {
+      this.dcBlock.connect(this.cabinetSim);
+      this.cabinetSim.connect(this.micSim);
+      this.micSim.connect(this.presence);
+      this.presence.connect(this.outputMaster);
+    } else {
+      this.dcBlock.connect(this.outputMaster);
+    }
+    
+    this.outputMaster.connect(this.output);
     this.activeChannel = 3;
   }
   
   disconnectAll() {
     try {
       this.input.disconnect();
+      this.inputHPF.disconnect();
+      this.brightShelf.disconnect();
+      this.leadTightHPF.disconnect();
+      this.preLPF.disconnect();
       this.channel1.disconnect();
       this.channel2.disconnect();
       this.channel3.disconnect();
+      this.noiseGate.disconnect();
       this.preamp1.disconnect();
       this.saturation1.disconnect();
       this.preamp2.disconnect();
@@ -305,12 +427,15 @@ class MesaMarkVAmp extends BaseAmp {
       this.bass.disconnect();
       this.middle.disconnect();
       this.treble.disconnect();
-      this.presence.disconnect();
       this.graphicEQ.forEach(eq => eq.disconnect());
       this.channelMaster.disconnect();
       this.powerComp.disconnect();
       this.powerAmp.disconnect();
       this.powerSaturation.disconnect();
+      this.dcBlock.disconnect();
+      this.cabinetSim.disconnect();
+      this.micSim.disconnect();
+      this.presence.disconnect();
       this.outputMaster.disconnect();
     } catch (e) {}
   }
@@ -387,6 +512,67 @@ class MesaMarkVAmp extends BaseAmp {
     return curve;
   }
   
+  // Linear to logarithmic mapping for gain controls
+  lin2log(v01) {
+    return 0.001 * Math.pow(1000, v01); // ~-60dB to 0dB
+  }
+  
+  // Apply mode-specific voicing (the secret sauce of Mark V)
+  applyModeVoicing() {
+    const now = this.audioContext.currentTime;
+    
+    if (this.activeChannel === 1) {
+      if (this.channel1Mode === 'clean') {
+        // Clean: bright, open, Fender-like
+        this.preamp1.gain.setTargetAtTime(2.0, now, 0.02);
+        this.brightShelf.gain.setTargetAtTime(3, now, 0.02);
+        this.inputHPF.frequency.setTargetAtTime(70, now, 0.02);
+      } else if (this.channel1Mode === 'fat') {
+        // Fat: more bass, slightly pushed mids
+        this.preamp1.gain.setTargetAtTime(2.6, now, 0.02);
+        this.brightShelf.gain.setTargetAtTime(1, now, 0.02);
+        this.inputHPF.frequency.setTargetAtTime(55, now, 0.02);
+        this.bass.gain.setTargetAtTime(2, now, 0.02);
+      } else if (this.channel1Mode === 'tweed') {
+        // Tweed: warm breakup, more gain
+        this.preamp1.gain.setTargetAtTime(3.2, now, 0.02);
+        this.brightShelf.gain.setTargetAtTime(0, now, 0.02);
+        this.inputHPF.frequency.setTargetAtTime(80, now, 0.02);
+        this.treble.gain.setTargetAtTime(2, now, 0.02);
+      }
+    } else if (this.activeChannel === 2) {
+      if (this.channel2Mode === 'edge') {
+        // Edge: British crunch, tight low-end
+        this.preamp1.gain.setTargetAtTime(3.0, now, 0.02);
+        this.leadTightHPF.frequency.setTargetAtTime(90, now, 0.02);
+      } else if (this.channel2Mode === 'crunch') {
+        // Crunch: Classic rock gain
+        this.preamp1.gain.setTargetAtTime(4.0, now, 0.02);
+        this.leadTightHPF.frequency.setTargetAtTime(95, now, 0.02);
+      } else if (this.channel2Mode === 'mark_i') {
+        // Mark I: Santana-style singing lead
+        this.preamp1.gain.setTargetAtTime(4.5, now, 0.02);
+        this.brightShelf.gain.setTargetAtTime(2, now, 0.02);
+        this.leadTightHPF.frequency.setTargetAtTime(100, now, 0.02);
+      }
+    } else if (this.activeChannel === 3) {
+      if (this.channel3Mode === 'iic+') {
+        // IIC+: Iconic Metallica/Petrucci tone
+        this.preLPF.frequency.setTargetAtTime(9000, now, 0.02);
+        this.leadTightHPF.frequency.setTargetAtTime(110, now, 0.02);
+      } else if (this.channel3Mode === 'mark_iv') {
+        // Mark IV: Tighter, more focused
+        this.preLPF.frequency.setTargetAtTime(8500, now, 0.02);
+        this.leadTightHPF.frequency.setTargetAtTime(120, now, 0.02);
+      } else if (this.channel3Mode === 'extreme') {
+        // Extreme: Maximum gain and aggression
+        this.preLPF.frequency.setTargetAtTime(8000, now, 0.02);
+        this.leadTightHPF.frequency.setTargetAtTime(140, now, 0.02);
+        this.preamp5.gain.setTargetAtTime(1.6, now, 0.02);
+      }
+    }
+  }
+  
   updateParameter(parameter, value) {
     const now = this.audioContext.currentTime;
     
@@ -399,6 +585,7 @@ class MesaMarkVAmp extends BaseAmp {
         } else if (value === 3) {
           this.setupChannel3();
         }
+        this.applyModeVoicing();
         break;
       
       case 'mode':
@@ -410,14 +597,24 @@ class MesaMarkVAmp extends BaseAmp {
         } else if (this.activeChannel === 3) {
           this.channel3Mode = value;
         }
+        // Apply voicing changes immediately
+        this.applyModeVoicing();
         break;
       
-      case 'gain':
-        this.preamp1.gain.setTargetAtTime(1 + (value / 6), now, 0.01);
+      case 'gain': {
+        // Logarithmic mapping for natural gain taper
+        const g = this.lin2log(value / 100) * 18;
+        this.preamp1.gain.setTargetAtTime(Math.max(1, g * 0.50), now, 0.01);
+        this.preamp2.gain.setTargetAtTime(Math.max(1, g * 0.28), now, 0.01);
+        this.preamp3.gain.setTargetAtTime(Math.max(1, g * 0.22), now, 0.01);
+        this.preamp4.gain.setTargetAtTime(Math.max(1, g * 0.18), now, 0.01);
+        this.preamp5.gain.setTargetAtTime(Math.max(1, g * 0.15), now, 0.01);
         break;
+      }
       
       case 'channel_master':
-        this.channelMaster.gain.setTargetAtTime(value / 100, now, 0.01);
+        // Logarithmic taper
+        this.channelMaster.gain.setTargetAtTime(this.lin2log(value / 100), now, 0.01);
         break;
       
       case 'bass':
@@ -437,40 +634,72 @@ class MesaMarkVAmp extends BaseAmp {
         this.presence.gain.setTargetAtTime((value - 50) / 10, now, 0.01);
         break;
       
+      // Graphic EQ with ±12dB range
       case 'eq_80':
-        this.graphicEQ[0].gain.setTargetAtTime((value - 50) / 5, now, 0.01);
+        this.graphicEQ[0].gain.setTargetAtTime((value - 50) / 4.17, now, 0.01);
         break;
       
       case 'eq_240':
-        this.graphicEQ[1].gain.setTargetAtTime((value - 50) / 5, now, 0.01);
+        this.graphicEQ[1].gain.setTargetAtTime((value - 50) / 4.17, now, 0.01);
         break;
       
       case 'eq_750':
-        this.graphicEQ[2].gain.setTargetAtTime((value - 50) / 5, now, 0.01);
+        this.graphicEQ[2].gain.setTargetAtTime((value - 50) / 4.17, now, 0.01);
         break;
       
       case 'eq_2200':
-        this.graphicEQ[3].gain.setTargetAtTime((value - 50) / 5, now, 0.01);
+        this.graphicEQ[3].gain.setTargetAtTime((value - 50) / 4.17, now, 0.01);
         break;
       
       case 'eq_6600':
-        this.graphicEQ[4].gain.setTargetAtTime((value - 50) / 5, now, 0.01);
+        this.graphicEQ[4].gain.setTargetAtTime((value - 50) / 4.17, now, 0.01);
         break;
       
-      case 'variac_power':
+      case 'eq_enabled':
+        // Bypass GEQ when disabled
+        // Note: In real implementation, would need to rewire. For now, just zero gains.
+        if (!value) {
+          this.graphicEQ.forEach(eq => eq.gain.setTargetAtTime(0, now, 0.01));
+        }
+        break;
+      
+      case 'vcurve_enabled':
+        // Enable/disable V-curve mid scoop
+        this.vCurve.gain.setTargetAtTime(value ? -6 : 0, now, 0.02);
+        break;
+      
+      case 'variac_power': {
         this.variacPower = value;
-        // Adjust power amp gain based on power setting
-        if (value === 90) {
-          this.powerAmp.gain.setTargetAtTime(1.1, now, 0.01);
-        } else if (value === 45) {
-          this.powerAmp.gain.setTargetAtTime(0.9, now, 0.01);
-        } else if (value === 10) {
-          this.powerAmp.gain.setTargetAtTime(0.6, now, 0.01);
+        // Variac affects dynamics, not just volume
+        const map = {
+          90: { gain: 1.10, thr: -12, atk: 0.005, rel: 0.08, lpf: 11000 },
+          45: { gain: 0.92, thr: -14, atk: 0.006, rel: 0.09, lpf: 10000 },
+          10: { gain: 0.68, thr: -16, atk: 0.007, rel: 0.10, lpf: 9000 }
+        }[value] || { gain: 1.1, thr: -12, atk: 0.005, rel: 0.08, lpf: 11000 };
+        
+        this.powerAmp.gain.setTargetAtTime(map.gain, now, 0.02);
+        this.powerComp.threshold.setTargetAtTime(map.thr, now, 0.05);
+        this.powerComp.attack.setTargetAtTime(map.atk, now, 0.05);
+        this.powerComp.release.setTargetAtTime(map.rel, now, 0.05);
+        this.preLPF.frequency.setTargetAtTime(map.lpf, now, 0.05);
+        break;
+      }
+      
+      case 'cabinet_enabled':
+        this.cabinetEnabled = value;
+        // Reroute based on current channel
+        if (this.activeChannel === 1) {
+          this.setupChannel1();
+        } else if (this.activeChannel === 2) {
+          this.setupChannel2();
+        } else {
+          this.setupChannel3();
         }
         break;
       
       case 'master':
-        this.outputMaster.gain.setTargetAtTime(value / 100, now, 0.01);
+        // Logarithmic taper
+        this.outputMaster.gain.setTargetAtTime(this.lin2log(value / 100), now, 0.01);
         break;
     }
     
@@ -479,9 +708,14 @@ class MesaMarkVAmp extends BaseAmp {
   
   disconnect() {
     super.disconnect();
+    this.inputHPF.disconnect();
+    this.brightShelf.disconnect();
+    this.leadTightHPF.disconnect();
+    this.preLPF.disconnect();
     this.channel1.disconnect();
     this.channel2.disconnect();
     this.channel3.disconnect();
+    this.noiseGate.disconnect();
     this.preamp1.disconnect();
     this.saturation1.disconnect();
     this.preamp2.disconnect();
@@ -496,12 +730,15 @@ class MesaMarkVAmp extends BaseAmp {
     this.bass.disconnect();
     this.middle.disconnect();
     this.treble.disconnect();
-    this.presence.disconnect();
     this.graphicEQ.forEach(eq => eq.disconnect());
     this.channelMaster.disconnect();
     this.powerComp.disconnect();
     this.powerAmp.disconnect();
     this.powerSaturation.disconnect();
+    this.dcBlock.disconnect();
+    this.cabinetSim.disconnect();
+    this.micSim.disconnect();
+    this.presence.disconnect();
     this.outputMaster.disconnect();
   }
 }
