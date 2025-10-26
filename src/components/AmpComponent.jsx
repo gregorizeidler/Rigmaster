@@ -231,7 +231,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       
       // HIGH GAIN MODERN - Presence + Resonance/Depth
       metal: ['presence', 'resonance'],
-      peavey_5150: ['presence', 'resonance', 'pregain', 'postgain'],
+      peavey_5150: ['peavey_channel', 'presence', 'resonance', 'pregain', 'postgain', 'bright', 'gate', 'crunch', 'speaker_impedance'],
       bogner_ecstasy: ['presence', 'depth', 'boost'],
       diezel_vh4: ['presence', 'depth', 'deepcontrol'],
       friedman_be100: ['presence', 'depth', 'tightswitch'],
@@ -377,6 +377,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       case 'gainstructure':
         return <Knob key="gainstructure" label="Struct" value={amp.params?.gainstructure || 50} onChange={handleKnobChange('gainstructure')} size={40} />;
       case 'channel':
+        // Mesa Dual Rectifier channels
         return (
           <div key="channel" className="amp-channel-switch">
             <label>Channel</label>
@@ -387,6 +388,56 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
               <option value="clean">Clean</option>
               <option value="vintage">Vintage</option>
               <option value="modern">Modern</option>
+            </select>
+          </div>
+        );
+      case 'peavey_channel':
+        // Peavey 5150 channels
+        return (
+          <div key="peavey_channel" className="amp-channel-switch">
+            <label>Channel</label>
+            <select 
+              value={amp.params?.channel || 1}
+              onChange={(e) => onUpdate(amp.id, 'channel', parseInt(e.target.value))}
+            >
+              <option value="0">Rhythm</option>
+              <option value="1">Lead</option>
+            </select>
+          </div>
+        );
+      case 'gate':
+        return (
+          <div key="gate" className="toggle-switch">
+            <label>Gate</label>
+            <input 
+              type="checkbox" 
+              checked={amp.params?.gate !== false}
+              onChange={(e) => onUpdate(amp.id, 'gate', e.target.checked)}
+            />
+          </div>
+        );
+      case 'crunch':
+        return (
+          <div key="crunch" className="toggle-switch">
+            <label>Crunch</label>
+            <input 
+              type="checkbox" 
+              checked={amp.params?.crunch || false}
+              onChange={(e) => onUpdate(amp.id, 'crunch', e.target.checked)}
+            />
+          </div>
+        );
+      case 'speaker_impedance':
+        return (
+          <div key="speaker_impedance" className="amp-impedance-switch">
+            <label>Impedance</label>
+            <select 
+              value={amp.params?.speaker_impedance || 16}
+              onChange={(e) => onUpdate(amp.id, 'speaker_impedance', parseInt(e.target.value))}
+            >
+              <option value="4">4Ω (Tight)</option>
+              <option value="8">8Ω (Balanced)</option>
+              <option value="16">16Ω (Loose)</option>
             </select>
           </div>
         );

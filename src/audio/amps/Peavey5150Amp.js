@@ -6,37 +6,70 @@ class Peavey5150Amp extends BaseAmp {
     
     // PEAVEY 5150 (6505)
     // THE metal amp - Eddie Van Halen signature
+    // Enhanced with realistic modeling improvements
+    
+    // ============================================
+    // NOISE GATE (before first gain stage)
+    // ============================================
+    this.noiseGate = audioContext.createDynamicsCompressor();
+    this.noiseGate.threshold.value = -50; // dB
+    this.noiseGate.knee.value = 0;
+    this.noiseGate.ratio.value = 20; // High ratio for gating
+    this.noiseGate.attack.value = 0.001; // Fast attack
+    this.noiseGate.release.value = 0.1; // Fast release for palm mutes
+    this.gateEnabled = true;
     
     // ============================================
     // FRONT PANEL - RHYTHM CHANNEL
     // ============================================
     this.rhythmPreGain = audioContext.createGain();
     this.rhythmPostGain = audioContext.createGain();
-    this.rhythmLow = audioContext.createBiquadFilter();
-    this.rhythmMid = audioContext.createBiquadFilter();
-    this.rhythmHigh = audioContext.createBiquadFilter();
     
     // ============================================
     // FRONT PANEL - LEAD CHANNEL
     // ============================================
     this.leadPreGain = audioContext.createGain();
     this.leadPostGain = audioContext.createGain();
-    this.leadLow = audioContext.createBiquadFilter();
-    this.leadMid = audioContext.createBiquadFilter();
-    this.leadHigh = audioContext.createBiquadFilter();
     
-    // 5 GAIN STAGES (cascading)
+    // ============================================
+    // SHARED TONE STACK (authentic 5150 behavior)
+    // ============================================
+    // In real 5150/6505, EQ is shared between channels
+    this.sharedLow = audioContext.createBiquadFilter();
+    this.sharedMid = audioContext.createBiquadFilter();
+    this.sharedHigh = audioContext.createBiquadFilter();
+    
+    // ============================================
+    // 5 GAIN STAGES with HPF between stages
+    // ============================================
     this.gain1 = audioContext.createWaveShaper();
     this.gain2 = audioContext.createWaveShaper();
     this.gain3 = audioContext.createWaveShaper();
     this.gain4 = audioContext.createWaveShaper();
     this.gain5 = audioContext.createWaveShaper();
     
-    this.gain1.curve = this.makeGainStageCurve();
-    this.gain2.curve = this.makeGainStageCurve();
-    this.gain3.curve = this.makeGainStageCurve();
-    this.gain4.curve = this.makeGainStageCurve();
-    this.gain5.curve = this.makeGainStageCurve();
+    // High-pass filters between stages for tight bass control
+    this.hpf1 = audioContext.createBiquadFilter();
+    this.hpf2 = audioContext.createBiquadFilter();
+    this.hpf3 = audioContext.createBiquadFilter();
+    this.hpf4 = audioContext.createBiquadFilter();
+    
+    this.hpf1.type = 'highpass';
+    this.hpf2.type = 'highpass';
+    this.hpf3.type = 'highpass';
+    this.hpf4.type = 'highpass';
+    
+    this.hpf1.frequency.value = 30;
+    this.hpf2.frequency.value = 40;
+    this.hpf3.frequency.value = 50;
+    this.hpf4.frequency.value = 60;
+    
+    // Each stage has unique asymmetry and saturation characteristics
+    this.gain1.curve = this.makeGainStageCurve(1, 8.0, 0.02);   // Stage 1: moderate gain, slight asymmetry
+    this.gain2.curve = this.makeGainStageCurve(2, 10.0, 0.05);  // Stage 2: more gain, more asymmetry
+    this.gain3.curve = this.makeGainStageCurve(3, 12.0, 0.08);  // Stage 3: high gain, significant asymmetry
+    this.gain4.curve = this.makeGainStageCurve(4, 14.0, 0.10);  // Stage 4: very high gain
+    this.gain5.curve = this.makeGainStageCurve(5, 15.0, 0.12);  // Stage 5: maximum gain and asymmetry
     
     this.gain1.oversample = '4x';
     this.gain2.oversample = '4x';
@@ -44,16 +77,44 @@ class Peavey5150Amp extends BaseAmp {
     this.gain4.oversample = '4x';
     this.gain5.oversample = '4x';
     
+    // ============================================
+    // DC CLEANUP (removes DC offset from asymmetric clipping)
+    // ============================================
+    this.dcBlocker = audioContext.createBiquadFilter();
+    this.dcBlocker.type = 'highpass';
+    this.dcBlocker.frequency.value = 20;
+    this.dcBlocker.Q.value = 0.7071; // Butterworth response
+    
     // GLOBAL CONTROLS
-    this.resonance = audioContext.createBiquadFilter();
-    this.presence = audioContext.createBiquadFilter();
     this.master = audioContext.createGain();
+    
+    // ============================================
+    // POWER SUPPLY SAG/COMPRESSION
+    // ============================================
+    this.powerSag = audioContext.createDynamicsCompressor();
+    this.powerSag.threshold.value = -20; // dB
+    this.powerSag.knee.value = 12;
+    this.powerSag.ratio.value = 3; // Moderate compression
+    this.powerSag.attack.value = 0.005;
+    this.powerSag.release.value = 0.100; // Sag feel
+    
+    // Dynamic bass shelving (loosens under load)
+    this.dynamicBassShelf = audioContext.createBiquadFilter();
+    this.dynamicBassShelf.type = 'lowshelf';
+    this.dynamicBassShelf.frequency.value = 120;
+    this.dynamicBassShelf.gain.value = 0; // Adjusted dynamically
     
     // POWER AMP (6L6 x 4 tubes)
     this.powerAmp = audioContext.createGain();
     this.powerSaturation = audioContext.createWaveShaper();
     this.powerSaturation.curve = this.makePowerAmpCurve();
     this.powerSaturation.oversample = '4x';
+    
+    // ============================================
+    // RESONANCE & PRESENCE (after power amp)
+    // ============================================
+    this.resonance = audioContext.createBiquadFilter();
+    this.presence = audioContext.createBiquadFilter();
     
     // ============================================
     // BACK PANEL CONTROLS
@@ -63,11 +124,13 @@ class Peavey5150Amp extends BaseAmp {
     this.crunchBoost = audioContext.createGain();
     this.crunchEnabled = false;
     
-    // BRIGHT SWITCH (High-end boost)
+    // BRIGHT SWITCH (dynamic, volume-dependent)
     this.brightFilter = audioContext.createBiquadFilter();
-    this.brightFilter.type = 'highshelf';
-    this.brightFilter.frequency.value = 4000;
-    this.brightFilter.gain.value = 0; // Off by default
+    this.brightFilter.type = 'highpass';
+    this.brightFilter.frequency.value = 1500;
+    this.brightFilter.Q.value = 0.707;
+    this.brightGain = audioContext.createGain();
+    this.brightMix = audioContext.createGain();
     this.brightEnabled = false;
     
     // EFFECTS LOOP (Series)
@@ -76,9 +139,13 @@ class Peavey5150Amp extends BaseAmp {
     this.fxBypass = audioContext.createGain();
     this.fxMix = audioContext.createGain();
     
-    // SPEAKER IMPEDANCE (4/8/16 ohm)
+    // SPEAKER IMPEDANCE (4/8/16 ohm) - now with realistic modeling
     this.speakerImpedance = 16; // ohms
     this.impedanceGain = audioContext.createGain();
+    this.impedanceShelf = audioContext.createBiquadFilter();
+    this.impedanceShelf.type = 'lowshelf';
+    this.impedanceShelf.frequency.value = 150;
+    this.impedanceCompressor = audioContext.createDynamicsCompressor();
     
     // Active channel
     this.activeChannel = 'lead'; // 'rhythm' or 'lead'
@@ -101,16 +168,15 @@ class Peavey5150Amp extends BaseAmp {
       // Lead channel
       lead_pre_gain: 80,
       lead_post_gain: 70,
-      lead_low: 75,
-      lead_mid: 40, // Scooped
-      lead_high: 70,
+      
+      // Shared EQ (authentic 5150)
+      low: 75,
+      mid: 40, // Scooped
+      high: 70,
       
       // Rhythm channel
       rhythm_pre_gain: 50,
       rhythm_post_gain: 50,
-      rhythm_low: 60,
-      rhythm_mid: 50,
-      rhythm_high: 60,
       
       // Global
       resonance: 60,
@@ -120,6 +186,7 @@ class Peavey5150Amp extends BaseAmp {
       // Back panel
       crunch: false,
       bright: false,
+      gate: true,
       fx_loop: false,
       speaker_impedance: 16 // 4, 8, or 16 ohms
     };
@@ -131,40 +198,78 @@ class Peavey5150Amp extends BaseAmp {
     // Disconnect all first
     this.disconnectAll();
     
-    // Lead channel - 5 cascading gain stages
-    this.input.connect(this.brightFilter); // Bright switch first
-    this.brightFilter.connect(this.leadPreGain);
-    this.leadPreGain.connect(this.gain1);
-    this.gain1.connect(this.gain2);
-    this.gain2.connect(this.gain3);
-    this.gain3.connect(this.gain4);
-    this.gain4.connect(this.gain5);
+    // ============================================
+    // SIGNAL FLOW - LEAD CHANNEL
+    // ============================================
+    // Input -> Noise Gate (optional)
+    if (this.gateEnabled) {
+      this.input.connect(this.noiseGate);
+      this.noiseGate.connect(this.leadPreGain);
+    } else {
+      this.input.connect(this.leadPreGain);
+    }
     
-    // EQ
-    this.gain5.connect(this.leadLow);
-    this.leadLow.connect(this.leadMid);
-    this.leadMid.connect(this.leadHigh);
+    // Bright switch - parallel high-pass path (dynamic)
+    if (this.brightEnabled) {
+      // Main path
+      this.leadPreGain.connect(this.brightMix);
+      // Bright path
+      this.leadPreGain.connect(this.brightFilter);
+      this.brightFilter.connect(this.brightGain);
+      this.brightGain.connect(this.brightMix);
+      // Continue from brightMix
+      this.brightMix.connect(this.gain1);
+    } else {
+      this.leadPreGain.connect(this.gain1);
+    }
+    
+    // 5 cascading gain stages with HPF between stages
+    this.gain1.connect(this.hpf1);
+    this.hpf1.connect(this.gain2);
+    this.gain2.connect(this.hpf2);
+    this.hpf2.connect(this.gain3);
+    this.gain3.connect(this.hpf3);
+    this.hpf3.connect(this.gain4);
+    this.gain4.connect(this.hpf4);
+    this.hpf4.connect(this.gain5);
+    
+    // DC Blocker after last gain stage
+    this.gain5.connect(this.dcBlocker);
+    
+    // SHARED EQ (authentic 5150 behavior)
+    this.dcBlocker.connect(this.sharedLow);
+    this.sharedLow.connect(this.sharedMid);
+    this.sharedMid.connect(this.sharedHigh);
     
     // Post gain
-    this.leadHigh.connect(this.leadPostGain);
+    this.sharedHigh.connect(this.leadPostGain);
     
     // Effects Loop routing
     if (this.params.fx_loop) {
-      this.leadPostGain.connect(this.fxSend); // Send to external FX
-      this.fxReturn.connect(this.resonance); // Return from external FX
+      this.leadPostGain.connect(this.fxSend);
+      this.fxReturn.connect(this.master);
     } else {
-      this.leadPostGain.connect(this.resonance);
+      this.leadPostGain.connect(this.master);
     }
     
-    this.resonance.connect(this.presence);
-    this.presence.connect(this.master);
+    // Power supply sag/compression
+    this.master.connect(this.powerSag);
+    
+    // Dynamic bass shelf (loosens under load)
+    this.powerSag.connect(this.dynamicBassShelf);
     
     // Power amp
-    this.master.connect(this.powerAmp);
+    this.dynamicBassShelf.connect(this.powerAmp);
     this.powerAmp.connect(this.powerSaturation);
     
-    // Speaker impedance
-    this.powerSaturation.connect(this.impedanceGain);
+    // RESONANCE & PRESENCE after power amp (more realistic)
+    this.powerSaturation.connect(this.resonance);
+    this.resonance.connect(this.presence);
+    
+    // Speaker impedance modeling
+    this.presence.connect(this.impedanceShelf);
+    this.impedanceShelf.connect(this.impedanceCompressor);
+    this.impedanceCompressor.connect(this.impedanceGain);
     this.impedanceGain.connect(this.output);
     
     this.activeChannel = 'lead';
@@ -174,46 +279,81 @@ class Peavey5150Amp extends BaseAmp {
     // Disconnect all first
     this.disconnectAll();
     
-    // Rhythm channel - fewer gain stages, more clean headroom
-    this.input.connect(this.brightFilter); // Bright switch first
-    this.brightFilter.connect(this.rhythmPreGain);
-    
-    // Crunch switch adds gain stage
-    if (this.crunchEnabled) {
-      this.rhythmPreGain.connect(this.crunchBoost);
-      this.crunchBoost.connect(this.gain1);
+    // ============================================
+    // SIGNAL FLOW - RHYTHM CHANNEL
+    // ============================================
+    // Input -> Noise Gate (optional)
+    if (this.gateEnabled) {
+      this.input.connect(this.noiseGate);
+      this.noiseGate.connect(this.rhythmPreGain);
     } else {
-      this.rhythmPreGain.connect(this.gain1);
+      this.input.connect(this.rhythmPreGain);
     }
     
-    this.gain1.connect(this.gain2);
-    this.gain2.connect(this.rhythmSaturation); // Rhythm saturation curve
+    // Bright switch - parallel high-pass path (dynamic)
+    let nextNode;
+    if (this.brightEnabled) {
+      // Main path
+      this.rhythmPreGain.connect(this.brightMix);
+      // Bright path
+      this.rhythmPreGain.connect(this.brightFilter);
+      this.brightFilter.connect(this.brightGain);
+      this.brightGain.connect(this.brightMix);
+      nextNode = this.brightMix;
+    } else {
+      nextNode = this.rhythmPreGain;
+    }
     
-    // EQ
-    this.rhythmSaturation.connect(this.rhythmLow);
-    this.rhythmLow.connect(this.rhythmMid);
-    this.rhythmMid.connect(this.rhythmHigh);
+    // Crunch switch adds extra gain stage
+    if (this.crunchEnabled) {
+      nextNode.connect(this.crunchBoost);
+      this.crunchBoost.connect(this.gain1);
+    } else {
+      nextNode.connect(this.gain1);
+    }
+    
+    // Rhythm: fewer gain stages for more clean headroom
+    this.gain1.connect(this.hpf1);
+    this.hpf1.connect(this.gain2);
+    this.gain2.connect(this.rhythmSaturation);
+    
+    // DC Blocker
+    this.rhythmSaturation.connect(this.dcBlocker);
+    
+    // SHARED EQ (authentic 5150 behavior)
+    this.dcBlocker.connect(this.sharedLow);
+    this.sharedLow.connect(this.sharedMid);
+    this.sharedMid.connect(this.sharedHigh);
     
     // Post gain
-    this.rhythmHigh.connect(this.rhythmPostGain);
+    this.sharedHigh.connect(this.rhythmPostGain);
     
     // Effects Loop routing
     if (this.params.fx_loop) {
       this.rhythmPostGain.connect(this.fxSend);
-      this.fxReturn.connect(this.resonance);
+      this.fxReturn.connect(this.master);
     } else {
-      this.rhythmPostGain.connect(this.resonance);
+      this.rhythmPostGain.connect(this.master);
     }
     
-    this.resonance.connect(this.presence);
-    this.presence.connect(this.master);
+    // Power supply sag/compression
+    this.master.connect(this.powerSag);
+    
+    // Dynamic bass shelf (loosens under load)
+    this.powerSag.connect(this.dynamicBassShelf);
     
     // Power amp
-    this.master.connect(this.powerAmp);
+    this.dynamicBassShelf.connect(this.powerAmp);
     this.powerAmp.connect(this.powerSaturation);
     
-    // Speaker impedance
-    this.powerSaturation.connect(this.impedanceGain);
+    // RESONANCE & PRESENCE after power amp (more realistic)
+    this.powerSaturation.connect(this.resonance);
+    this.resonance.connect(this.presence);
+    
+    // Speaker impedance modeling
+    this.presence.connect(this.impedanceShelf);
+    this.impedanceShelf.connect(this.impedanceCompressor);
+    this.impedanceCompressor.connect(this.impedanceGain);
     this.impedanceGain.connect(this.output);
     
     this.activeChannel = 'rhythm';
@@ -222,7 +362,10 @@ class Peavey5150Amp extends BaseAmp {
   disconnectAll() {
     try {
       this.input.disconnect();
+      this.noiseGate.disconnect();
       this.brightFilter.disconnect();
+      this.brightGain.disconnect();
+      this.brightMix.disconnect();
       this.leadPreGain.disconnect();
       this.rhythmPreGain.disconnect();
       this.crunchBoost.disconnect();
@@ -231,22 +374,28 @@ class Peavey5150Amp extends BaseAmp {
       this.gain3.disconnect();
       this.gain4.disconnect();
       this.gain5.disconnect();
+      this.hpf1.disconnect();
+      this.hpf2.disconnect();
+      this.hpf3.disconnect();
+      this.hpf4.disconnect();
+      this.dcBlocker.disconnect();
       this.rhythmSaturation.disconnect();
-      this.leadLow.disconnect();
-      this.leadMid.disconnect();
-      this.leadHigh.disconnect();
-      this.rhythmLow.disconnect();
-      this.rhythmMid.disconnect();
-      this.rhythmHigh.disconnect();
+      this.sharedLow.disconnect();
+      this.sharedMid.disconnect();
+      this.sharedHigh.disconnect();
       this.leadPostGain.disconnect();
       this.rhythmPostGain.disconnect();
       this.fxSend.disconnect();
       this.fxReturn.disconnect();
-      this.resonance.disconnect();
-      this.presence.disconnect();
       this.master.disconnect();
+      this.powerSag.disconnect();
+      this.dynamicBassShelf.disconnect();
       this.powerAmp.disconnect();
       this.powerSaturation.disconnect();
+      this.resonance.disconnect();
+      this.presence.disconnect();
+      this.impedanceShelf.disconnect();
+      this.impedanceCompressor.disconnect();
       this.impedanceGain.disconnect();
     } catch (e) {
       // Some nodes may not be connected yet
@@ -260,39 +409,28 @@ class Peavey5150Amp extends BaseAmp {
     this.leadPreGain.gain.value = 20;
     this.leadPostGain.gain.value = 1.5;
     
-    // V-SHAPE EQ (scooped mids)
-    this.leadLow.type = 'lowshelf';
-    this.leadLow.frequency.value = 150;
-    this.leadLow.gain.value = 8;
-    
-    this.leadMid.type = 'peaking';
-    this.leadMid.frequency.value = 750;
-    this.leadMid.Q.value = 2;
-    this.leadMid.gain.value = -5; // Mid scoop
-    
-    this.leadHigh.type = 'highshelf';
-    this.leadHigh.frequency.value = 3000;
-    this.leadHigh.gain.value = 6;
-    
     // ============================================
     // RHYTHM CHANNEL - MORE CLEAN HEADROOM
     // ============================================
     this.rhythmPreGain.gain.value = 5;
     this.rhythmPostGain.gain.value = 1.0;
     
-    // Flatter EQ response
-    this.rhythmLow.type = 'lowshelf';
-    this.rhythmLow.frequency.value = 150;
-    this.rhythmLow.gain.value = 3;
+    // ============================================
+    // SHARED TONE STACK (authentic 5150 behavior)
+    // ============================================
+    // V-SHAPE EQ (scooped mids, boosted bass and treble)
+    this.sharedLow.type = 'lowshelf';
+    this.sharedLow.frequency.value = 150;
+    this.sharedLow.gain.value = 8;
     
-    this.rhythmMid.type = 'peaking';
-    this.rhythmMid.frequency.value = 750;
-    this.rhythmMid.Q.value = 1;
-    this.rhythmMid.gain.value = 0; // Flat mids
+    this.sharedMid.type = 'peaking';
+    this.sharedMid.frequency.value = 750;
+    this.sharedMid.Q.value = 2;
+    this.sharedMid.gain.value = -5; // Mid scoop
     
-    this.rhythmHigh.type = 'highshelf';
-    this.rhythmHigh.frequency.value = 3000;
-    this.rhythmHigh.gain.value = 2;
+    this.sharedHigh.type = 'highshelf';
+    this.sharedHigh.frequency.value = 3000;
+    this.sharedHigh.gain.value = 6;
     
     // ============================================
     // CRUNCH BOOST (Rhythm channel only)
@@ -300,12 +438,13 @@ class Peavey5150Amp extends BaseAmp {
     this.crunchBoost.gain.value = 2.5;
     
     // ============================================
-    // BRIGHT SWITCH (High-end boost)
+    // BRIGHT SWITCH (dynamic, volume-dependent)
     // ============================================
-    this.brightFilter.gain.value = 0; // Off by default
+    this.brightGain.gain.value = 0; // Adjusted dynamically
+    this.brightMix.gain.value = 1.0;
     
     // ============================================
-    // RESONANCE & PRESENCE
+    // RESONANCE & PRESENCE (after power amp)
     // ============================================
     this.resonance.type = 'lowshelf';
     this.resonance.frequency.value = 100;
@@ -331,22 +470,33 @@ class Peavey5150Amp extends BaseAmp {
     this.updateImpedance(16);
   }
   
-  makeGainStageCurve() {
+  makeGainStageCurve(stage = 1, gainFactor = 12, asymmetry = 0.05) {
+    // Each gain stage has unique saturation characteristics
+    // stage: which preamp stage (1-5)
+    // gainFactor: tanh multiplier for gain amount
+    // asymmetry: offset for asymmetric clipping (cathode follower behavior)
+    
     const samples = 44100;
     const curve = new Float32Array(samples);
+    
     for (let i = 0; i < samples; i++) {
-      const x = (i * 2) / samples - 1;
+      let x = (i * 2) / samples - 1;
       
-      // Aggressive gain stage
-      let y = Math.tanh(x * 12);
+      // Add DC offset for asymmetric clipping (cathode follower)
+      x += asymmetry;
       
-      // Tight bass
-      if (x < 0) {
-        y *= 1.05;
-      }
+      // Different knee characteristics per stage
+      let knee = 1.0 + (stage * 0.05); // Progressively harder knee
+      
+      // Tanh saturation with varying gain per stage
+      let y = Math.tanh(x * gainFactor * knee);
+      
+      // Remove DC offset to center output
+      y -= Math.tanh(asymmetry * gainFactor * knee);
       
       curve[i] = y;
     }
+    
     return curve;
   }
   
@@ -399,20 +549,46 @@ class Peavey5150Amp extends BaseAmp {
   
   updateImpedance(ohms) {
     // Speaker impedance affects damping and frequency response
-    // Lower impedance = more damping, tighter bass
-    // Higher impedance = less damping, looser bass
+    // Lower impedance = more damping, tighter bass, slight cut in sub/low frequencies
+    // Higher impedance = less damping, looser bass, more overshoot
     
     this.speakerImpedance = ohms;
     
     switch (ohms) {
       case 4:
-        this.impedanceGain.gain.value = 1.15; // Louder, tighter
+        // 4 ohm: tight, controlled, more damping
+        this.impedanceGain.gain.value = 1.15; // Slightly louder
+        this.impedanceShelf.gain.value = -1.5; // Cut low-end (more damping)
+        this.impedanceShelf.Q.value = 0.5;
+        this.impedanceCompressor.threshold.value = -25;
+        this.impedanceCompressor.ratio.value = 2.5;
+        this.impedanceCompressor.knee.value = 6;
+        this.impedanceCompressor.attack.value = 0.003;
+        this.impedanceCompressor.release.value = 0.050;
         break;
+        
       case 8:
-        this.impedanceGain.gain.value = 1.0; // Neutral
+        // 8 ohm: neutral, balanced response
+        this.impedanceGain.gain.value = 1.0;
+        this.impedanceShelf.gain.value = 0; // Flat response
+        this.impedanceShelf.Q.value = 0.707;
+        this.impedanceCompressor.threshold.value = -30;
+        this.impedanceCompressor.ratio.value = 2.0;
+        this.impedanceCompressor.knee.value = 10;
+        this.impedanceCompressor.attack.value = 0.005;
+        this.impedanceCompressor.release.value = 0.100;
         break;
+        
       case 16:
-        this.impedanceGain.gain.value = 0.9; // Quieter, looser
+        // 16 ohm: looser, less damping, more overshoot/bloom
+        this.impedanceGain.gain.value = 0.9; // Slightly quieter
+        this.impedanceShelf.gain.value = 1.0; // Boost low-end (less damping)
+        this.impedanceShelf.Q.value = 0.9;
+        this.impedanceCompressor.threshold.value = -35;
+        this.impedanceCompressor.ratio.value = 1.5;
+        this.impedanceCompressor.knee.value = 15;
+        this.impedanceCompressor.attack.value = 0.008;
+        this.impedanceCompressor.release.value = 0.150;
         break;
     }
   }
@@ -437,59 +613,121 @@ class Peavey5150Amp extends BaseAmp {
       // ============================================
       case 'lead_pre_gain':
       case 'gain':
-        this.leadPreGain.gain.setTargetAtTime(1 + (value / 5), now, 0.01);
+        {
+          const gainValue = 1 + (value / 5);
+          this.leadPreGain.gain.setTargetAtTime(gainValue, now, 0.01);
+          
+          // Dynamic bright switch: stronger at low gain, weaker at high gain
+          if (this.brightEnabled) {
+            // Bright effect decreases as gain increases (authentic amp behavior)
+            const brightAmount = Math.max(0, 1.0 - (value / 150));
+            this.brightGain.gain.setTargetAtTime(brightAmount * 0.3, now, 0.01);
+          }
+        }
         break;
+        
       case 'lead_post_gain':
         this.leadPostGain.gain.setTargetAtTime(value / 100, now, 0.01);
-        break;
-      case 'lead_low':
-      case 'bass':
-        this.leadLow.gain.setTargetAtTime((value - 50) / 5, now, 0.01);
-        break;
-      case 'lead_mid':
-      case 'mid':
-        this.leadMid.gain.setTargetAtTime((value - 50) / 5, now, 0.01);
-        break;
-      case 'lead_high':
-      case 'treble':
-        this.leadHigh.gain.setTargetAtTime((value - 50) / 5, now, 0.01);
         break;
       
       // ============================================
       // RHYTHM CHANNEL CONTROLS
       // ============================================
       case 'rhythm_pre_gain':
-        this.rhythmPreGain.gain.setTargetAtTime(1 + (value / 10), now, 0.01);
+        {
+          const gainValue = 1 + (value / 10);
+          this.rhythmPreGain.gain.setTargetAtTime(gainValue, now, 0.01);
+          
+          // Dynamic bright switch for rhythm channel
+          if (this.brightEnabled) {
+            const brightAmount = Math.max(0, 1.0 - (value / 150));
+            this.brightGain.gain.setTargetAtTime(brightAmount * 0.3, now, 0.01);
+          }
+        }
         break;
+        
       case 'rhythm_post_gain':
         this.rhythmPostGain.gain.setTargetAtTime(value / 100, now, 0.01);
         break;
+      
+      // ============================================
+      // SHARED EQ (authentic 5150 behavior)
+      // ============================================
+      case 'low':
+      case 'bass':
+      case 'lead_low':
       case 'rhythm_low':
-        this.rhythmLow.gain.setTargetAtTime((value - 50) / 5, now, 0.01);
+        this.sharedLow.gain.setTargetAtTime((value - 50) / 5, now, 0.01);
         break;
+        
+      case 'mid':
+      case 'lead_mid':
       case 'rhythm_mid':
-        this.rhythmMid.gain.setTargetAtTime((value - 50) / 5, now, 0.01);
+        this.sharedMid.gain.setTargetAtTime((value - 50) / 5, now, 0.01);
         break;
+        
+      case 'high':
+      case 'treble':
+      case 'lead_high':
       case 'rhythm_high':
-        this.rhythmHigh.gain.setTargetAtTime((value - 50) / 5, now, 0.01);
+        this.sharedHigh.gain.setTargetAtTime((value - 50) / 5, now, 0.01);
         break;
       
       // ============================================
       // GLOBAL CONTROLS
       // ============================================
       case 'resonance':
-        this.resonance.gain.setTargetAtTime((value - 50) / 10, now, 0.01);
+        {
+          // Resonance intensity tied to master volume (more realistic)
+          const masterLevel = this.params.master || 50;
+          const levelMultiplier = 0.5 + (masterLevel / 100);
+          const resonanceAmount = ((value - 50) / 10) * levelMultiplier;
+          this.resonance.gain.setTargetAtTime(resonanceAmount, now, 0.01);
+        }
         break;
+        
       case 'presence':
-        this.presence.gain.setTargetAtTime((value - 50) / 10, now, 0.01);
+        {
+          // Presence intensity tied to master volume (more realistic)
+          const masterLevel = this.params.master || 50;
+          const levelMultiplier = 0.5 + (masterLevel / 100);
+          const presenceAmount = ((value - 50) / 10) * levelMultiplier;
+          this.presence.gain.setTargetAtTime(presenceAmount, now, 0.01);
+        }
         break;
+        
       case 'master':
-        this.master.gain.setTargetAtTime(value / 100, now, 0.01);
+        {
+          this.master.gain.setTargetAtTime(value / 100, now, 0.01);
+          
+          // Update dynamic bass shelf based on master level
+          // Higher master = more "sag" = looser bass
+          const sagAmount = -2 * (value / 100); // Up to -2dB cut at full master
+          this.dynamicBassShelf.gain.setTargetAtTime(sagAmount, now, 0.01);
+          
+          // Re-trigger resonance/presence updates if they exist
+          if (this.params.resonance !== undefined) {
+            this.updateParameter('resonance', this.params.resonance);
+          }
+          if (this.params.presence !== undefined) {
+            this.updateParameter('presence', this.params.presence);
+          }
+        }
         break;
       
       // ============================================
       // BACK PANEL CONTROLS
       // ============================================
+      case 'gate':
+        this.gateEnabled = value;
+        // Re-route current channel to enable/disable gate
+        if (this.activeChannel === 'lead') {
+          this.setupLeadChannel();
+        } else {
+          this.setupRhythmChannel();
+        }
+        break;
+        
       case 'crunch':
         this.crunchEnabled = value;
         if (this.activeChannel === 'rhythm') {
@@ -499,7 +737,19 @@ class Peavey5150Amp extends BaseAmp {
       
       case 'bright':
         this.brightEnabled = value;
-        this.brightFilter.gain.setTargetAtTime(value ? 8 : 0, now, 0.01);
+        // Re-route to enable/disable bright path
+        if (this.activeChannel === 'lead') {
+          this.setupLeadChannel();
+          // Trigger pre_gain update to set correct bright amount
+          if (this.params.lead_pre_gain !== undefined) {
+            this.updateParameter('lead_pre_gain', this.params.lead_pre_gain);
+          }
+        } else {
+          this.setupRhythmChannel();
+          if (this.params.rhythm_pre_gain !== undefined) {
+            this.updateParameter('rhythm_pre_gain', this.params.rhythm_pre_gain);
+          }
+        }
         break;
       
       case 'fx_loop':
@@ -522,21 +772,38 @@ class Peavey5150Amp extends BaseAmp {
   
   disconnect() {
     super.disconnect();
+    this.noiseGate.disconnect();
     this.leadPreGain.disconnect();
+    this.rhythmPreGain.disconnect();
     this.leadPostGain.disconnect();
+    this.rhythmPostGain.disconnect();
+    this.brightFilter.disconnect();
+    this.brightGain.disconnect();
+    this.brightMix.disconnect();
     this.gain1.disconnect();
     this.gain2.disconnect();
     this.gain3.disconnect();
     this.gain4.disconnect();
     this.gain5.disconnect();
-    this.leadLow.disconnect();
-    this.leadMid.disconnect();
-    this.leadHigh.disconnect();
+    this.hpf1.disconnect();
+    this.hpf2.disconnect();
+    this.hpf3.disconnect();
+    this.hpf4.disconnect();
+    this.dcBlocker.disconnect();
+    this.rhythmSaturation.disconnect();
+    this.sharedLow.disconnect();
+    this.sharedMid.disconnect();
+    this.sharedHigh.disconnect();
     this.resonance.disconnect();
     this.presence.disconnect();
     this.master.disconnect();
+    this.powerSag.disconnect();
+    this.dynamicBassShelf.disconnect();
     this.powerAmp.disconnect();
     this.powerSaturation.disconnect();
+    this.impedanceShelf.disconnect();
+    this.impedanceCompressor.disconnect();
+    this.impedanceGain.disconnect();
   }
 }
 

@@ -1760,6 +1760,151 @@
   width: 16px;
 }
 
+/* ========================================
+   AMP CHANNEL SWITCHES & SELECTORS
+   ======================================== */
+
+.amp-channel-switch,
+.amp-impedance-switch,
+.amp-watt-switch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.amp-channel-switch label,
+.amp-impedance-switch label,
+.amp-watt-switch label {
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #ff6b35;
+  text-shadow: 0 0 6px rgba(255, 107, 53, 0.6);
+}
+
+.amp-channel-switch select,
+.amp-impedance-switch select,
+.amp-watt-switch select {
+  background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+  border: 2px solid #ff6b35;
+  border-radius: 6px;
+  padding: 6px 12px;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 107, 53, 0.1),
+    0 0 15px rgba(255, 107, 53, 0.2);
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: 
+    linear-gradient(45deg, transparent 50%, #ff6b35 50%),
+    linear-gradient(135deg, #ff6b35 50%, transparent 50%);
+  background-position: 
+    calc(100% - 12px) calc(50% - 2px),
+    calc(100% - 8px) calc(50% - 2px);
+  background-size: 4px 4px, 4px 4px;
+  background-repeat: no-repeat;
+  padding-right: 24px;
+}
+
+.amp-channel-switch select:hover,
+.amp-impedance-switch select:hover,
+.amp-watt-switch select:hover {
+  background-color: #2a2a2a;
+  border-color: #ff8555;
+  box-shadow:
+    0 4px 12px rgba(255, 107, 53, 0.4),
+    inset 0 1px 0 rgba(255, 107, 53, 0.2),
+    0 0 20px rgba(255, 107, 53, 0.4);
+  transform: translateY(-1px);
+}
+
+.amp-channel-switch select:focus,
+.amp-impedance-switch select:focus,
+.amp-watt-switch select:focus {
+  outline: none;
+  border-color: #ffaa77;
+  box-shadow:
+    0 0 0 3px rgba(255, 107, 53, 0.3),
+    0 4px 15px rgba(255, 107, 53, 0.5),
+    inset 0 1px 0 rgba(255, 107, 53, 0.3);
+}
+
+.amp-channel-switch select:active,
+.amp-impedance-switch select:active,
+.amp-watt-switch select:active {
+  transform: translateY(1px);
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.8),
+    inset 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.amp-channel-switch option,
+.amp-impedance-switch option,
+.amp-watt-switch option {
+  background: #0a0a0a;
+  color: #ffffff;
+  padding: 8px;
+  font-weight: 600;
+}
+
+.amp-channel-switch option:checked,
+.amp-impedance-switch option:checked,
+.amp-watt-switch option:checked {
+  background: linear-gradient(180deg, #ff6b35, #d94a1f);
+  color: #ffffff;
+  font-weight: 800;
+}
+
+/* Peavey 5150 Specific Styling */
+.amp-head.amp-peavey_5150 .amp-channel-switch label,
+.amp-head.amp-peavey_5150 .amp-impedance-switch label {
+  color: #ff0000;
+  text-shadow: 0 0 8px rgba(255, 0, 0, 0.8);
+}
+
+.amp-head.amp-peavey_5150 .amp-channel-switch select,
+.amp-head.amp-peavey_5150 .amp-impedance-switch select {
+  border-color: #ff0000;
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(255, 0, 0, 0.15),
+    0 0 15px rgba(255, 0, 0, 0.3);
+  background-image: 
+    linear-gradient(45deg, transparent 50%, #ff0000 50%),
+    linear-gradient(135deg, #ff0000 50%, transparent 50%);
+}
+
+.amp-head.amp-peavey_5150 .amp-channel-switch select:hover,
+.amp-head.amp-peavey_5150 .amp-impedance-switch select:hover {
+  border-color: #ff3333;
+  box-shadow:
+    0 4px 12px rgba(255, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 0, 0, 0.25),
+    0 0 25px rgba(255, 0, 0, 0.5);
+}
+
+.amp-head.amp-peavey_5150 .toggle-switch label {
+  color: #ff0000;
+  text-shadow: 0 0 8px rgba(255, 0, 0, 0.8);
+}
+
+.amp-head.amp-peavey_5150 .toggle-switch input[type="checkbox"]:checked {
+  background: linear-gradient(180deg, #ff0000 0%, #cc0000 100%);
+  border-color: #ff3333;
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.4),
+    0 0 15px rgba(255, 0, 0, 0.6);
+}
+
 /* ========================================= */
 /* MAIN LAYOUT: AMP STACK + ADVANCED CONTROLS */
 /* ========================================= */
