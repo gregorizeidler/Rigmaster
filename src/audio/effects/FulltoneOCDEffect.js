@@ -12,13 +12,17 @@ class FulltoneOCDEffect extends BaseEffect {
     this.inputGain = audioContext.createGain();
     this.inputGain.gain.value = 2.0;
     
-    // HP/LP toggle (simulated with filter blend)
-    this.hpMode = audioContext.createBiquadFilter();
-    this.lpMode = audioContext.createBiquadFilter();
-    this.hpMode.type = 'highpass';
-    this.lpMode.type = 'lowpass';
-    this.hpMode.frequency.value = 80;
-    this.lpMode.frequency.value = 8000;
+    // HP filter (always active)
+    this.hpFilter = audioContext.createBiquadFilter();
+    this.hpFilter.type = 'highpass';
+    this.hpFilter.frequency.value = 80;
+    this.hpFilter.Q.value = 0.707;
+    
+    // Bass cut (for LP mode)
+    this.bassCut = audioContext.createBiquadFilter();
+    this.bassCut.type = 'highshelf';
+    this.bassCut.frequency.value = 500;
+    this.bassCut.gain.value = 0; // Neutral by default (HP mode)
     
     // MOSFET clipping (OCD uses MOSFET diodes)
     this.clipper = audioContext.createWaveShaper();
@@ -36,11 +40,11 @@ class FulltoneOCDEffect extends BaseEffect {
     this.outputGain = audioContext.createGain();
     this.outputGain.gain.value = 0.6;
     
-    // Chain
+    // Chain (CORRECTED: HP + bass cut for LP mode)
     this.input.connect(this.inputGain);
-    this.inputGain.connect(this.hpMode);
-    this.hpMode.connect(this.lpMode);
-    this.lpMode.connect(this.clipper);
+    this.inputGain.connect(this.hpFilter);
+    this.hpFilter.connect(this.bassCut); // NEW: bass cut for LP mode
+    this.bassCut.connect(this.clipper);
     this.clipper.connect(this.toneFilter);
     this.toneFilter.connect(this.outputGain);
     this.outputGain.connect(this.wetGain);
@@ -93,13 +97,15 @@ class FulltoneOCDEffect extends BaseEffect {
         this.outputGain.gain.setTargetAtTime(value / 100, now, 0.01);
         break;
       case 'mode':
-        // HP/LP mode toggle
+        // HP/LP mode toggle (CORRECTED IMPLEMENTATION)
         if (value > 50) {
-          // HP mode (more bass)
-          this.hpMode.frequency.setTargetAtTime(50, now, 0.01);
+          // HP mode: Full bass, tighter low end
+          this.hpFilter.frequency.setTargetAtTime(120, now, 0.01);
+          this.bassCut.gain.setTargetAtTime(0, now, 0.01); // No cut
         } else {
-          // LP mode (tighter bass)
-          this.hpMode.frequency.setTargetAtTime(120, now, 0.01);
+          // LP mode: More bass, less tight
+          this.hpFilter.frequency.setTargetAtTime(50, now, 0.01);
+          this.bassCut.gain.setTargetAtTime(-3, now, 0.01); // Cut bass @ 500Hz
         }
         break;
       case 'mix':
@@ -114,8 +120,8 @@ class FulltoneOCDEffect extends BaseEffect {
     super.disconnect();
     try {
       this.inputGain.disconnect();
-      this.hpMode.disconnect();
-      this.lpMode.disconnect();
+      this.hpFilter.disconnect();
+      this.bassCut.disconnect();
       this.clipper.disconnect();
       this.toneFilter.disconnect();
       this.outputGain.disconnect();

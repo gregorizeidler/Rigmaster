@@ -4,6 +4,10 @@ class BigMuffEffect extends BaseEffect {
   constructor(audioContext, id) {
     super(audioContext, id, 'Big Muff', 'bigmuff');
     
+    // EHX BIG MUFF PI (1969)
+    // Iconic sustain/fuzz pedal
+    // 4 transistor stages: 2 gain + 2 clipping
+    
     // Two gain stages
     this.preGain1 = audioContext.createGain();
     this.preGain2 = audioContext.createGain();
@@ -12,12 +16,31 @@ class BigMuffEffect extends BaseEffect {
     this.clipper1 = audioContext.createWaveShaper();
     this.clipper2 = audioContext.createWaveShaper();
     
-    // Tone control (Big Muff style)
-    this.toneStack = audioContext.createBiquadFilter();
-    this.toneStack.type = 'peaking';
-    this.toneStack.frequency.value = 1000;
-    this.toneStack.Q.value = 0.707;
-    this.toneStack.gain.value = 0;
+    // BIG MUFF TONE STACK (REAL IMPLEMENTATION)
+    // The Big Muff uses PARALLEL LP + HP filters (not shelf!)
+    // This creates the famous "mid scoop"
+    
+    // Bass path (lowpass)
+    this.bassPath = audioContext.createBiquadFilter();
+    this.bassPath.type = 'lowpass';
+    this.bassPath.frequency.value = 500;
+    this.bassPath.Q.value = 0.707;
+    
+    // Treble path (highpass)
+    this.treblePath = audioContext.createBiquadFilter();
+    this.treblePath.type = 'highpass';
+    this.treblePath.frequency.value = 2000;
+    this.treblePath.Q.value = 0.707;
+    
+    // Crossfade gains
+    this.bassGain = audioContext.createGain();
+    this.trebleGain = audioContext.createGain();
+    this.bassGain.gain.value = 0.5;
+    this.trebleGain.gain.value = 0.5;
+    
+    // Tone mixer
+    this.toneMixer = audioContext.createGain();
+    this.toneMixer.gain.value = 1.0;
     
     this.postGain = audioContext.createGain();
     
@@ -32,8 +55,16 @@ class BigMuffEffect extends BaseEffect {
     this.preGain1.connect(this.clipper1);
     this.clipper1.connect(this.preGain2);
     this.preGain2.connect(this.clipper2);
-    this.clipper2.connect(this.toneStack);
-    this.toneStack.connect(this.postGain);
+    
+    // REAL BIG MUFF TONE STACK (parallel paths)
+    this.clipper2.connect(this.bassPath);
+    this.clipper2.connect(this.treblePath);
+    this.bassPath.connect(this.bassGain);
+    this.treblePath.connect(this.trebleGain);
+    this.bassGain.connect(this.toneMixer);
+    this.trebleGain.connect(this.toneMixer);
+    
+    this.toneMixer.connect(this.postGain);
     this.postGain.connect(this.wetGain);
     this.wetGain.connect(this.output);
     
@@ -57,24 +88,30 @@ class BigMuffEffect extends BaseEffect {
   }
 
   updateParameter(parameter, value) {
+    const now = this.audioContext.currentTime;
+    
     switch (parameter) {
       case 'sustain':
-        this.preGain1.gain.value = 2 + (value / 100) * 18;
-        this.preGain2.gain.value = 1 + (value / 100) * 12;
+        this.preGain1.gain.setTargetAtTime(2 + (value / 100) * 18, now, 0.01);
+        this.preGain2.gain.setTargetAtTime(1 + (value / 100) * 12, now, 0.01);
         break;
       case 'tone':
-        // Big Muff tone control (sweep from bass to treble)
-        const toneValue = (value / 100) * 2 - 1; // -1 to 1
-        if (toneValue < 0) {
-          this.toneStack.type = 'lowshelf';
-          this.toneStack.gain.value = -toneValue * 10;
+        // REAL BIG MUFF TONE CONTROL
+        // Crossfade between bass (LP) and treble (HP) paths
+        const toneValue = value / 100; // 0 to 1
+        
+        if (toneValue < 0.5) {
+          // Bass emphasis (0-50%)
+          this.bassGain.gain.setTargetAtTime(1.0, now, 0.01);
+          this.trebleGain.gain.setTargetAtTime(toneValue * 2, now, 0.01);
         } else {
-          this.toneStack.type = 'highshelf';
-          this.toneStack.gain.value = toneValue * 10;
+          // Treble emphasis (50-100%)
+          this.bassGain.gain.setTargetAtTime(2 - (toneValue * 2), now, 0.01);
+          this.trebleGain.gain.setTargetAtTime(1.0, now, 0.01);
         }
         break;
       case 'volume':
-        this.postGain.gain.value = (value / 100) * 0.8;
+        this.postGain.gain.setTargetAtTime((value / 100) * 0.8, now, 0.01);
         break;
       default:
         break;
@@ -87,7 +124,11 @@ class BigMuffEffect extends BaseEffect {
     this.preGain2.disconnect();
     this.clipper1.disconnect();
     this.clipper2.disconnect();
-    this.toneStack.disconnect();
+    this.bassPath.disconnect();
+    this.treblePath.disconnect();
+    this.bassGain.disconnect();
+    this.trebleGain.disconnect();
+    this.toneMixer.disconnect();
     this.postGain.disconnect();
   }
 }

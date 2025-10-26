@@ -11,6 +11,15 @@ class BossDS1Effect extends BaseEffect {
     this.inputGain = audioContext.createGain();
     this.inputGain.gain.value = 1.5;
     
+    // TRANSISTOR GAIN STAGE (before op-amp)
+    // This adds compression and warmth
+    this.transistorStage = audioContext.createDynamicsCompressor();
+    this.transistorStage.threshold.value = -20;
+    this.transistorStage.knee.value = 10;
+    this.transistorStage.ratio.value = 2.5;
+    this.transistorStage.attack.value = 0.002;
+    this.transistorStage.release.value = 0.1;
+    
     // Pre-filter (shape input before clipping)
     this.preFilter = audioContext.createBiquadFilter();
     this.preFilter.type = 'highshelf';
@@ -32,9 +41,10 @@ class BossDS1Effect extends BaseEffect {
     this.outputGain = audioContext.createGain();
     this.outputGain.gain.value = 0.4;
     
-    // Chain
+    // Chain (NEW: transistor stage added)
     this.input.connect(this.inputGain);
-    this.inputGain.connect(this.preFilter);
+    this.inputGain.connect(this.transistorStage); // NEW
+    this.transistorStage.connect(this.preFilter);
     this.preFilter.connect(this.distortion);
     this.distortion.connect(this.toneFilter);
     this.toneFilter.connect(this.outputGain);
@@ -63,8 +73,9 @@ class BossDS1Effect extends BaseEffect {
         y = -0.6 + (y + 0.6) * 0.15; // Slightly softer negative
       }
       
-      // Add harmonics
-      y += 0.1 * Math.tanh(x * drive * 3);
+      // Add harmonics (including even harmonics from transistor stage)
+      y += 0.1 * Math.tanh(x * drive * 3); // Odd harmonics
+      y += 0.05 * Math.tanh(x * drive * 2); // Even harmonics (NEW)
       
       curve[i] = y * 0.8;
     }
@@ -98,6 +109,7 @@ class BossDS1Effect extends BaseEffect {
     super.disconnect();
     try {
       this.inputGain.disconnect();
+      this.transistorStage.disconnect();
       this.preFilter.disconnect();
       this.distortion.disconnect();
       this.toneFilter.disconnect();

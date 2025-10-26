@@ -55,14 +55,15 @@ class BossSD1Effect extends BaseEffect {
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
       
-      // Asymmetric clipping (SD-1 characteristic)
+      // EXTREME Asymmetric clipping (SD-1 characteristic)
+      // SD-1 clips MUCH harder on negative cycle than positive
       let y = x * drive;
       
       // Different clipping for positive/negative
       if (y > 0) {
-        y = Math.tanh(y * 1.5);
+        y = Math.tanh(y * 1.4); // Softer positive clip
       } else {
-        y = Math.tanh(y * 1.8); // Harder negative clip
+        y = Math.tanh(y * 2.2); // HARDER negative clip (increased from 1.8)
       }
       
       // Add warmth

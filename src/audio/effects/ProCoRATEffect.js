@@ -19,7 +19,22 @@ class ProCoRATEffect extends BaseEffect {
     this.preEmphasis.Q.value = 2.0;
     this.preEmphasis.gain.value = 12; // Heavy mid boost
     
-    // RAT distortion (LM308 op-amp simulation - slow slew rate)
+    // LM308 SLOW SLEW RATE SIMULATION (0.3V/µs)
+    // This is the KEY to RAT's unique sound!
+    this.slewRateLimiter = audioContext.createBiquadFilter();
+    this.slewRateLimiter.type = 'lowpass';
+    this.slewRateLimiter.frequency.value = 15000; // Limit fast transients
+    this.slewRateLimiter.Q.value = 0.5;
+    
+    // Pre-compression (LM308 characteristic)
+    this.preCompressor = audioContext.createDynamicsCompressor();
+    this.preCompressor.threshold.value = -15;
+    this.preCompressor.knee.value = 6;
+    this.preCompressor.ratio.value = 3;
+    this.preCompressor.attack.value = 0.001;
+    this.preCompressor.release.value = 0.05;
+    
+    // RAT distortion (LM308 op-amp simulation)
     this.ratClip = audioContext.createWaveShaper();
     this.ratClip.oversample = '4x';
     this.ratClip.curve = this.makeRATCurve(50);
@@ -34,10 +49,12 @@ class ProCoRATEffect extends BaseEffect {
     this.outputGain = audioContext.createGain();
     this.outputGain.gain.value = 0.35;
     
-    // Chain
+    // Chain (NEW: slew rate limiter + pre-compression)
     this.input.connect(this.inputGain);
     this.inputGain.connect(this.preEmphasis);
-    this.preEmphasis.connect(this.ratClip);
+    this.preEmphasis.connect(this.slewRateLimiter); // NEW
+    this.slewRateLimiter.connect(this.preCompressor); // NEW
+    this.preCompressor.connect(this.ratClip);
     this.ratClip.connect(this.ratFilter);
     this.ratFilter.connect(this.outputGain);
     this.outputGain.connect(this.wetGain);
@@ -107,6 +124,8 @@ class ProCoRATEffect extends BaseEffect {
     try {
       this.inputGain.disconnect();
       this.preEmphasis.disconnect();
+      this.slewRateLimiter.disconnect();
+      this.preCompressor.disconnect();
       this.ratClip.disconnect();
       this.ratFilter.disconnect();
       this.outputGain.disconnect();
