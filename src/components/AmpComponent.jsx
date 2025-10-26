@@ -268,8 +268,8 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       mesa_mark_v: ['presence', 'graphiceq', 'soloboost'],
       mesa_dual_rectifier: ['presence', 'resonance', 'channel', 'bold_spongy', 'tube_silicon', 'multi_watt'],
       
-      // ORANGE - Shape Control
-      orange_rockerverb: ['shape', 'presence'],
+      // ORANGE - Full Rockerverb Controls
+      orange_rockerverb: ['orange_channel', 'channel_volume', 'reverb', 'cabinet_enabled'],
       
       // HIGH GAIN MODERN - Presence + Resonance/Depth
       metal: ['presence', 'resonance'],
@@ -695,6 +695,23 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
             </select>
           </div>
         );
+      case 'orange_channel':
+        // Orange Rockerverb channels
+        return (
+          <div key="orange_channel" className="amp-channel-switch">
+            <label>Channel</label>
+            <select 
+              value={amp.params?.channel || 1}
+              onChange={(e) => onUpdate(amp.id, 'channel', parseInt(e.target.value))}
+              style={{ padding: '5px', fontSize: '12px', borderRadius: '4px', background: '#ff8c00', color: '#fff', border: '1px solid #fff' }}
+            >
+              <option value="0">🎸 Clean</option>
+              <option value="1">🔥 Dirty</option>
+            </select>
+          </div>
+        );
+      case 'channel_volume':
+        return <Knob key="channel_volume" label="Ch Vol" value={amp.params?.channel_volume || 70} onChange={handleKnobChange('channel_volume')} size={32} />;
       case 'master_gain':
         return <Knob key="master_gain" label="Pre-Master" value={amp.params?.master_gain || 70} onChange={handleKnobChange('master_gain')} size={32} />;
       case 'gate':
@@ -905,6 +922,26 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                   <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#4a9eff', textTransform: 'uppercase' }}>Master</span>
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <Knob label="Master" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={36} />
+                  </div>
+                </div>
+              </div>
+            ) : amp.ampType === 'orange_rockerverb' ? (
+              /* ORANGE ROCKERVERB - British high-gain layout */
+              <div className="orange-rockerverb-knobs-layout" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <div className="knob-group" style={{ display: 'flex', gap: '8px', flexDirection: 'column', alignItems: 'center', padding: '10px', background: 'linear-gradient(135deg, rgba(255,140,0,0.2), rgba(255,140,0,0.1))', borderRadius: '8px', border: '2px solid rgba(255,140,0,0.4)' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#ff8c00', textTransform: 'uppercase', letterSpacing: '1px' }}>Preamp</span>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <Knob label="Gain" value={amp.params?.gain || 70} onChange={handleKnobChange('gain')} size={38} />
+                    <Knob label="Bass" value={amp.params?.bass || 60} onChange={handleKnobChange('bass')} size={38} />
+                    <Knob label="Mid" value={amp.params?.mid || 50} onChange={handleKnobChange('mid')} size={38} />
+                    <Knob label="Treble" value={amp.params?.treble || 65} onChange={handleKnobChange('treble')} size={38} />
+                  </div>
+                </div>
+                <div className="knob-group" style={{ display: 'flex', gap: '8px', flexDirection: 'column', alignItems: 'center', padding: '10px', background: 'linear-gradient(135deg, rgba(255,140,0,0.2), rgba(255,140,0,0.1))', borderRadius: '8px', border: '2px solid rgba(255,140,0,0.4)' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#ff8c00', textTransform: 'uppercase', letterSpacing: '1px' }}>Master</span>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <Knob label="Reverb" value={amp.params?.reverb || 30} onChange={handleKnobChange('reverb')} size={38} />
+                    <Knob label="Master" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={38} />
                   </div>
                 </div>
               </div>
