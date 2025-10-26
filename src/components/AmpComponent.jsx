@@ -294,8 +294,8 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       // DUMBLE - OD/Clean + Presence
       dumble_ods: ['oddrive', 'presence', 'ratio'],
       
-      // SUHR - Boost + Presence
-      suhr_badger: ['boost', 'presence', 'variac'],
+      // SUHR BADGER - Complete boutique British control set
+      suhr_badger: ['suhr_channel', 'channel_volume', 'clarity', 'variac', 'cabinet'],
       
       // VICTORY DUCHESS - Full British boutique control
       victory_duchess: ['victory_channel', 'channel_volume', 'resonance', 'voicing', 'cabinet_enabled'],
@@ -541,6 +541,48 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
         return <Knob key="ratio" label="Ratio" value={amp.params?.ratio || 50} onChange={handleKnobChange('ratio')} size={32} />;
       case 'variac':
         return <Knob key="variac" label="Variac" value={amp.params?.variac || 100} onChange={handleKnobChange('variac')} size={32} />;
+      
+      // ============================================
+      // SUHR BADGER SPECIFIC CONTROLS
+      // ============================================
+      case 'suhr_channel':
+        return (
+          <div key="suhr_channel" className="toggle-switch">
+            <label>Channel</label>
+            <select 
+              value={amp.params?.channel || 1}
+              onChange={(e) => onUpdate(amp.id, 'channel', parseInt(e.target.value))}
+              className="channel-select"
+            >
+              <option value={0}>🎸 Clean</option>
+              <option value={1}>🔥 Gain</option>
+            </select>
+          </div>
+        );
+      
+      case 'clarity':
+        return (
+          <div key="clarity" className="toggle-switch">
+            <label>Clarity</label>
+            <input 
+              type="checkbox" 
+              checked={amp.params?.clarity || false}
+              onChange={(e) => onUpdate(amp.id, 'clarity', e.target.checked ? 1 : 0)}
+            />
+          </div>
+        );
+      
+      case 'cabinet':
+        return (
+          <div key="cabinet" className="toggle-switch">
+            <label>Cabinet</label>
+            <input 
+              type="checkbox" 
+              checked={amp.params?.cabinet !== 0}
+              onChange={(e) => onUpdate(amp.id, 'cabinet', e.target.checked ? 1 : 0)}
+            />
+          </div>
+        );
       
       // ============================================
       // VICTORY DUCHESS SPECIFIC CONTROLS
@@ -801,6 +843,26 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                     <Knob label="Master" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={36} />
                   </>
                 )}
+              </div>
+            ) : amp.ampType === 'suhr_badger' ? (
+              /* SUHR BADGER - Complete control layout */
+              <div className="suhr-badger-knobs-layout" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <div className="knob-group" style={{ display: 'flex', gap: '8px', flexDirection: 'column', alignItems: 'center', padding: '8px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#4a9eff', textTransform: 'uppercase' }}>Preamp</span>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <Knob label="Gain" value={amp.params?.gain || 65} onChange={handleKnobChange('gain')} size={36} />
+                    <Knob label="Bass" value={amp.params?.bass || 55} onChange={handleKnobChange('bass')} size={36} />
+                    <Knob label="Middle" value={amp.params?.middle || 60} onChange={handleKnobChange('middle')} size={36} />
+                    <Knob label="Treble" value={amp.params?.treble || 65} onChange={handleKnobChange('treble')} size={36} />
+                  </div>
+                </div>
+                <div className="knob-group" style={{ display: 'flex', gap: '8px', flexDirection: 'column', alignItems: 'center', padding: '8px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#4a9eff', textTransform: 'uppercase' }}>Power Amp</span>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <Knob label="Presence" value={amp.params?.presence || 60} onChange={handleKnobChange('presence')} size={36} />
+                    <Knob label="Master" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={36} />
+                  </div>
+                </div>
               </div>
             ) : (
               /* Standard amp layout */

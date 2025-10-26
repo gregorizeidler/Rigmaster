@@ -1629,6 +1629,62 @@
   border: 2px solid #4a9eff;
 }
 
+/* Suhr Badger channel selector styling */
+.amp-head.amp-suhr_badger .toggle-switch select,
+.amp-head.amp-suhr_badger .channel-select {
+  background: linear-gradient(180deg, #4a9eff 0%, #3a7ed9 100%);
+  border: 2px solid #6ab9ff;
+  border-radius: 6px;
+  color: #ffffff;
+  padding: 4px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  transition: all 0.2s ease;
+  box-shadow:
+    0 2px 8px rgba(74, 158, 255, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.amp-head.amp-suhr_badger .toggle-switch select:hover,
+.amp-head.amp-suhr_badger .channel-select:hover {
+  background: linear-gradient(180deg, #5aaaff 0%, #4a9eff 100%);
+  border-color: #8acfff;
+  transform: translateY(-1px);
+  box-shadow:
+    0 4px 12px rgba(74, 158, 255, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.amp-head.amp-suhr_badger .toggle-switch select:focus,
+.amp-head.amp-suhr_badger .channel-select:focus {
+  border-color: #8acfff;
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(74, 158, 255, 0.4),
+    0 4px 12px rgba(74, 158, 255, 0.8);
+}
+
+.amp-head.amp-suhr_badger .toggle-switch select option,
+.amp-head.amp-suhr_badger .channel-select option {
+  background: #2a2a2a;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* Suhr Badger cabinet selects */
+.amp-head.amp-suhr_badger ~ .amp-cabinet .config-row select {
+  background: linear-gradient(180deg, #3a3a3a, #2a2a2a);
+  border-color: #4a9eff;
+  color: #ffffff;
+}
+
+.amp-head.amp-suhr_badger ~ .amp-cabinet .config-row select:hover {
+  background: linear-gradient(180deg, #4a4a4a, #3a3a3a);
+  border-color: #6ab9ff;
+}
+
 /* VICTORY DUCHESS - Red/Silver */
 .amp-head.amp-victory_duchess {
   background: 
