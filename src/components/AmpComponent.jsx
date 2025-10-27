@@ -291,8 +291,8 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       // TWO-ROCK - Full control suite
       tworock_classic: ['tworock_channel', 'channel_volume', 'presence', 'depth', 'reverb', 'reverb_decay', 'boost', 'cabinet_enabled'],
       
-      // DUMBLE - OD/Clean + Presence
-      dumble_ods: ['oddrive', 'presence', 'ratio'],
+      // DUMBLE ODS - Has complete custom layout (no specific controls needed)
+      dumble_ods: [],
       
       // SUHR BADGER - Complete boutique British control set
       suhr_badger: ['suhr_channel', 'channel_volume', 'clarity', 'variac', 'cabinet'],
@@ -2229,6 +2229,261 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                 <div style={{ width: '1px', height: '60px', background: 'rgba(255,215,0,0.3)', margin: '0 8px' }}></div>
                 <Knob label="GAIN" value={amp.params?.gain || 75} onChange={handleKnobChange('gain')} size={38} />
                 <Knob label="VOLUME" value={amp.params?.volume || 70} onChange={handleKnobChange('volume')} size={36} />
+              </div>
+            ) : amp.ampType === 'dumble_ods' ? (
+              /* DUMBLE ODS - Super compact like other amps */
+              <div className="dumble-ods-front-panel" style={{ 
+                display: 'flex', 
+                gap: '4px', 
+                justifyContent: 'center',
+                flexWrap: 'wrap',
+                padding: '2px 4px'
+              }}>
+                {/* Inline: Channel + Knobs */}
+                <div style={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
+                  <button 
+                    onClick={() => onUpdate(amp.id, 'channel', 0)}
+                    style={{
+                      padding: '2px 5px',
+                      background: amp.params?.channel === 0 ? '#d4af37' : 'rgba(0,0,0,0.5)',
+                      border: '1px solid #d4af37',
+                      color: amp.params?.channel === 0 ? '#000' : '#d4af37',
+                      borderRadius: '2px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '7px',
+                      lineHeight: '1'
+                    }}
+                  >C</button>
+                  <button 
+                    onClick={() => onUpdate(amp.id, 'channel', 1)}
+                    style={{
+                      padding: '2px 5px',
+                      background: amp.params?.channel === 1 ? '#d4af37' : 'rgba(0,0,0,0.5)',
+                      border: '1px solid #d4af37',
+                      color: amp.params?.channel === 1 ? '#000' : '#d4af37',
+                      borderRadius: '2px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '7px',
+                      lineHeight: '1'
+                    }}
+                  >O</button>
+                </div>
+
+                <Knob label="Clean" value={amp.params?.clean_volume || 50} onChange={handleKnobChange('clean_volume')} size={26} />
+                <Knob label="Drive" value={amp.params?.od_drive || 50} onChange={handleKnobChange('od_drive')} size={26} />
+                <Knob label="OD" value={amp.params?.od_volume || 50} onChange={handleKnobChange('od_volume')} size={26} />
+                <Knob label="Ratio" value={amp.params?.ratio || 50} onChange={handleKnobChange('ratio')} size={24} />
+                <Knob label="Bass" value={amp.params?.bass || 50} onChange={handleKnobChange('bass')} size={26} />
+                <Knob label="Mid" value={amp.params?.mid || 55} onChange={handleKnobChange('mid')} size={26} />
+                <Knob label="Treble" value={amp.params?.treble || 60} onChange={handleKnobChange('treble')} size={26} />
+                <Knob label="Pres" value={amp.params?.presence || 50} onChange={handleKnobChange('presence')} size={26} />
+                <Knob label="Master" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={28} />
+
+                {/* Compact switches */}
+                <div style={{ 
+                  width: '100%', 
+                  display: 'flex', 
+                  gap: '3px', 
+                  justifyContent: 'center',
+                  flexWrap: 'wrap',
+                  padding: '2px 0',
+                  borderTop: '1px solid rgba(212,175,55,0.2)',
+                  marginTop: '1px'
+                }}>
+                  <label style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '1px', 
+                    fontSize: '6px', 
+                    fontWeight: 'bold',
+                    color: '#d4af37',
+                    cursor: 'pointer',
+                    padding: '1px 3px',
+                    background: amp.params?.pab ? 'rgba(212,175,55,0.25)' : 'rgba(0,0,0,0.3)',
+                    borderRadius: '2px',
+                    border: '1px solid rgba(212,175,55,0.4)',
+                    lineHeight: '1'
+                  }}>
+                    <input 
+                      type="checkbox" 
+                      checked={amp.params?.pab || false}
+                      onChange={(e) => onUpdate(amp.id, 'pab', e.target.checked)}
+                      style={{ cursor: 'pointer', width: '8px', height: '8px', margin: 0 }}
+                    />
+                    PAB
+                  </label>
+
+                  <label style={{ 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1px',
+                    fontSize: '6px', 
+                    fontWeight: 'bold',
+                    color: '#d4af37',
+                    padding: '1px 3px',
+                    background: (amp.params?.bright_mode || 0) > 0 ? 'rgba(212,175,55,0.25)' : 'rgba(0,0,0,0.3)',
+                    borderRadius: '2px',
+                    border: '1px solid rgba(212,175,55,0.4)',
+                    lineHeight: '1'
+                  }}>
+                    BRT
+                    <select
+                      value={amp.params?.bright_mode || 0}
+                      onChange={(e) => onUpdate(amp.id, 'bright_mode', parseInt(e.target.value))}
+                      style={{
+                        fontSize: '6px',
+                        padding: '0 1px',
+                        background: 'rgba(0,0,0,0.5)',
+                        color: '#d4af37',
+                        border: '1px solid rgba(212,175,55,0.4)',
+                        borderRadius: '2px',
+                        cursor: 'pointer',
+                        height: '12px',
+                        lineHeight: '1'
+                      }}
+                    >
+                      <option value={0}>-</option>
+                      <option value={1}>100</option>
+                      <option value={2}>330</option>
+                    </select>
+                  </label>
+
+                  <label style={{ 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1px',
+                    fontSize: '6px', 
+                    fontWeight: 'bold',
+                    color: '#d4af37',
+                    padding: '1px 3px',
+                    background: 'rgba(0,0,0,0.3)',
+                    borderRadius: '2px',
+                    border: '1px solid rgba(212,175,55,0.4)',
+                    lineHeight: '1'
+                  }}>
+                    <select
+                      value={amp.params?.voicing || 'rock'}
+                      onChange={(e) => onUpdate(amp.id, 'voicing', e.target.value)}
+                      style={{
+                        fontSize: '6px',
+                        padding: '0 1px',
+                        background: 'rgba(0,0,0,0.5)',
+                        color: '#d4af37',
+                        border: '1px solid rgba(212,175,55,0.4)',
+                        borderRadius: '2px',
+                        cursor: 'pointer',
+                        height: '12px',
+                        lineHeight: '1'
+                      }}
+                    >
+                      <option value="rock">R</option>
+                      <option value="jazz">J</option>
+                    </select>
+                  </label>
+
+                  <label style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '1px', 
+                    fontSize: '6px', 
+                    fontWeight: 'bold',
+                    color: '#d4af37',
+                    cursor: 'pointer',
+                    padding: '1px 3px',
+                    background: amp.params?.mid_boost ? 'rgba(212,175,55,0.25)' : 'rgba(0,0,0,0.3)',
+                    borderRadius: '2px',
+                    border: '1px solid rgba(212,175,55,0.4)',
+                    lineHeight: '1'
+                  }}>
+                    <input 
+                      type="checkbox" 
+                      checked={amp.params?.mid_boost || false}
+                      onChange={(e) => onUpdate(amp.id, 'mid_boost', e.target.checked)}
+                      style={{ cursor: 'pointer', width: '8px', height: '8px', margin: 0 }}
+                    />
+                    M+
+                  </label>
+
+                  <label style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '1px', 
+                    fontSize: '6px', 
+                    fontWeight: 'bold',
+                    color: '#d4af37',
+                    cursor: 'pointer',
+                    padding: '1px 3px',
+                    background: amp.params?.deep ? 'rgba(212,175,55,0.25)' : 'rgba(0,0,0,0.3)',
+                    borderRadius: '2px',
+                    border: '1px solid rgba(212,175,55,0.4)',
+                    lineHeight: '1'
+                  }}>
+                    <input 
+                      type="checkbox" 
+                      checked={amp.params?.deep || false}
+                      onChange={(e) => onUpdate(amp.id, 'deep', e.target.checked)}
+                      style={{ cursor: 'pointer', width: '8px', height: '8px', margin: 0 }}
+                    />
+                    DPH
+                  </label>
+
+                  <label style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '1px', 
+                    fontSize: '6px', 
+                    fontWeight: 'bold',
+                    color: '#d4af37',
+                    cursor: 'pointer',
+                    padding: '1px 3px',
+                    background: amp.params?.hrm ? 'rgba(212,175,55,0.25)' : 'rgba(0,0,0,0.3)',
+                    borderRadius: '2px',
+                    border: '1px solid rgba(212,175,55,0.4)',
+                    lineHeight: '1'
+                  }}>
+                    <input 
+                      type="checkbox" 
+                      checked={amp.params?.hrm || false}
+                      onChange={(e) => onUpdate(amp.id, 'hrm', e.target.checked)}
+                      style={{ cursor: 'pointer', width: '8px', height: '8px', margin: 0 }}
+                    />
+                    HRM
+                  </label>
+
+                  <label style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '1px', 
+                    fontSize: '6px', 
+                    fontWeight: 'bold',
+                    color: '#d4af37',
+                    cursor: 'pointer',
+                    padding: '1px 3px',
+                    background: amp.params?.cab_sim ? 'rgba(212,175,55,0.25)' : 'rgba(0,0,0,0.3)',
+                    borderRadius: '2px',
+                    border: '1px solid rgba(212,175,55,0.4)',
+                    lineHeight: '1'
+                  }}>
+                    <input 
+                      type="checkbox" 
+                      checked={amp.params?.cab_sim || false}
+                      onChange={(e) => onUpdate(amp.id, 'cab_sim', e.target.checked)}
+                      style={{ cursor: 'pointer', width: '8px', height: '8px', margin: 0 }}
+                    />
+                    CAB
+                  </label>
+
+                  {amp.params?.hrm && (
+                    <>
+                      <div style={{ width: '1px', height: '14px', background: 'rgba(212,175,55,0.4)', alignSelf: 'center' }}></div>
+                      <Knob label="HB" value={amp.params?.hrm_bass || 50} onChange={handleKnobChange('hrm_bass')} size={22} />
+                      <Knob label="HM" value={amp.params?.hrm_mid || 50} onChange={handleKnobChange('hrm_mid')} size={22} />
+                      <Knob label="HT" value={amp.params?.hrm_treble || 50} onChange={handleKnobChange('hrm_treble')} size={22} />
+                    </>
+                  )}
+                </div>
               </div>
             ) : (
               /* Standard amp layout */
