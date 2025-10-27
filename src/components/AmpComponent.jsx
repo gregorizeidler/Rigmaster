@@ -103,9 +103,9 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
         brand: 'FENDER'
       },
       fender_bassman: {
-        color: '#d4a574',
-        accent: '#8b6914',
-        grill: '#c9b896',
+        color: '#d4af37',
+        accent: '#b8860b',
+        grill: '#daa520',
         logo: 'Bassman',
         brand: 'FENDER'
       },
@@ -316,12 +316,48 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
   const renderSpecificControl = (controlType) => {
     switch (controlType) {
       case 'reverb':
-        // Para Twin Reverb, usa tamanho menor e label uppercase
-        if (amp.ampType === 'fender_twin_reverb') {
+        // Para Fender amps, usa tamanho menor e label uppercase
+        if (amp.ampType === 'fender_twin_reverb' || amp.ampType === 'fender_deluxe') {
           return <Knob key="reverb" label="REVERB" value={amp.params?.reverb || 0} onChange={handleKnobChange('reverb')} size={28} />;
         }
         return <Knob key="reverb" label="Reverb" value={amp.params?.reverb || 0} onChange={handleKnobChange('reverb')} size={32} />;
       case 'bright':
+        // Compact button style for Fender amps
+        if (amp.ampType === 'fender_deluxe' || amp.ampType === 'fender_twin_reverb') {
+          return (
+            <div key="bright" style={{ display: 'inline-flex', gap: '4px', alignItems: 'center' }}>
+              <button
+                onClick={() => onUpdate(amp.id, 'bright', false)}
+                style={{
+                  padding: '4px 6px',
+                  fontSize: '9px',
+                  fontWeight: 'bold',
+                  borderRadius: '3px',
+                  border: !amp.params?.bright ? '1px solid #c0c0c0' : '1px solid rgba(192,192,192,0.2)',
+                  background: !amp.params?.bright ? 'rgba(192,192,192,0.3)' : 'rgba(0,0,0,0.3)',
+                  color: !amp.params?.bright ? '#c0c0c0' : '#888',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >OFF</button>
+              <button
+                onClick={() => onUpdate(amp.id, 'bright', true)}
+                style={{
+                  padding: '4px 6px',
+                  fontSize: '9px',
+                  fontWeight: 'bold',
+                  borderRadius: '3px',
+                  border: amp.params?.bright ? '1px solid #c0c0c0' : '1px solid rgba(192,192,192,0.2)',
+                  background: amp.params?.bright ? 'rgba(192,192,192,0.3)' : 'rgba(0,0,0,0.3)',
+                  color: amp.params?.bright ? '#c0c0c0' : '#888',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >BRITE</button>
+            </div>
+          );
+        }
+        // Standard toggle for other amps
         return (
           <div key="bright" className="toggle-switch">
             <label>Bright</label>
@@ -574,6 +610,42 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
           </div>
         );
       case 'cabinet_enabled':
+        // Compact button style for Fender Twin Reverb
+        if (amp.ampType === 'fender_twin_reverb') {
+          return (
+            <div key="cabinet_enabled" style={{ display: 'inline-flex', gap: '4px', alignItems: 'center' }}>
+              <button
+                onClick={() => onUpdate(amp.id, 'cabinet_enabled', false)}
+                style={{
+                  padding: '4px 6px',
+                  fontSize: '9px',
+                  fontWeight: 'bold',
+                  borderRadius: '3px',
+                  border: amp.params?.cabinet_enabled === false ? '1px solid #c0c0c0' : '1px solid rgba(192,192,192,0.2)',
+                  background: amp.params?.cabinet_enabled === false ? 'rgba(192,192,192,0.3)' : 'rgba(0,0,0,0.3)',
+                  color: amp.params?.cabinet_enabled === false ? '#c0c0c0' : '#888',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >OFF</button>
+              <button
+                onClick={() => onUpdate(amp.id, 'cabinet_enabled', true)}
+                style={{
+                  padding: '4px 6px',
+                  fontSize: '9px',
+                  fontWeight: 'bold',
+                  borderRadius: '3px',
+                  border: amp.params?.cabinet_enabled !== false ? '1px solid #c0c0c0' : '1px solid rgba(192,192,192,0.2)',
+                  background: amp.params?.cabinet_enabled !== false ? 'rgba(192,192,192,0.3)' : 'rgba(0,0,0,0.3)',
+                  color: amp.params?.cabinet_enabled !== false ? '#c0c0c0' : '#888',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >ON</button>
+            </div>
+          );
+        }
+        // Standard toggle for other amps
         return (
           <div key="cabinet_enabled" className="toggle-switch">
             <label>Cabinet</label>
@@ -955,64 +1027,78 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       
       case 'fender_bassman_controls':
         return (
-          <div key="fender_bassman_controls" className="fender-bassman-full-controls" style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px',
-            padding: '15px',
-            background: 'linear-gradient(135deg, rgba(212,165,116,0.3), rgba(139,105,20,0.2))',
-            borderRadius: '10px',
-            border: '2px solid rgba(212,165,116,0.5)',
-            width: '100%',
-            maxWidth: '850px'
-          }}>
-            {/* INPUTS */}
-            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', padding: '10px', background: 'rgba(0,0,0,0.3)', borderRadius: '6px' }}>
-              <label style={{ fontSize: '10px', fontWeight: 'bold', color: '#d4a574', textTransform: 'uppercase', minWidth: '60px' }}>
-                INPUTS
-              </label>
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '9px', color: '#d4a574', fontWeight: 'bold' }}>BRIGHT</span>
-                <input 
-                  type="range" 
-                  min="0" 
-                  max="100" 
-                  value={amp.params?.blend || 0}
-                  onChange={(e) => onUpdate(amp.id, 'blend', parseInt(e.target.value))}
-                  style={{ flex: 1 }}
-                />
-                <span style={{ fontSize: '9px', color: '#d4a574', fontWeight: 'bold' }}>NORMAL</span>
-              </div>
-            </div>
+          <div key="fender_bassman_controls" style={{ display: 'inline-flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+            {/* Main Controls - Classic Bassman 3 Knobs */}
+            <Knob label="TREBLE" value={amp.params?.treble || 65} onChange={handleKnobChange('treble')} size={28} />
+            <Knob label="PRESENCE" value={amp.params?.presence || 50} onChange={handleKnobChange('presence')} size={28} />
+            <Knob label="MASTER" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={28} />
             
-            {/* CONTROL PANEL */}
-            <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap', padding: '12px', background: 'rgba(212,165,116,0.15)', borderRadius: '8px' }}>
-              <Knob label="Volume" value={amp.params?.volume || 60} onChange={handleKnobChange('volume')} size={50} color="#d4a574" />
-              <Knob label="Bass" value={amp.params?.bass || 55} onChange={handleKnobChange('bass')} size={46} color="#d4a574" />
-              <Knob label="Treble" value={amp.params?.treble || 65} onChange={handleKnobChange('treble')} size={46} color="#d4a574" />
-              <Knob label="Presence" value={amp.params?.presence || 50} onChange={handleKnobChange('presence')} size={44} color="#d4a574" />
-              <Knob label="Master" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={48} color="#8b6914" />
-            </div>
-            
-            {/* SWITCHES */}
-            <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', padding: '10px', background: 'rgba(0,0,0,0.3)', borderRadius: '6px' }}>
-              <div className="toggle-switch">
-                <label>Bright Cap</label>
-                <input 
-                  type="checkbox" 
-                  checked={amp.params?.bright !== 0}
-                  onChange={(e) => onUpdate(amp.id, 'bright', e.target.checked ? 1 : 0)}
-                />
+            {/* Bright Cap */}
+            <div style={{ display: 'inline-flex', gap: '4px', alignItems: 'center' }}>
+              <button
+                onClick={() => onUpdate(amp.id, 'bright', 0)}
+                style={{
+                  padding: '4px 6px',
+                  fontSize: '10px',
+                  fontWeight: 'bold',
+                  borderRadius: '3px',
+                  border: amp.params?.bright === 0 ? '2px solid #000' : '1px solid rgba(0,0,0,0.3)',
+                  background: amp.params?.bright === 0 ? '#8b6914' : 'rgba(0,0,0,0.2)',
+                  color: amp.params?.bright === 0 ? '#fff' : '#555',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  textShadow: amp.params?.bright === 0 ? '0 1px 2px rgba(0,0,0,0.5)' : 'none'
+                }}
+              >OFF</button>
+              <button
+                onClick={() => onUpdate(amp.id, 'bright', 1)}
+                style={{
+                  padding: '4px 6px',
+                  fontSize: '10px',
+                  fontWeight: 'bold',
+                  borderRadius: '3px',
+                  border: amp.params?.bright !== 0 ? '2px solid #000' : '1px solid rgba(0,0,0,0.3)',
+                  background: amp.params?.bright !== 0 ? '#8b6914' : 'rgba(0,0,0,0.2)',
+                  color: amp.params?.bright !== 0 ? '#fff' : '#555',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  textShadow: amp.params?.bright !== 0 ? '0 1px 2px rgba(0,0,0,0.5)' : 'none'
+                }}
+              >BRITE</button>
               </div>
               
-              <div className="toggle-switch">
-                <label>4×10" Cabinet</label>
-                <input 
-                  type="checkbox" 
-                  checked={amp.params?.cabinet_enabled !== 0}
-                  onChange={(e) => onUpdate(amp.id, 'cabinet_enabled', e.target.checked ? 1 : 0)}
-                />
-              </div>
+            {/* Cabinet */}
+            <div style={{ display: 'inline-flex', gap: '4px', alignItems: 'center' }}>
+              <button
+                onClick={() => onUpdate(amp.id, 'cabinet_enabled', 0)}
+                style={{
+                  padding: '4px 6px',
+                  fontSize: '10px',
+                  fontWeight: 'bold',
+                  borderRadius: '3px',
+                  border: amp.params?.cabinet_enabled === 0 ? '2px solid #000' : '1px solid rgba(0,0,0,0.3)',
+                  background: amp.params?.cabinet_enabled === 0 ? '#8b6914' : 'rgba(0,0,0,0.2)',
+                  color: amp.params?.cabinet_enabled === 0 ? '#fff' : '#555',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  textShadow: amp.params?.cabinet_enabled === 0 ? '0 1px 2px rgba(0,0,0,0.5)' : 'none'
+                }}
+              >OFF</button>
+              <button
+                onClick={() => onUpdate(amp.id, 'cabinet_enabled', 1)}
+                style={{
+                  padding: '4px 6px',
+                  fontSize: '10px',
+                  fontWeight: 'bold',
+                  borderRadius: '3px',
+                  border: amp.params?.cabinet_enabled !== 0 ? '2px solid #000' : '1px solid rgba(0,0,0,0.3)',
+                  background: amp.params?.cabinet_enabled !== 0 ? '#8b6914' : 'rgba(0,0,0,0.2)',
+                  color: amp.params?.cabinet_enabled !== 0 ? '#fff' : '#555',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  textShadow: amp.params?.cabinet_enabled !== 0 ? '0 1px 2px rgba(0,0,0,0.5)' : 'none'
+                }}
+              >CAB</button>
             </div>
           </div>
         );
@@ -2661,38 +2747,72 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       case 'fender_deluxe_channel':
         const fenderChannel = amp.params?.channel ?? 1;
         return (
-          <div key="fender_deluxe_channel" className="toggle-switch" style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center' }}>
-            <label style={{ fontSize: '10px', color: '#c0c0c0', fontWeight: 'bold' }}>Channel</label>
-            <select 
-              value={fenderChannel}
-              onChange={(e) => onUpdate(amp.id, 'channel', parseInt(e.target.value))}
+          <div key="fender_deluxe_channel" style={{ display: 'inline-flex', gap: '4px', alignItems: 'center' }}>
+            <button
+              onClick={() => onUpdate(amp.id, 'channel', 0)}
               style={{ 
-                padding: '6px 10px', 
-                fontSize: '11px', 
-                borderRadius: '4px', 
-                background: '#000', 
-                color: '#c0c0c0', 
-                border: '1px solid #c0c0c0'
+                padding: '4px 8px',
+                fontSize: '9px',
+                fontWeight: 'bold',
+                borderRadius: '3px',
+                border: fenderChannel === 0 ? '1px solid #c0c0c0' : '1px solid rgba(192,192,192,0.2)',
+                background: fenderChannel === 0 ? 'rgba(192,192,192,0.3)' : 'rgba(0,0,0,0.3)',
+                color: fenderChannel === 0 ? '#c0c0c0' : '#888',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
               }}
-            >
-              <option value={0}>NORMAL</option>
-              <option value={1}>VIBRATO</option>
-            </select>
+            >NORM</button>
+            <button
+              onClick={() => onUpdate(amp.id, 'channel', 1)}
+              style={{
+                padding: '4px 8px',
+                fontSize: '9px',
+                fontWeight: 'bold',
+                borderRadius: '3px',
+                border: fenderChannel === 1 ? '1px solid #c0c0c0' : '1px solid rgba(192,192,192,0.2)',
+                background: fenderChannel === 1 ? 'rgba(192,192,192,0.3)' : 'rgba(0,0,0,0.3)',
+                color: fenderChannel === 1 ? '#c0c0c0' : '#888',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >VIB</button>
           </div>
         );
       
       case 'fender_reverb_dwell':
-        return <Knob key="fender_reverb_dwell" label="Dwell" value={amp.params?.reverb_dwell || 50} onChange={handleKnobChange('reverb_dwell')} size={32} />;
+        return <Knob key="fender_reverb_dwell" label="DWELL" value={amp.params?.reverb_dwell || 50} onChange={handleKnobChange('reverb_dwell')} size={28} />;
       
       case 'fender_cabinet':
         return (
-          <div key="fender_cabinet" className="toggle-switch">
-            <label>Cabinet</label>
-            <input 
-              type="checkbox" 
-              checked={amp.params?.cabinet_enabled !== false}
-              onChange={(e) => onUpdate(amp.id, 'cabinet_enabled', e.target.checked)}
-            />
+          <div key="fender_cabinet" style={{ display: 'inline-flex', gap: '4px', alignItems: 'center' }}>
+            <button
+              onClick={() => onUpdate(amp.id, 'cabinet_enabled', false)}
+              style={{
+                padding: '4px 6px',
+                fontSize: '9px',
+                fontWeight: 'bold',
+                borderRadius: '3px',
+                border: amp.params?.cabinet_enabled === false ? '1px solid #c0c0c0' : '1px solid rgba(192,192,192,0.2)',
+                background: amp.params?.cabinet_enabled === false ? 'rgba(192,192,192,0.3)' : 'rgba(0,0,0,0.3)',
+                color: amp.params?.cabinet_enabled === false ? '#c0c0c0' : '#888',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >OFF</button>
+            <button
+              onClick={() => onUpdate(amp.id, 'cabinet_enabled', true)}
+              style={{
+                padding: '4px 6px',
+                fontSize: '9px',
+                fontWeight: 'bold',
+                borderRadius: '3px',
+                border: amp.params?.cabinet_enabled !== false ? '1px solid #c0c0c0' : '1px solid rgba(192,192,192,0.2)',
+                background: amp.params?.cabinet_enabled !== false ? 'rgba(192,192,192,0.3)' : 'rgba(0,0,0,0.3)',
+                color: amp.params?.cabinet_enabled !== false ? '#c0c0c0' : '#888',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >ON</button>
           </div>
         );
       
@@ -3301,7 +3421,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                 </div>
               </div>
             ) : amp.ampType === 'fender_deluxe' ? (
-              /* FENDER DELUXE REVERB - Authentic Blackface layout */
+              /* FENDER DELUXE REVERB - Compact Blackface layout */
               <div className="fender-deluxe-knobs-layout" style={{ 
                 display: 'flex', 
                 gap: '8px', 
@@ -3312,25 +3432,22 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                 {amp.params?.channel === 0 ? (
                   /* NORMAL CHANNEL: Volume, Treble, Bass */
                   <>
-                    <Knob label="Volume" value={amp.params?.normal_volume || 50} onChange={handleKnobChange('normal_volume')} size={38} />
-                    <Knob label="Treble" value={amp.params?.treble || 60} onChange={handleKnobChange('treble')} size={36} />
-                    <Knob label="Bass" value={amp.params?.bass || 55} onChange={handleKnobChange('bass')} size={36} />
-                    <div style={{ width: '1px', height: '60px', background: 'rgba(192,192,192,0.3)', margin: '0 8px' }}></div>
-                    <Knob label="Reverb" value={amp.params?.reverb || 30} onChange={handleKnobChange('reverb')} size={36} />
-                    <Knob label="Master" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={38} />
+                    <Knob label="VOLUME" value={amp.params?.normal_volume || 50} onChange={handleKnobChange('normal_volume')} size={28} />
+                    <Knob label="TREBLE" value={amp.params?.treble || 60} onChange={handleKnobChange('treble')} size={28} />
+                    <Knob label="BASS" value={amp.params?.bass || 55} onChange={handleKnobChange('bass')} size={28} />
+                    <Knob label="REVERB" value={amp.params?.reverb || 30} onChange={handleKnobChange('reverb')} size={28} />
+                    <Knob label="MASTER" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={28} />
                   </>
                 ) : (
                   /* VIBRATO CHANNEL: Volume, Treble, Bass, Speed, Intensity */
                   <>
-                    <Knob label="Volume" value={amp.params?.vibrato_volume || 50} onChange={handleKnobChange('vibrato_volume')} size={38} />
-                    <Knob label="Treble" value={amp.params?.treble || 60} onChange={handleKnobChange('treble')} size={36} />
-                    <Knob label="Bass" value={amp.params?.bass || 55} onChange={handleKnobChange('bass')} size={36} />
-                    <div style={{ width: '1px', height: '60px', background: 'rgba(192,192,192,0.3)', margin: '0 8px' }}></div>
-                    <Knob label="Speed" value={amp.params?.vibrato_speed || 50} onChange={handleKnobChange('vibrato_speed')} size={34} />
-                    <Knob label="Intensity" value={amp.params?.vibrato_intensity || 0} onChange={handleKnobChange('vibrato_intensity')} size={34} />
-                    <div style={{ width: '1px', height: '60px', background: 'rgba(192,192,192,0.3)', margin: '0 8px' }}></div>
-                    <Knob label="Reverb" value={amp.params?.reverb || 30} onChange={handleKnobChange('reverb')} size={36} />
-                    <Knob label="Master" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={38} />
+                    <Knob label="VOLUME" value={amp.params?.vibrato_volume || 50} onChange={handleKnobChange('vibrato_volume')} size={28} />
+                    <Knob label="TREBLE" value={amp.params?.treble || 60} onChange={handleKnobChange('treble')} size={28} />
+                    <Knob label="BASS" value={amp.params?.bass || 55} onChange={handleKnobChange('bass')} size={28} />
+                    <Knob label="SPEED" value={amp.params?.vibrato_speed || 50} onChange={handleKnobChange('vibrato_speed')} size={28} />
+                    <Knob label="INTENS" value={amp.params?.vibrato_intensity || 0} onChange={handleKnobChange('vibrato_intensity')} size={28} />
+                    <Knob label="REVERB" value={amp.params?.reverb || 30} onChange={handleKnobChange('reverb')} size={28} />
+                    <Knob label="MASTER" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={28} />
                   </>
                 )}
               </div>
