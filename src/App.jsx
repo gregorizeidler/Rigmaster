@@ -316,7 +316,7 @@ function App() {
         effectInstance = new BigMuffEffect(audioContext, id);
         break;
       case 'amp':
-        effectInstance = new AmpSimulator(audioContext, id, effectData?.ampType || 'clean');
+        effectInstance = new AmpSimulator(audioContext, id, effectData?.ampType || 'fender_twin_reverb');
         break;
       
       // NOVOS EFEITOS IMPLEMENTADOS
@@ -502,7 +502,7 @@ function App() {
       name: effectInstance.name,
       bypassed: false,
       params: effectData?.params || {},
-      ampType: effectData?.ampType || (type === 'amp' ? 'clean' : undefined),
+      ampType: effectData?.ampType || (type === 'amp' ? 'fender_twin_reverb' : undefined),
       instance: effectInstance
     };
   };
@@ -548,7 +548,7 @@ function App() {
         return {
           ...e,
           params: { ...e.params, [parameter]: value },
-          ampType: parameter === 'type' ? value : e.ampType
+          ampType: parameter === 'ampType' ? value : e.ampType
         };
       }
       return e;

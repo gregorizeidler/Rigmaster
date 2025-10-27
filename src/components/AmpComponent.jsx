@@ -11,7 +11,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
   };
 
   const handleTypeChange = (e) => {
-    onUpdate(amp.id, 'type', e.target.value);
+    onUpdate(amp.id, 'ampType', e.target.value);
   };
 
   // Get original cabinet for each amp type
@@ -407,23 +407,42 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       // ============================================
       case 'vox_channel':
         return (
-          <div key="vox_channel" className="vox-channel-selector">
-            <label>Channel</label>
-            <select 
-              value={amp.params?.channel || 1}
-              onChange={(e) => onUpdate(amp.id, 'channel', parseInt(e.target.value))}
-              style={{ padding: '5px', fontSize: '12px', borderRadius: '4px' }}
-            >
-              <option value="0">Normal</option>
-              <option value="1">Top Boost</option>
-            </select>
+          <div key="vox_channel" style={{ display: 'inline-flex', gap: '4px', alignItems: 'center' }}>
+            <button
+              onClick={() => onUpdate(amp.id, 'channel', 0)}
+              style={{
+                padding: '4px 8px',
+                fontSize: '9px',
+                fontWeight: 'bold',
+                borderRadius: '3px',
+                border: amp.params?.channel === 0 ? '1px solid #d4af37' : '1px solid rgba(192,192,192,0.2)',
+                background: amp.params?.channel === 0 ? 'rgba(212,175,55,0.3)' : 'rgba(0,0,0,0.3)',
+                color: amp.params?.channel === 0 ? '#d4af37' : '#888',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >NORM</button>
+            <button
+              onClick={() => onUpdate(amp.id, 'channel', 1)}
+              style={{
+                padding: '4px 8px',
+                fontSize: '9px',
+                fontWeight: 'bold',
+                borderRadius: '3px',
+                border: amp.params?.channel === 1 ? '1px solid #d4af37' : '1px solid rgba(192,192,192,0.2)',
+                background: amp.params?.channel === 1 ? 'rgba(212,175,55,0.3)' : 'rgba(0,0,0,0.3)',
+                color: amp.params?.channel === 1 ? '#d4af37' : '#888',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >T.BOOST</button>
           </div>
         );
       
       case 'vox_normal_volume':
         // Only show when Normal channel is selected
         if (amp.params?.channel === 0) {
-          return <Knob key="vox_normal_volume" label="Volume" value={amp.params?.normal_volume || 50} onChange={handleKnobChange('normal_volume')} size={32} />;
+          return <Knob key="vox_normal_volume" label="N.VOL" value={amp.params?.normal_volume || 50} onChange={handleKnobChange('normal_volume')} size={28} />;
         }
         return null;
       
@@ -431,13 +450,35 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
         // Only show when Normal channel is selected
         if (amp.params?.channel === 0) {
           return (
-            <div key="vox_brilliance" className="toggle-switch">
-              <label>Brilliance</label>
-              <input 
-                type="checkbox" 
-                checked={amp.params?.brilliance || false}
-                onChange={(e) => onUpdate(amp.id, 'brilliance', e.target.checked)}
-              />
+            <div key="vox_brilliance" style={{ display: 'inline-flex', gap: '4px', alignItems: 'center' }}>
+              <button
+                onClick={() => onUpdate(amp.id, 'brilliance', false)}
+                style={{
+                  padding: '4px 6px',
+                  fontSize: '9px',
+                  fontWeight: 'bold',
+                  borderRadius: '3px',
+                  border: !amp.params?.brilliance ? '1px solid #d4af37' : '1px solid rgba(192,192,192,0.2)',
+                  background: !amp.params?.brilliance ? 'rgba(212,175,55,0.3)' : 'rgba(0,0,0,0.3)',
+                  color: !amp.params?.brilliance ? '#d4af37' : '#888',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >WARM</button>
+              <button
+                onClick={() => onUpdate(amp.id, 'brilliance', true)}
+                style={{
+                  padding: '4px 6px',
+                  fontSize: '9px',
+                  fontWeight: 'bold',
+                  borderRadius: '3px',
+                  border: amp.params?.brilliance ? '1px solid #d4af37' : '1px solid rgba(192,192,192,0.2)',
+                  background: amp.params?.brilliance ? 'rgba(212,175,55,0.3)' : 'rgba(0,0,0,0.3)',
+                  color: amp.params?.brilliance ? '#d4af37' : '#888',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >BRIL</button>
             </div>
           );
         }
@@ -445,57 +486,57 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       
       case 'vox_tremolo':
         return (
-          <div key="vox_tremolo" className="vox-effect-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '6px', background: 'rgba(0,0,0,0.2)', borderRadius: '5px' }}>
-            <label style={{ fontSize: '9px', fontWeight: 'bold', color: '#d4af37', textTransform: 'uppercase' }}>Tremolo</label>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <Knob label="Speed" value={amp.params?.tremolo_speed || 40} onChange={handleKnobChange('tremolo_speed')} size={28} />
-              <Knob label="Depth" value={amp.params?.tremolo_depth || 0} onChange={handleKnobChange('tremolo_depth')} size={28} />
-            </div>
+          <div key="vox_tremolo" style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
+            <Knob label="T.SPD" value={amp.params?.tremolo_speed || 40} onChange={handleKnobChange('tremolo_speed')} size={28} />
+            <Knob label="T.DEP" value={amp.params?.tremolo_depth || 0} onChange={handleKnobChange('tremolo_depth')} size={28} />
           </div>
         );
       
       case 'vox_vibrato':
         return (
-          <div key="vox_vibrato" className="vox-effect-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '6px', background: 'rgba(0,0,0,0.2)', borderRadius: '5px' }}>
-            <label style={{ fontSize: '9px', fontWeight: 'bold', color: '#d4af37', textTransform: 'uppercase' }}>Vibrato</label>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <Knob label="Speed" value={amp.params?.vibrato_speed || 50} onChange={handleKnobChange('vibrato_speed')} size={28} />
-              <Knob label="Depth" value={amp.params?.vibrato_depth || 0} onChange={handleKnobChange('vibrato_depth')} size={28} />
-            </div>
+          <div key="vox_vibrato" style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
+            <Knob label="V.SPD" value={amp.params?.vibrato_speed || 50} onChange={handleKnobChange('vibrato_speed')} size={28} />
+            <Knob label="V.DEP" value={amp.params?.vibrato_depth || 0} onChange={handleKnobChange('vibrato_depth')} size={28} />
           </div>
         );
       
       case 'vox_reverb':
-        return (
-          <div key="vox_reverb" className="vox-effect-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '6px', background: 'rgba(0,0,0,0.2)', borderRadius: '5px' }}>
-            <label style={{ fontSize: '9px', fontWeight: 'bold', color: '#d4af37', textTransform: 'uppercase' }}>Spring Reverb</label>
-            <Knob label="Level" value={amp.params?.reverb || 0} onChange={handleKnobChange('reverb')} size={28} />
-          </div>
-        );
+        return <Knob key="vox_reverb" label="REVERB" value={amp.params?.reverb || 0} onChange={handleKnobChange('reverb')} size={28} />;
       
       case 'vox_cut':
-        return (
-          <div key="vox_cut" style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
-            <Knob label="Cut" value={amp.params?.cut || 50} onChange={handleKnobChange('cut')} size={32} />
-            <span style={{ fontSize: '9px', color: '#999', textAlign: 'center' }}>Treble Cut</span>
-          </div>
-        );
+        return <Knob key="vox_cut" label="CUT" value={amp.params?.cut || 50} onChange={handleKnobChange('cut')} size={28} />;
       
       case 'vox_pentode_triode':
         return (
-          <div key="vox_pentode_triode" className="vox-power-switch" style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '10px', background: 'rgba(139, 24, 16, 0.3)', borderRadius: '6px', border: '1px solid rgba(212, 175, 55, 0.3)' }}>
-            <label style={{ fontSize: '10px', fontWeight: 'bold', color: '#d4af37', textTransform: 'uppercase', textAlign: 'center' }}>Back Panel</label>
-            <div className="toggle-switch">
-              <label>{amp.params?.pentode_triode !== false ? '30W Pentode' : '15W Triode'}</label>
-              <input 
-                type="checkbox" 
-                checked={amp.params?.pentode_triode !== false}
-                onChange={(e) => onUpdate(amp.id, 'pentode_triode', e.target.checked)}
-              />
-            </div>
-            <span style={{ fontSize: '8px', color: '#999', textAlign: 'center' }}>
-              {amp.params?.pentode_triode !== false ? 'Tighter, Brighter' : 'Warmer, Compressed'}
-            </span>
+          <div key="vox_pentode_triode" style={{ display: 'inline-flex', gap: '4px', alignItems: 'center' }}>
+            <button
+              onClick={() => onUpdate(amp.id, 'pentode_triode', true)}
+              style={{
+                padding: '4px 6px',
+                fontSize: '9px',
+                fontWeight: 'bold',
+                borderRadius: '3px',
+                border: amp.params?.pentode_triode !== false ? '1px solid #d4af37' : '1px solid rgba(192,192,192,0.2)',
+                background: amp.params?.pentode_triode !== false ? 'rgba(212,175,55,0.3)' : 'rgba(0,0,0,0.3)',
+                color: amp.params?.pentode_triode !== false ? '#d4af37' : '#888',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >30W</button>
+            <button
+              onClick={() => onUpdate(amp.id, 'pentode_triode', false)}
+              style={{
+                padding: '4px 6px',
+                fontSize: '9px',
+                fontWeight: 'bold',
+                borderRadius: '3px',
+                border: amp.params?.pentode_triode === false ? '1px solid #d4af37' : '1px solid rgba(192,192,192,0.2)',
+                background: amp.params?.pentode_triode === false ? 'rgba(212,175,55,0.3)' : 'rgba(0,0,0,0.3)',
+                color: amp.params?.pentode_triode === false ? '#d4af37' : '#888',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >15W</button>
           </div>
         );
       
@@ -3024,25 +3065,25 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                 {/* Top Boost Channel: Volume, Bass, Treble, Master */}
                 {amp.params?.channel !== 0 && (
                   <>
-                    <Knob label="Volume" value={amp.params?.topboost_volume || 60} onChange={handleKnobChange('topboost_volume')} size={36} />
-                    <Knob label="Bass" value={amp.params?.bass || 50} onChange={handleKnobChange('bass')} size={36} />
-                    <Knob label="Treble" value={amp.params?.treble || 60} onChange={handleKnobChange('treble')} size={36} />
-                    <Knob label="Master" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={36} />
+                    <Knob label="VOLUME" value={amp.params?.topboost_volume || 60} onChange={handleKnobChange('topboost_volume')} size={28} />
+                    <Knob label="BASS" value={amp.params?.bass || 50} onChange={handleKnobChange('bass')} size={28} />
+                    <Knob label="TREBLE" value={amp.params?.treble || 60} onChange={handleKnobChange('treble')} size={28} />
+                    <Knob label="MASTER" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={28} />
                   </>
                 )}
                 {/* Normal Channel: only Master (Top Boost inactive) */}
                 {amp.params?.channel === 0 && (
                   <>
                     <div style={{ opacity: 0.2, pointerEvents: 'none' }}>
-                      <Knob label="Volume" value={50} onChange={() => {}} size={36} />
+                      <Knob label="VOLUME" value={50} onChange={() => {}} size={28} />
                     </div>
                     <div style={{ opacity: 0.2, pointerEvents: 'none' }}>
-                      <Knob label="Bass" value={50} onChange={() => {}} size={36} />
+                      <Knob label="BASS" value={50} onChange={() => {}} size={28} />
                     </div>
                     <div style={{ opacity: 0.2, pointerEvents: 'none' }}>
-                      <Knob label="Treble" value={50} onChange={() => {}} size={36} />
+                      <Knob label="TREBLE" value={50} onChange={() => {}} size={28} />
                     </div>
-                    <Knob label="Master" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={36} />
+                    <Knob label="MASTER" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={28} />
                   </>
                 )}
               </div>
