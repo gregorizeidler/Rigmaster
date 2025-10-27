@@ -279,8 +279,8 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       friedman_be100: ['presence', 'depth', 'tightswitch'],
       soldano_slo100: ['soldano_channel', 'master_gain', 'presence', 'depth', 'bright', 'gate', 'cabinet_enabled'],
       
-      // MATCHLESS - Master/Cut
-      matchless_dc30: ['cut', 'mastervolume'],
+      // MATCHLESS - Cabinet control
+      matchless_dc30: ['cabinet_enabled'],
       
       // BAD CAT - Boost
       badcat_hotcat: ['boost', 'presence'],
@@ -1367,6 +1367,138 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                 <div className="knob-group" style={{ display: 'flex', gap: '8px', flexDirection: 'column', alignItems: 'center', padding: '8px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
                   <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#4a9eff', textTransform: 'uppercase' }}>Master</span>
                   <div style={{ display: 'flex', gap: '8px' }}>
+                    <Knob label="Master" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={36} />
+                  </div>
+                </div>
+              </div>
+            ) : amp.ampType === 'matchless_dc30' ? (
+              /* MATCHLESS DC-30 - Authentic dual-channel boutique layout */
+              <div className="matchless-dc30-knobs-layout" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center', width: '100%' }}>
+                {/* CHANNEL SELECTOR */}
+                <div className="knob-group" style={{ 
+                  display: 'flex', 
+                  gap: '10px', 
+                  flexDirection: 'column', 
+                  alignItems: 'center', 
+                  padding: '12px 15px', 
+                  background: 'linear-gradient(135deg, rgba(139,0,0,0.3), rgba(139,0,0,0.15))', 
+                  borderRadius: '10px',
+                  border: '2px solid rgba(255,215,0,0.5)',
+                  minWidth: '180px'
+                }}>
+                  <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#ffd700', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Channel</span>
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <button 
+                      onClick={() => onUpdate(amp.id, 'channel', 1)}
+                      style={{
+                        padding: '10px 20px',
+                        background: amp.params?.channel === 1 ? 'linear-gradient(135deg, #ffd700, #daa520)' : 'rgba(0,0,0,0.5)',
+                        border: '2px solid #ffd700',
+                        color: amp.params?.channel === 1 ? '#8b0000' : '#ffd700',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontWeight: 'bold',
+                        fontSize: '12px',
+                        boxShadow: amp.params?.channel === 1 ? '0 4px 8px rgba(255,215,0,0.4)' : 'none',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >CH 1<br/><span style={{ fontSize: '9px', fontWeight: 'normal' }}>EF86</span></button>
+                    <button 
+                      onClick={() => onUpdate(amp.id, 'channel', 2)}
+                      style={{
+                        padding: '10px 20px',
+                        background: amp.params?.channel === 2 ? 'linear-gradient(135deg, #ffd700, #daa520)' : 'rgba(0,0,0,0.5)',
+                        border: '2px solid #ffd700',
+                        color: amp.params?.channel === 2 ? '#8b0000' : '#ffd700',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontWeight: 'bold',
+                        fontSize: '12px',
+                        boxShadow: amp.params?.channel === 2 ? '0 4px 8px rgba(255,215,0,0.4)' : 'none',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >CH 2<br/><span style={{ fontSize: '9px', fontWeight: 'normal' }}>12AX7</span></button>
+                  </div>
+                </div>
+
+                {/* CHANNEL 1 VOLUME */}
+                <div className="knob-group" style={{ 
+                  display: 'flex', 
+                  gap: '8px', 
+                  flexDirection: 'column', 
+                  alignItems: 'center', 
+                  padding: '10px', 
+                  background: amp.params?.channel === 1 ? 'linear-gradient(135deg, rgba(139,0,0,0.3), rgba(139,0,0,0.15))' : 'rgba(0,0,0,0.2)', 
+                  borderRadius: '8px',
+                  border: amp.params?.channel === 1 ? '2px solid rgba(255,215,0,0.4)' : '1px solid rgba(255,215,0,0.2)',
+                  opacity: amp.params?.channel === 1 ? 1 : 0.5
+                }}>
+                  <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#ffd700', textTransform: 'uppercase' }}>Ch1 Volume</span>
+                  <Knob label="EF86" value={amp.params?.ch1_volume || 55} onChange={handleKnobChange('ch1_volume')} size={36} />
+                  {/* BRILLIANCE SWITCH (CH1 only) */}
+                  {amp.params?.channel === 1 && (
+                    <div style={{ marginTop: '5px' }}>
+                      <label style={{ fontSize: '8px', color: '#ffd700', display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={amp.params?.brilliance || false}
+                          onChange={(e) => onUpdate(amp.id, 'brilliance', e.target.checked ? 1 : 0)}
+                          style={{ cursor: 'pointer' }}
+                        />
+                        BRILLIANCE
+                      </label>
+                    </div>
+                  )}
+                </div>
+
+                {/* CHANNEL 2 VOLUME */}
+                <div className="knob-group" style={{ 
+                  display: 'flex', 
+                  gap: '8px', 
+                  flexDirection: 'column', 
+                  alignItems: 'center', 
+                  padding: '10px', 
+                  background: amp.params?.channel === 2 ? 'linear-gradient(135deg, rgba(139,0,0,0.3), rgba(139,0,0,0.15))' : 'rgba(0,0,0,0.2)', 
+                  borderRadius: '8px',
+                  border: amp.params?.channel === 2 ? '2px solid rgba(255,215,0,0.4)' : '1px solid rgba(255,215,0,0.2)',
+                  opacity: amp.params?.channel === 2 ? 1 : 0.5
+                }}>
+                  <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#ffd700', textTransform: 'uppercase' }}>Ch2 Volume</span>
+                  <Knob label="12AX7" value={amp.params?.ch2_volume || 55} onChange={handleKnobChange('ch2_volume')} size={36} />
+                </div>
+
+                {/* TONE STACK (Top Boost style) */}
+                <div className="knob-group" style={{ 
+                  display: 'flex', 
+                  gap: '8px', 
+                  flexDirection: 'column', 
+                  alignItems: 'center', 
+                  padding: '10px 15px', 
+                  background: 'linear-gradient(135deg, rgba(139,0,0,0.3), rgba(139,0,0,0.15))', 
+                  borderRadius: '8px',
+                  border: '2px solid rgba(255,215,0,0.5)'
+                }}>
+                  <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#ffd700', textTransform: 'uppercase' }}>Tone Stack</span>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <Knob label="Bass" value={amp.params?.bass || 50} onChange={handleKnobChange('bass')} size={36} />
+                    <Knob label="Treble" value={amp.params?.treble || 65} onChange={handleKnobChange('treble')} size={36} />
+                  </div>
+                </div>
+
+                {/* CUT & MASTER */}
+                <div className="knob-group" style={{ 
+                  display: 'flex', 
+                  gap: '8px', 
+                  flexDirection: 'column', 
+                  alignItems: 'center', 
+                  padding: '10px 15px', 
+                  background: 'linear-gradient(135deg, rgba(139,0,0,0.3), rgba(139,0,0,0.15))', 
+                  borderRadius: '8px',
+                  border: '2px solid rgba(255,215,0,0.5)'
+                }}>
+                  <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#ffd700', textTransform: 'uppercase' }}>Master Section</span>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <Knob label="Cut" value={amp.params?.cut || 30} onChange={handleKnobChange('cut')} size={36} />
                     <Knob label="Master" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={36} />
                   </div>
                 </div>
