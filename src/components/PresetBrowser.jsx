@@ -124,7 +124,7 @@ const PresetBrowser = ({ presetManager, onLoadPreset, onClose, currentAmpConfig,
         onClick={(e) => e.stopPropagation()}
       >
         <div className="preset-browser-header">
-          <h2>🎸 Preset Browser</h2>
+          <h2>Preset Browser</h2>
           <button className="close-btn" onClick={onClose}>×</button>
         </div>
 
@@ -211,8 +211,8 @@ const PresetBrowser = ({ presetManager, onLoadPreset, onClose, currentAmpConfig,
                 )}
 
                 <div className="preset-info">
-                  <span>🎸 {preset.amp?.ampType || 'N/A'}</span>
-                  <span>🎛️ {preset.effects?.length || 0} FX</span>
+                  <span>Amp: {preset.amp?.ampType || 'N/A'}</span>
+                  <span>FX: {preset.effects?.length || 0}</span>
                 </div>
 
                 {activeTab === 'user' && (
@@ -229,7 +229,7 @@ const PresetBrowser = ({ presetManager, onLoadPreset, onClose, currentAmpConfig,
                       onClick={() => handleDeletePreset(preset.id)}
                       title="Delete"
                     >
-                      🗑️
+                      Delete
                     </button>
                   </div>
                 )}

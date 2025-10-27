@@ -1,5 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
+import { 
+  Guitar, Speaker, Sliders, Zap, Flame, Waves, Sparkles, 
+  Radio, Repeat, Clock, Timer, Cloud, CloudRain, CircleDot,
+  Volume2, Activity, Settings, Target, Shuffle, Sparkle,
+  Music, Music2, Music3, Music4, TrendingUp, Minimize2,
+  Filter, Blend, Circle, Square, Triangle, Save, BookOpen,
+  Library, Layers, Crosshair, RotateCw, Play, Pause, Disc,
+  FileAudio, Cpu, Power, Inbox, Eye, EyeOff, Check, X, Plus,
+  Minus, MoreHorizontal, ChevronDown, ChevronUp, Lock, Unlock,
+  AlertCircle, Info, HelpCircle, Search, Settings2
+} from 'lucide-react';
 import AudioEngine from './audio/AudioEngine';
 import BaseEffect from './audio/effects/BaseEffect';
 import DistortionEffect from './audio/effects/DistortionEffect';
@@ -670,119 +681,171 @@ function App() {
     }
   };
 
+  // Icon mapping helper
+  const getEffectIcon = (type) => {
+    const iconMap = {
+      // Amp
+      'amp': Speaker,
+      // Drive/Distortion
+      'mesavtwin': Sliders, 'tech21sansamp': Settings, 'xoticbb': Flame,
+      'xoticep': TrendingUp, 'jhssuperbolt': Zap, 'tubescreamer': Circle,
+      'kloncentaur': Sparkles, 'bossds1': Circle, 'bossbd2': Circle,
+      'bosssd1': Circle, 'procorat': Zap, 'fulltoneocd': Settings,
+      'mxrdistortionplus': Plus, 'bigmuff': Circle, 'fuzzface': Circle,
+      'zvexfuzzfactory': Cpu, 'distortion': Guitar, 'overdrive': Flame,
+      'fuzz': Zap, 'metaldistortion': Zap, 'boost': TrendingUp,
+      'tapesaturation': Radio,
+      // Time/Delay
+      'memoryman': Clock, 'mxrcarboncopy': Repeat, 'timelinedelay': Timer,
+      'eventidetimefactor': Clock, 'bossdd500': Sliders, 'line6dl4': Circle,
+      'delay': Clock, 'tapeecho': Radio, 'tapdelay': Timer,
+      // Reverb
+      'bigskyreverb': Cloud, 'eventidespace': Sparkles, 'bossrv500': Sliders,
+      'ehxholygrail': Sparkle, 'tchalloffame': CloudRain, 'reverb': Cloud,
+      'springreverb': Waves, 'shimmerreverb': Sparkles, 'hallreverb': CloudRain,
+      'platereverb': Radio, 'roomreverb': Cloud,
+      // Modulation
+      'strymonmobius': Waves, 'walrusjulia': Waves, 'bossce1': Music,
+      'mxrphase90': RotateCw, 'univibe': Waves, 'bossbf2': Waves,
+      'bosstr2': Activity, 'chorus': Waves, 'analogchorus': Waves,
+      'phaser': RotateCw, 'flanger': Waves, 'analogflanger': Waves,
+      'tremolo': Activity, 'vibrato': Activity, 'rotary': RotateCw,
+      'autopan': Shuffle,
+      // Dynamics
+      'keeleycomp': Minimize2, 'mxrdynacomp': Minimize2, 'compressor': Minimize2,
+      'limiter': Minimize2, 'noisegate': Volume2, 'tubecompressor': Minimize2,
+      // EQ/Filter
+      'mxr10bandeq': Sliders, 'crybabywah': Filter, 'eq': Sliders,
+      'graphiceq': Sliders, 'wah': Filter, 'autowah': Filter,
+      'envfilter': Filter, 'talkbox': Music2, 'lfofilter': Waves,
+      'stepfilter': Activity,
+      // Pitch
+      'octaver': Music3, 'pitchshifter': Music4, 'harmonizer': Music,
+      'whammy': Guitar, 'detune': Music2,
+      // Special
+      'eventideh9': Sparkles, 'looper': Repeat, 'ringmod': Circle,
+      'bitcrusher': Cpu, 'slicer': Activity, 'stepslicer': Activity,
+      'swell': Waves, 'feedback': Volume2, 'vocoder': Music2,
+      // Utility
+      'volume': Volume2, 'tuner': Target, 'abtoggle': Shuffle,
+      'splitter': Layers
+    };
+    return iconMap[type] || Circle;
+  };
+
   const effectTypes = [
-    // AMP (apenas um - os tipos ficam dentro dele)
-    { type: 'amp', name: 'Amplifier', icon: '🔊', category: 'amp' },
+    // AMP
+    { type: 'amp', name: 'Amplifier', icon: 'amp', category: 'amp' },
     
     // OVERDRIVE/DISTORTION (CLASSIC + RACK)
-    { type: 'mesavtwin', name: 'Mesa V-Twin', icon: '🎛️', category: 'drive' },
-    { type: 'tech21sansamp', name: 'Tech 21 SansAmp', icon: '🔧', category: 'drive' },
-    { type: 'xoticbb', name: 'Xotic BB Preamp', icon: '🟠', category: 'drive' },
-    { type: 'xoticep', name: 'Xotic EP Booster', icon: '⬆️', category: 'drive' },
-    { type: 'jhssuperbolt', name: 'JHS Superbolt', icon: '⚡', category: 'drive' },
-    { type: 'tubescreamer', name: 'Tube Screamer', icon: '🟢', category: 'drive' },
-    { type: 'kloncentaur', name: 'Klon Centaur', icon: '🐴', category: 'drive' },
-    { type: 'bossds1', name: 'Boss DS-1', icon: '🟠', category: 'drive' },
-    { type: 'bossbd2', name: 'Boss BD-2', icon: '🔵', category: 'drive' },
-    { type: 'bosssd1', name: 'Boss SD-1', icon: '🟡', category: 'drive' },
-    { type: 'procorat', name: 'ProCo RAT', icon: '🐀', category: 'drive' },
-    { type: 'fulltoneocd', name: 'Fulltone OCD', icon: '⚙️', category: 'drive' },
-    { type: 'mxrdistortionplus', name: 'MXR Distortion+', icon: '➕', category: 'drive' },
-    { type: 'bigmuff', name: 'Big Muff', icon: '🔴', category: 'drive' },
-    { type: 'fuzzface', name: 'Fuzz Face', icon: '😎', category: 'drive' },
-    { type: 'zvexfuzzfactory', name: 'Z.Vex Fuzz Factory', icon: '🏭', category: 'drive' },
-    { type: 'distortion', name: 'Distortion', icon: '🎸', category: 'drive' },
-    { type: 'overdrive', name: 'Overdrive', icon: '🔥', category: 'drive' },
-    { type: 'fuzz', name: 'Fuzz', icon: '⚡', category: 'drive' },
-    { type: 'metaldistortion', name: 'Metal Distortion', icon: '🤘', category: 'drive' },
-    { type: 'boost', name: 'Clean Boost', icon: '⬆️', category: 'drive' },
-    { type: 'tapesaturation', name: 'Tape Saturation', icon: '📼', category: 'drive' },
+    { type: 'mesavtwin', name: 'Mesa V-Twin', icon: 'mesavtwin', category: 'drive' },
+    { type: 'tech21sansamp', name: 'Tech 21 SansAmp', icon: 'tech21sansamp', category: 'drive' },
+    { type: 'xoticbb', name: 'Xotic BB Preamp', icon: 'xoticbb', category: 'drive' },
+    { type: 'xoticep', name: 'Xotic EP Booster', icon: 'xoticep', category: 'drive' },
+    { type: 'jhssuperbolt', name: 'JHS Superbolt', icon: 'jhssuperbolt', category: 'drive' },
+    { type: 'tubescreamer', name: 'Tube Screamer', icon: 'tubescreamer', category: 'drive' },
+    { type: 'kloncentaur', name: 'Klon Centaur', icon: 'kloncentaur', category: 'drive' },
+    { type: 'bossds1', name: 'Boss DS-1', icon: 'bossds1', category: 'drive' },
+    { type: 'bossbd2', name: 'Boss BD-2', icon: 'bossbd2', category: 'drive' },
+    { type: 'bosssd1', name: 'Boss SD-1', icon: 'bosssd1', category: 'drive' },
+    { type: 'procorat', name: 'ProCo RAT', icon: 'procorat', category: 'drive' },
+    { type: 'fulltoneocd', name: 'Fulltone OCD', icon: 'fulltoneocd', category: 'drive' },
+    { type: 'mxrdistortionplus', name: 'MXR Distortion+', icon: 'mxrdistortionplus', category: 'drive' },
+    { type: 'bigmuff', name: 'Big Muff', icon: 'bigmuff', category: 'drive' },
+    { type: 'fuzzface', name: 'Fuzz Face', icon: 'fuzzface', category: 'drive' },
+    { type: 'zvexfuzzfactory', name: 'Z.Vex Fuzz Factory', icon: 'zvexfuzzfactory', category: 'drive' },
+    { type: 'distortion', name: 'Distortion', icon: 'distortion', category: 'drive' },
+    { type: 'overdrive', name: 'Overdrive', icon: 'overdrive', category: 'drive' },
+    { type: 'fuzz', name: 'Fuzz', icon: 'fuzz', category: 'drive' },
+    { type: 'metaldistortion', name: 'Metal Distortion', icon: 'metaldistortion', category: 'drive' },
+    { type: 'boost', name: 'Clean Boost', icon: 'boost', category: 'drive' },
+    { type: 'tapesaturation', name: 'Tape Saturation', icon: 'tapesaturation', category: 'drive' },
     
     // DELAY/ECHO (CLASSIC + RACK)
-    { type: 'memoryman', name: 'Memory Man', icon: '🧠', category: 'time' },
-    { type: 'mxrcarboncopy', name: 'MXR Carbon Copy', icon: '📄', category: 'time' },
-    { type: 'timelinedelay', name: 'Timeline Delay', icon: '⏰', category: 'time' },
-    { type: 'eventidetimefactor', name: 'Eventide TimeFactor', icon: '⏲️', category: 'time' },
-    { type: 'bossdd500', name: 'Boss DD-500', icon: '🎛️', category: 'time' },
-    { type: 'line6dl4', name: 'Line 6 DL4', icon: '🟢', category: 'time' },
-    { type: 'delay', name: 'Digital Delay', icon: '⏱️', category: 'time' },
-    { type: 'tapeecho', name: 'Tape Echo', icon: '📼', category: 'time' },
-    { type: 'tapdelay', name: 'Tap Delay', icon: '👆', category: 'time' },
+    { type: 'memoryman', name: 'Memory Man', icon: 'memoryman', category: 'time' },
+    { type: 'mxrcarboncopy', name: 'MXR Carbon Copy', icon: 'mxrcarboncopy', category: 'time' },
+    { type: 'timelinedelay', name: 'Timeline Delay', icon: 'timelinedelay', category: 'time' },
+    { type: 'eventidetimefactor', name: 'Eventide TimeFactor', icon: 'eventidetimefactor', category: 'time' },
+    { type: 'bossdd500', name: 'Boss DD-500', icon: 'bossdd500', category: 'time' },
+    { type: 'line6dl4', name: 'Line 6 DL4', icon: 'line6dl4', category: 'time' },
+    { type: 'delay', name: 'Digital Delay', icon: 'delay', category: 'time' },
+    { type: 'tapeecho', name: 'Tape Echo', icon: 'tapeecho', category: 'time' },
+    { type: 'tapdelay', name: 'Tap Delay', icon: 'tapdelay', category: 'time' },
     
     // REVERB (CLASSIC + RACK)
-    { type: 'bigskyreverb', name: 'Bigsky Reverb', icon: '☁️', category: 'time' },
-    { type: 'eventidespace', name: 'Eventide Space', icon: '🌌', category: 'time' },
-    { type: 'bossrv500', name: 'Boss RV-500', icon: '🎚️', category: 'time' },
-    { type: 'ehxholygrail', name: 'EHX Holy Grail', icon: '🏆', category: 'time' },
-    { type: 'tchalloffame', name: 'TC Hall of Fame', icon: '🌟', category: 'time' },
-    { type: 'reverb', name: 'Reverb', icon: '🏛️', category: 'time' },
-    { type: 'springreverb', name: 'Spring Reverb', icon: '🌀', category: 'time' },
-    { type: 'shimmerreverb', name: 'Shimmer Reverb', icon: '✨', category: 'time' },
-    { type: 'hallreverb', name: 'Hall Reverb', icon: '🎭', category: 'time' },
-    { type: 'platereverb', name: 'Plate Reverb', icon: '📻', category: 'time' },
-    { type: 'roomreverb', name: 'Room Reverb', icon: '🏠', category: 'time' },
+    { type: 'bigskyreverb', name: 'Bigsky Reverb', icon: 'bigskyreverb', category: 'time' },
+    { type: 'eventidespace', name: 'Eventide Space', icon: 'eventidespace', category: 'time' },
+    { type: 'bossrv500', name: 'Boss RV-500', icon: 'bossrv500', category: 'time' },
+    { type: 'ehxholygrail', name: 'EHX Holy Grail', icon: 'ehxholygrail', category: 'time' },
+    { type: 'tchalloffame', name: 'TC Hall of Fame', icon: 'tchalloffame', category: 'time' },
+    { type: 'reverb', name: 'Reverb', icon: 'reverb', category: 'time' },
+    { type: 'springreverb', name: 'Spring Reverb', icon: 'springreverb', category: 'time' },
+    { type: 'shimmerreverb', name: 'Shimmer Reverb', icon: 'shimmerreverb', category: 'time' },
+    { type: 'hallreverb', name: 'Hall Reverb', icon: 'hallreverb', category: 'time' },
+    { type: 'platereverb', name: 'Plate Reverb', icon: 'platereverb', category: 'time' },
+    { type: 'roomreverb', name: 'Room Reverb', icon: 'roomreverb', category: 'time' },
     
     // MODULATION (CLASSIC + RACK)
-    { type: 'strymonmobius', name: 'Strymon Mobius', icon: '🌀', category: 'modulation' },
-    { type: 'walrusjulia', name: 'Walrus Julia', icon: '🌊', category: 'modulation' },
-    { type: 'bossce1', name: 'Boss CE-1', icon: '🎵', category: 'modulation' },
-    { type: 'mxrphase90', name: 'MXR Phase 90', icon: '🔄', category: 'modulation' },
-    { type: 'univibe', name: 'Uni-Vibe', icon: '🌈', category: 'modulation' },
-    { type: 'bossbf2', name: 'Boss BF-2', icon: '✈️', category: 'modulation' },
-    { type: 'bosstr2', name: 'Boss TR-2', icon: '〰️', category: 'modulation' },
-    { type: 'chorus', name: 'Chorus', icon: '🌊', category: 'modulation' },
-    { type: 'analogchorus', name: 'Analog Chorus', icon: '🌀', category: 'modulation' },
-    { type: 'phaser', name: 'Phaser', icon: '🌈', category: 'modulation' },
-    { type: 'flanger', name: 'Flanger', icon: '💫', category: 'modulation' },
-    { type: 'analogflanger', name: 'Analog Flanger', icon: '🎪', category: 'modulation' },
-    { type: 'tremolo', name: 'Tremolo', icon: '📳', category: 'modulation' },
-    { type: 'vibrato', name: 'Vibrato', icon: '〰️', category: 'modulation' },
-    { type: 'rotary', name: 'Rotary Speaker', icon: '🔄', category: 'modulation' },
-    { type: 'autopan', name: 'Auto Pan', icon: '↔️', category: 'modulation' },
+    { type: 'strymonmobius', name: 'Strymon Mobius', icon: 'strymonmobius', category: 'modulation' },
+    { type: 'walrusjulia', name: 'Walrus Julia', icon: 'walrusjulia', category: 'modulation' },
+    { type: 'bossce1', name: 'Boss CE-1', icon: 'bossce1', category: 'modulation' },
+    { type: 'mxrphase90', name: 'MXR Phase 90', icon: 'mxrphase90', category: 'modulation' },
+    { type: 'univibe', name: 'Uni-Vibe', icon: 'univibe', category: 'modulation' },
+    { type: 'bossbf2', name: 'Boss BF-2', icon: 'bossbf2', category: 'modulation' },
+    { type: 'bosstr2', name: 'Boss TR-2', icon: 'bosstr2', category: 'modulation' },
+    { type: 'chorus', name: 'Chorus', icon: 'chorus', category: 'modulation' },
+    { type: 'analogchorus', name: 'Analog Chorus', icon: 'analogchorus', category: 'modulation' },
+    { type: 'phaser', name: 'Phaser', icon: 'phaser', category: 'modulation' },
+    { type: 'flanger', name: 'Flanger', icon: 'flanger', category: 'modulation' },
+    { type: 'analogflanger', name: 'Analog Flanger', icon: 'analogflanger', category: 'modulation' },
+    { type: 'tremolo', name: 'Tremolo', icon: 'tremolo', category: 'modulation' },
+    { type: 'vibrato', name: 'Vibrato', icon: 'vibrato', category: 'modulation' },
+    { type: 'rotary', name: 'Rotary Speaker', icon: 'rotary', category: 'modulation' },
+    { type: 'autopan', name: 'Auto Pan', icon: 'autopan', category: 'modulation' },
     
     // DYNAMICS (CLASSIC)
-    { type: 'keeleycomp', name: 'Keeley Compressor', icon: '🎚️', category: 'dynamics' },
-    { type: 'mxrdynacomp', name: 'MXR Dyna Comp', icon: '🔘', category: 'dynamics' },
-    { type: 'compressor', name: 'Compressor', icon: '📊', category: 'dynamics' },
-    { type: 'limiter', name: 'Limiter', icon: '🛑', category: 'dynamics' },
-    { type: 'noisegate', name: 'Noise Gate', icon: '🚪', category: 'dynamics' },
-    { type: 'tubecompressor', name: 'Tube Compressor', icon: '🎚️', category: 'dynamics' },
+    { type: 'keeleycomp', name: 'Keeley Compressor', icon: 'keeleycomp', category: 'dynamics' },
+    { type: 'mxrdynacomp', name: 'MXR Dyna Comp', icon: 'mxrdynacomp', category: 'dynamics' },
+    { type: 'compressor', name: 'Compressor', icon: 'compressor', category: 'dynamics' },
+    { type: 'limiter', name: 'Limiter', icon: 'limiter', category: 'dynamics' },
+    { type: 'noisegate', name: 'Noise Gate', icon: 'noisegate', category: 'dynamics' },
+    { type: 'tubecompressor', name: 'Tube Compressor', icon: 'tubecompressor', category: 'dynamics' },
     
     // EQ/FILTER (CLASSIC)
-    { type: 'mxr10bandeq', name: 'MXR 10-Band EQ', icon: '📊', category: 'filter' },
-    { type: 'crybabywah', name: 'Cry Baby Wah', icon: '👶', category: 'filter' },
-    { type: 'eq', name: 'Parametric EQ', icon: '🎚️', category: 'filter' },
-    { type: 'graphiceq', name: 'Graphic EQ', icon: '📊', category: 'filter' },
-    { type: 'wah', name: 'Wah-Wah', icon: '👄', category: 'filter' },
-    { type: 'autowah', name: 'Auto-Wah', icon: '🤖', category: 'filter' },
-    { type: 'envfilter', name: 'Envelope Filter', icon: '📈', category: 'filter' },
-    { type: 'talkbox', name: 'Talk Box', icon: '🗣️', category: 'filter' },
-    { type: 'lfofilter', name: 'LFO Filter', icon: '🌊', category: 'filter' },
-    { type: 'stepfilter', name: 'Step Filter', icon: '📶', category: 'filter' },
+    { type: 'mxr10bandeq', name: 'MXR 10-Band EQ', icon: 'mxr10bandeq', category: 'filter' },
+    { type: 'crybabywah', name: 'Cry Baby Wah', icon: 'crybabywah', category: 'filter' },
+    { type: 'eq', name: 'Parametric EQ', icon: 'eq', category: 'filter' },
+    { type: 'graphiceq', name: 'Graphic EQ', icon: 'graphiceq', category: 'filter' },
+    { type: 'wah', name: 'Wah-Wah', icon: 'wah', category: 'filter' },
+    { type: 'autowah', name: 'Auto-Wah', icon: 'autowah', category: 'filter' },
+    { type: 'envfilter', name: 'Envelope Filter', icon: 'envfilter', category: 'filter' },
+    { type: 'talkbox', name: 'Talk Box', icon: 'talkbox', category: 'filter' },
+    { type: 'lfofilter', name: 'LFO Filter', icon: 'lfofilter', category: 'filter' },
+    { type: 'stepfilter', name: 'Step Filter', icon: 'stepfilter', category: 'filter' },
     
     // PITCH/HARMONY
-    { type: 'octaver', name: 'Octaver', icon: '🎵', category: 'pitch' },
-    { type: 'pitchshifter', name: 'Pitch Shifter', icon: '🎼', category: 'pitch' },
-    { type: 'harmonizer', name: 'Harmonizer', icon: '🎹', category: 'pitch' },
-    { type: 'whammy', name: 'Whammy', icon: '🎸', category: 'pitch' },
-    { type: 'detune', name: 'Detune', icon: '🎵', category: 'pitch' },
+    { type: 'octaver', name: 'Octaver', icon: 'octaver', category: 'pitch' },
+    { type: 'pitchshifter', name: 'Pitch Shifter', icon: 'pitchshifter', category: 'pitch' },
+    { type: 'harmonizer', name: 'Harmonizer', icon: 'harmonizer', category: 'pitch' },
+    { type: 'whammy', name: 'Whammy', icon: 'whammy', category: 'pitch' },
+    { type: 'detune', name: 'Detune', icon: 'detune', category: 'pitch' },
     
     // SPECIAL FX + MULTI-FX
-    { type: 'eventideh9', name: 'Eventide H9', icon: '🌟', category: 'special' },
-    { type: 'looper', name: 'Looper', icon: '⭕', category: 'special' },
-    { type: 'ringmod', name: 'Ring Modulator', icon: '🛸', category: 'special' },
-    { type: 'bitcrusher', name: 'Bit Crusher', icon: '🤖', category: 'special' },
-    { type: 'slicer', name: 'Slicer', icon: '✂️', category: 'special' },
-    { type: 'stepslicer', name: 'Step Slicer', icon: '🔪', category: 'special' },
-    { type: 'swell', name: 'Swell', icon: '🌊', category: 'special' },
-    { type: 'feedback', name: 'Feedback', icon: '🔊', category: 'special' },
-    { type: 'vocoder', name: 'Vocoder', icon: '🎤', category: 'special' },
+    { type: 'eventideh9', name: 'Eventide H9', icon: 'eventideh9', category: 'special' },
+    { type: 'looper', name: 'Looper', icon: 'looper', category: 'special' },
+    { type: 'ringmod', name: 'Ring Modulator', icon: 'ringmod', category: 'special' },
+    { type: 'bitcrusher', name: 'Bit Crusher', icon: 'bitcrusher', category: 'special' },
+    { type: 'slicer', name: 'Slicer', icon: 'slicer', category: 'special' },
+    { type: 'stepslicer', name: 'Step Slicer', icon: 'stepslicer', category: 'special' },
+    { type: 'swell', name: 'Swell', icon: 'swell', category: 'special' },
+    { type: 'feedback', name: 'Feedback', icon: 'feedback', category: 'special' },
+    { type: 'vocoder', name: 'Vocoder', icon: 'vocoder', category: 'special' },
     
     // UTILITY
-    { type: 'volume', name: 'Volume Pedal', icon: '🔊', category: 'utility' },
-    { type: 'tuner', name: 'Tuner', icon: '🎯', category: 'utility' },
-    { type: 'abtoggle', name: 'A/B Toggle', icon: '🔀', category: 'utility' },
-    { type: 'splitter', name: 'Signal Splitter', icon: '🔱', category: 'utility' }
+    { type: 'volume', name: 'Volume Pedal', icon: 'volume', category: 'utility' },
+    { type: 'tuner', name: 'Tuner', icon: 'tuner', category: 'utility' },
+    { type: 'abtoggle', name: 'A/B Toggle', icon: 'abtoggle', category: 'utility' },
+    { type: 'splitter', name: 'Signal Splitter', icon: 'splitter', category: 'utility' }
   ];
 
   return (
@@ -792,7 +855,6 @@ function App() {
     }}>
       <header className="app-header">
         <h1 className="app-title">
-          <span className="title-icon">🎸</span>
           RIGMASTER
           <span className="title-subtitle">Pro</span>
         </h1>
@@ -805,7 +867,8 @@ function App() {
             onClick={() => setShowPresetBrowser(true)}
             title="Preset Browser - Factory & User Presets"
           >
-            📚 Browse Presets
+            <Library size={16} />
+            <span>Browse Presets</span>
           </button>
           
           <button 
@@ -814,17 +877,19 @@ function App() {
             disabled={!backendConnected}
             title={backendConnected ? 'Gerenciar Presets (Backend)' : 'Backend desconectado'}
           >
-            💾 Backend Presets
+            <Save size={16} />
+            <span>Backend Presets</span>
           </button>
           
           {!isAudioActive ? (
             <button className="start-button" onClick={startAudio}>
-              🎤 START AUDIO
+              <Power size={16} />
+              <span>START AUDIO</span>
             </button>
           ) : (
             <div className="audio-active-indicator">
-              <span className="pulse-dot"></span>
-              AUDIO ATIVO
+              <Activity size={14} />
+              <span>AUDIO ACTIVE</span>
             </div>
           )}
         </div>
@@ -857,7 +922,10 @@ function App() {
         <InputMonitor audioEngine={audioEngineRef.current} isActive={isAudioActive} />
 
         <div className="sidebar-section">
-          <h3>🎚️ Global</h3>
+          <h3>
+            <Settings2 size={16} />
+            <span>Global</span>
+          </h3>
           <div className="sidebar-controls">
             <div className="sidebar-control">
               <label>Master Vol</label>
@@ -871,7 +939,10 @@ function App() {
         </div>
 
         <div className="sidebar-section">
-          <h3>🎸 Chain</h3>
+          <h3>
+            <Layers size={16} />
+            <span>Chain</span>
+          </h3>
           <div className="chain-info">
             <div className="chain-stat">
               <span>Effects:</span>
@@ -885,15 +956,21 @@ function App() {
         </div>
 
         <div className="sidebar-section">
-          <h3>⚡ Quick</h3>
+          <h3>
+            <Zap size={16} />
+            <span>Quick Actions</span>
+          </h3>
           <button className="sidebar-btn" onClick={() => effects.forEach(e => updateEffect(e.id, 'bypass', true))}>
-            Bypass All
+            <EyeOff size={14} />
+            <span>Bypass All</span>
           </button>
           <button className="sidebar-btn" onClick={() => effects.forEach(e => updateEffect(e.id, 'bypass', false))}>
-            Enable All
+            <Eye size={14} />
+            <span>Enable All</span>
           </button>
           <button className="sidebar-btn danger" onClick={() => effects.forEach(e => removeEffect(e.id))}>
-            Clear All
+            <X size={14} />
+            <span>Clear All</span>
           </button>
         </div>
 
@@ -982,34 +1059,57 @@ function App() {
                 const categoryEffects = effectTypes.filter(e => e.category === category);
                 if (categoryEffects.length === 0) return null;
                 
-                const categoryNames = {
-                  amp: '🔊 Amplificadores',
-                  drive: '🎸 Drive & Distorção',
-                  time: '⏱️ Delay & Reverb',
-                  modulation: '🌊 Modulação',
-                  dynamics: '📊 Dinâmica',
-                  filter: '🎚️ Filtros',
-                  pitch: '🎵 Pitch',
-                  special: '✨ Especiais',
-                  utility: '🔧 Utilitários'
+                const categoryIcons = {
+                  amp: Speaker,
+                  drive: Guitar,
+                  time: Clock,
+                  modulation: Waves,
+                  dynamics: Activity,
+                  filter: Filter,
+                  pitch: Music,
+                  special: Sparkles,
+                  utility: Settings
                 };
+                
+                const categoryNames = {
+                  amp: 'Amplifiers',
+                  drive: 'Drive & Distortion',
+                  time: 'Delay & Reverb',
+                  modulation: 'Modulation',
+                  dynamics: 'Dynamics',
+                  filter: 'Filters',
+                  pitch: 'Pitch',
+                  special: 'Special FX',
+                  utility: 'Utilities'
+                };
+                
+                const CategoryIcon = categoryIcons[category] || Circle;
                 
                 return (
                   <div key={category} className="effect-category">
-                    <h3 className="category-title">{categoryNames[category]}</h3>
+                    <h3 className="category-title">
+                      <CategoryIcon size={20} />
+                      <span>{categoryNames[category]}</span>
+                    </h3>
                     <div className="effect-grid">
-                      {categoryEffects.map((effectType) => (
-                        <motion.button
-                          key={effectType.type}
-                          className="effect-option"
-                          onClick={() => addEffect(effectType.type)}
-                          whileHover={{ scale: 1.05, y: -5 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          <EffectIcon type={effectType.type} size={48} />
-                          <span className="effect-name">{effectType.name}</span>
-                        </motion.button>
-                      ))}
+                      {categoryEffects.map((effectType) => {
+                        const IconComponent = getEffectIcon(effectType.icon);
+                        return (
+                          <motion.button
+                            key={effectType.type}
+                            className="effect-option"
+                            onClick={() => addEffect(effectType.type)}
+                            whileHover={{ scale: 1.05, y: -5 }}
+                            whileTap={{ scale: 0.95 }}
+                            title={`Add ${effectType.name}`}
+                          >
+                            <div className="effect-icon-wrapper">
+                              <IconComponent size={32} strokeWidth={1.5} />
+                            </div>
+                            <span className="effect-name">{effectType.name}</span>
+                          </motion.button>
+                        );
+                      })}
                     </div>
                   </div>
                 );
@@ -1043,7 +1143,8 @@ function App() {
               
               {!backendConnected && (
                 <div className="backend-warning">
-                  ⚠️ Backend desconectado. Inicie o servidor Python para usar presets.
+                  <AlertCircle size={16} />
+                  <span>Backend offline. Start Python server to use presets.</span>
                 </div>
               )}
 
@@ -1053,7 +1154,8 @@ function App() {
                   onClick={saveCurrentPreset}
                   disabled={effects.length === 0}
                 >
-                  💾 Salvar Atual
+                  <Save size={16} />
+                  <span>Save Current</span>
                 </button>
               </div>
 
@@ -1072,13 +1174,14 @@ function App() {
                           className="preset-load"
                           onClick={() => loadPreset(preset.id)}
                         >
-                          Carregar
+                          <Play size={14} />
+                          <span>Load</span>
                         </button>
                         <button 
                           className="preset-delete"
                           onClick={() => deletePreset(preset.id)}
                         >
-                          🗑️
+                          <X size={14} />
                         </button>
                       </div>
                     </div>

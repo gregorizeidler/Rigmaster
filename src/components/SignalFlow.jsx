@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { Guitar, Speaker, Volume2, Zap } from 'lucide-react';
 import './SignalFlow.css';
 
 const SignalFlow = ({ effects }) => {
@@ -291,19 +292,25 @@ const SignalFlow = ({ effects }) => {
           userSelect: 'none'
         }}
       >
-        <div className="flow-icon">🎸</div>
+        <div className="flow-icon">
+          <Guitar size={18} strokeWidth={2} />
+        </div>
         <div className="flow-arrow">→</div>
         {effects.map((effect, i) => (
           <React.Fragment key={effect.id}>
             <div className={`flow-node ${effect.bypassed ? 'bypassed' : 'active'}`}>
               <div className="node-led"></div>
-              <div className="node-label">{effect.type === 'amp' ? '🔊' : '⚡'}</div>
+              <div className="node-label">
+                {effect.type === 'amp' ? <Speaker size={14} /> : <Zap size={14} />}
+              </div>
             </div>
             {i < effects.length - 1 && <div className="flow-arrow">→</div>}
           </React.Fragment>
         ))}
         <div className="flow-arrow">→</div>
-        <div className="flow-icon">🔈</div>
+        <div className="flow-icon">
+          <Volume2 size={18} strokeWidth={2} />
+        </div>
         {hasBeenDragged && (
           <button 
             className="flow-reset-button" 

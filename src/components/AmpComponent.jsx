@@ -350,8 +350,8 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
               onChange={(e) => onUpdate(amp.id, 'channel', parseInt(e.target.value))}
               style={{ padding: '5px', fontSize: '12px', borderRadius: '4px' }}
             >
-              <option value="0">🎸 Normal</option>
-              <option value="1">⚡ Top Boost</option>
+              <option value="0">Normal</option>
+              <option value="1">Top Boost</option>
             </select>
           </div>
         );
@@ -528,8 +528,8 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
               onChange={(e) => onUpdate(amp.id, 'channel', parseInt(e.target.value))}
               className="channel-select"
             >
-              <option value={0}>🎸 Clean</option>
-              <option value={1}>🔥 Lead</option>
+              <option value={0}>Clean</option>
+              <option value={1}>Lead</option>
             </select>
           </div>
         );
@@ -576,8 +576,8 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
               onChange={(e) => onUpdate(amp.id, 'channel', parseInt(e.target.value))}
               className="channel-select"
             >
-              <option value={0}>🎸 Clean</option>
-              <option value={1}>🔥 Gain</option>
+              <option value={0}>Clean</option>
+              <option value={1}>Gain</option>
             </select>
           </div>
         );
@@ -705,8 +705,8 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
               onChange={(e) => onUpdate(amp.id, 'channel', parseInt(e.target.value))}
               style={{ padding: '5px', fontSize: '12px', borderRadius: '4px', background: '#ff8c00', color: '#fff', border: '1px solid #fff' }}
             >
-              <option value="0">🎸 Clean</option>
-              <option value="1">🔥 Dirty</option>
+              <option value="0">Clean</option>
+              <option value="1">Dirty</option>
             </select>
           </div>
         );
@@ -1368,7 +1368,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
             {/* CHANNEL KNOBS - SHOWS ACTIVE CHANNEL */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '12px', background: 'rgba(0,0,0,0.3)', borderRadius: '8px' }}>
               <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#ffa500', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                {currentChannel === 1 ? '🎸 Channel 1 - Clean' : currentChannel === 2 ? '🔥 Channel 2 - Vintage' : '🤘 Channel 3 - Modern'}
+                {currentChannel === 1 ? 'Channel 1 - Clean' : currentChannel === 2 ? 'Channel 2 - Vintage' : 'Channel 3 - Modern'}
               </label>
               
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
