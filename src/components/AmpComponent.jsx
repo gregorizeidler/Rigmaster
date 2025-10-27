@@ -232,9 +232,9 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
         brand: 'SUHR'
       },
       victory_duchess: {
-        color: '#8b0000',
-        accent: '#c0c0c0',
-        grill: '#654321',
+        color: '#e8dcc0',  // Bege claro como o amp real
+        accent: '#8b6914',  // Dourado/marrom para detalhes
+        grill: '#d4c5a0',   // Grade bege/creme
         logo: 'The Duchess',
         brand: 'VICTORY'
       }
@@ -298,7 +298,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       suhr_badger: ['suhr_channel', 'channel_volume', 'clarity', 'variac', 'cabinet'],
       
       // VICTORY DUCHESS - Full British boutique control
-      victory_duchess: ['victory_channel', 'channel_volume', 'resonance', 'voicing', 'cabinet_enabled'],
+      victory_duchess: ['victory_channel', 'channel_volume', 'presence', 'resonance', 'voicing', 'cabinet_enabled'],
     };
     return controls[type] || [];
   };
@@ -611,34 +611,95 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       // ============================================
       case 'victory_channel':
         return (
-          <div key="victory_channel" className="toggle-switch">
-            <label>Channel</label>
-            <select 
-              value={amp.params?.channel || 2}
-              onChange={(e) => onUpdate(amp.id, 'channel', parseInt(e.target.value))}
-              className="channel-select"
-            >
-              <option value={1}>Low Gain</option>
-              <option value={2}>High Gain</option>
-            </select>
+          <div key="victory_channel" style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '6px', 
+            padding: '8px 10px', 
+            background: 'linear-gradient(135deg, rgba(232,220,192,0.3), rgba(212,197,160,0.2))', 
+            borderRadius: '6px', 
+            border: '2px solid rgba(139,105,20,0.5)'
+          }}>
+            <label style={{ fontSize: '10px', fontWeight: 'bold', color: '#5a4a2a', textTransform: 'uppercase', letterSpacing: '1px' }}>Voice I / II</label>
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <button 
+                onClick={() => onUpdate(amp.id, 'channel', 1)}
+                style={{
+                  padding: '6px 12px',
+                  background: amp.params?.channel === 1 ? 'linear-gradient(135deg, #8b6914, #a0761a)' : 'rgba(232,220,192,0.3)',
+                  border: '2px solid #8b6914',
+                  color: amp.params?.channel === 1 ? '#fff' : '#5a4a2a',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '10px',
+                  boxShadow: amp.params?.channel === 1 ? '0 2px 8px rgba(139,105,20,0.5)' : 'none',
+                  transition: 'all 0.2s ease'
+                }}
+              >VOICE I</button>
+              <button 
+                onClick={() => onUpdate(amp.id, 'channel', 2)}
+                style={{
+                  padding: '6px 12px',
+                  background: amp.params?.channel === 2 ? 'linear-gradient(135deg, #8b6914, #a0761a)' : 'rgba(232,220,192,0.3)',
+                  border: '2px solid #8b6914',
+                  color: amp.params?.channel === 2 ? '#fff' : '#5a4a2a',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '10px',
+                  boxShadow: amp.params?.channel === 2 ? '0 2px 8px rgba(139,105,20,0.5)' : 'none',
+                  transition: 'all 0.2s ease'
+                }}
+              >VOICE II</button>
+            </div>
           </div>
         );
-      case 'channel_volume':
-        return <Knob key="channel_volume" label="Ch.Vol" value={amp.params?.channel_volume || 70} onChange={handleKnobChange('channel_volume')} size={32} />;
-      case 'resonance':
-        return <Knob key="resonance" label="Resonance" value={amp.params?.resonance || 50} onChange={handleKnobChange('resonance')} size={32} />;
+      
       case 'voicing':
         return (
-          <div key="voicing" className="toggle-switch">
-            <label>Voicing</label>
-            <select 
-              value={amp.params?.voicing || 'modern'}
-              onChange={(e) => onUpdate(amp.id, 'voicing', e.target.value)}
-              className="voicing-select"
-            >
-              <option value="vintage">Vintage</option>
-              <option value="modern">Modern</option>
-            </select>
+          <div key="voicing" style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '6px', 
+            padding: '8px 10px', 
+            background: 'linear-gradient(135deg, rgba(232,220,192,0.3), rgba(212,197,160,0.2))', 
+            borderRadius: '6px', 
+            border: '2px solid rgba(139,105,20,0.5)'
+          }}>
+            <label style={{ fontSize: '10px', fontWeight: 'bold', color: '#5a4a2a', textTransform: 'uppercase', letterSpacing: '1px' }}>High Preheat</label>
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <button 
+                onClick={() => onUpdate(amp.id, 'voicing', 'vintage')}
+                style={{
+                  padding: '6px 12px',
+                  background: amp.params?.voicing === 'vintage' ? 'linear-gradient(135deg, #8b6914, #a0761a)' : 'rgba(232,220,192,0.3)',
+                  border: '2px solid #8b6914',
+                  color: amp.params?.voicing === 'vintage' ? '#fff' : '#5a4a2a',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '10px',
+                  boxShadow: amp.params?.voicing === 'vintage' ? '0 2px 8px rgba(139,105,20,0.5)' : 'none',
+                  transition: 'all 0.2s ease'
+                }}
+              >LOW</button>
+              <button 
+                onClick={() => onUpdate(amp.id, 'voicing', 'modern')}
+                style={{
+                  padding: '6px 12px',
+                  background: amp.params?.voicing === 'modern' ? 'linear-gradient(135deg, #8b6914, #a0761a)' : 'rgba(232,220,192,0.3)',
+                  border: '2px solid #8b6914',
+                  color: amp.params?.voicing === 'modern' ? '#fff' : '#5a4a2a',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '10px',
+                  boxShadow: amp.params?.voicing === 'modern' ? '0 2px 8px rgba(139,105,20,0.5)' : 'none',
+                  transition: 'all 0.2s ease'
+                }}
+              >HIGH</button>
+            </div>
           </div>
         );
       case 'cabinet_enabled':

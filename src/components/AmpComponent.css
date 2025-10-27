@@ -12,6 +12,8 @@
   flex-basis: 100%;
   margin: 0;
   max-width: 100%;
+  transform: scale(0.512);
+  transform-origin: center top;
 }
 
 .amp-remove {
@@ -1685,41 +1687,164 @@
   border-color: #6ab9ff;
 }
 
-/* VICTORY DUCHESS - Red/Silver */
+/* VICTORY DUCHESS - Vintage British Cream/Beige */
 .amp-head.amp-victory_duchess {
   background: 
-    repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(192,192,192,0.1) 2px, rgba(192,192,192,0.1) 4px),
-    linear-gradient(180deg, #a52a2a 0%, #8b0000 50%, #6b0000 100%);
-  border: 3px solid #c0c0c0;
+    repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(139,105,20,0.05) 2px, rgba(139,105,20,0.05) 4px),
+    linear-gradient(180deg, #f0e6d2 0%, #e8dcc0 50%, #d4c5a0 100%);
+  border: 3px solid #8b6914;
   box-shadow: 
-    0 10px 40px rgba(192, 192, 192, 0.3),
-    inset 0 2px 0 rgba(192, 192, 192, 0.2);
+    0 10px 40px rgba(139, 105, 20, 0.4),
+    inset 0 2px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -2px 0 rgba(139, 105, 20, 0.2);
+  position: relative;
+}
+
+.amp-head.amp-victory_duchess::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(139,105,20,0.03) 2px, rgba(139,105,20,0.03) 4px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.amp-head.amp-victory_duchess > * {
+  position: relative;
+  z-index: 1;
 }
 
 .amp-head.amp-victory_duchess .amp-head-top {
-  background: linear-gradient(180deg, #6b0000 0%, #4b0000 100%);
-  border-bottom: 3px solid #c0c0c0;
+  background: linear-gradient(180deg, #9b7843 0%, #8b6914 50%, #6b5010 100%);
+  border-bottom: 3px solid #5a4a2a;
+  box-shadow: 
+    inset 0 2px 0 rgba(255, 235, 180, 0.3),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4);
 }
 
 .amp-head.amp-victory_duchess .brand-text {
-  color: #c0c0c0;
+  color: #f0e6d2;
   font-weight: 900;
   letter-spacing: 4px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .amp-head.amp-victory_duchess .model-text {
   color: #ffffff;
-  text-shadow: 0 0 15px rgba(192, 192, 192, 0.8);
+  text-shadow: 
+    0 0 10px rgba(255, 235, 180, 0.6),
+    0 2px 4px rgba(0, 0, 0, 0.7);
+  font-size: 18px;
+  font-weight: 900;
+  font-style: italic;
+}
+
+.amp-head.amp-victory_duchess .amp-control-panel {
+  background: linear-gradient(180deg, #e8dcc0 0%, #d4c5a0 100%);
+  border-top: 1px solid #c4b590;
+  box-shadow: inset 0 2px 4px rgba(139, 105, 20, 0.1);
+}
+
+/* Victory Duchess - Text colors for readability */
+.amp-head.amp-victory_duchess .knob-group label,
+.amp-head.amp-victory_duchess .amp-knobs-section label,
+.amp-head.amp-victory_duchess .knob-label,
+.amp-head.amp-victory_duchess .amp-control-panel label {
+  color: #2a2a2a !important;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+  font-weight: 700;
+}
+
+.amp-head.amp-victory_duchess .toggle-switch label {
+  color: #2a2a2a !important;
+  font-weight: 600;
+}
+
+.amp-head.amp-victory_duchess .amp-specific-controls label {
+  color: #2a2a2a !important;
+  font-weight: 600;
+}
+
+/* Victory Duchess - Knob component labels (GAIN, BASS, MID, etc.) */
+.amp-head.amp-victory_duchess .knob-label {
+  color: #2a2a2a !important;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.amp-head.amp-victory_duchess:hover {
+  box-shadow:
+    0 15px 50px rgba(139, 105, 20, 0.6),
+    inset 0 2px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -2px 0 rgba(139, 105, 20, 0.3);
+  border-color: #a0761a;
+}
+
+.amp-head.amp-victory_duchess .amp-type-selector {
+  background: linear-gradient(180deg, #5a7a9f, #4a6a8f);
+  border-color: #2a3f5f;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.amp-head.amp-victory_duchess .amp-type-selector:hover {
+  background: linear-gradient(180deg, #6a8aaf, #5a7a9f);
 }
 
 .amp-head.amp-victory_duchess ~ .amp-cabinet {
-  background: linear-gradient(180deg, #8b0000 0%, #6b0000 100%);
-  border: 3px solid #c0c0c0;
+  background: linear-gradient(180deg, #e8dcc0 0%, #d4c5a0 100%);
+  border: 3px solid #8b6914;
+}
+
+.amp-head.amp-victory_duchess ~ .amp-cabinet .cabinet-config {
+  background: linear-gradient(180deg, #d4c5a0 0%, #c4b590 100%);
+  border-bottom: 2px solid #8b6914;
+}
+
+.amp-head.amp-victory_duchess ~ .amp-cabinet .config-row label {
+  color: #2a2a2a;
+  font-weight: 700;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+  font-size: 11px;
+}
+
+.amp-head.amp-victory_duchess ~ .amp-cabinet .config-row select {
+  background: linear-gradient(180deg, #f0e6d2, #e8dcc0);
+  border-color: #8b6914;
+  color: #2a2a2a;
+  font-weight: 600;
+  font-size: 10px;
+  padding: 4px 6px;
+}
+
+.amp-head.amp-victory_duchess ~ .amp-cabinet .config-row select:hover {
+  background: linear-gradient(180deg, #faf5e8, #f0e6d2);
+  border-color: #a0761a;
+}
+
+.amp-head.amp-victory_duchess ~ .amp-cabinet .toggle-switch label {
+  color: #2a2a2a !important;
+  font-weight: 600;
+  font-size: 10px;
+}
+
+.amp-head.amp-victory_duchess ~ .amp-cabinet .cabinet-speaker-grill {
+  background: 
+    radial-gradient(circle at 30% 30%, #e0d4b8 0%, #d4c5a0 50%, #c4b590 100%);
 }
 
 .amp-head.amp-victory_duchess ~ .amp-cabinet .speaker-cone {
-  background: linear-gradient(135deg, #654321, #3a2512);
-  border: 2px solid #c0c0c0;
+  background: linear-gradient(135deg, #8b6914, #6b5010);
+  border: 2px solid #5a4a2a;
+  box-shadow: 
+    0 2px 5px rgba(0, 0, 0, 0.5),
+    0 0 12px rgba(139, 105, 20, 0.3),
+    inset 0 0 15px rgba(255, 235, 180, 0.2);
 }
 
 /* ========================================
