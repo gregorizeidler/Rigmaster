@@ -1017,3 +1017,193 @@
     0 0 10px rgba(0, 255, 255, 0.4);
 }
 
+/* ============================================ */
+/* STRYMON TIMELINE SPECIFIC LAYOUT */
+/* ============================================ */
+
+.timeline-controls-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+}
+
+.timeline-display-section {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.timeline-oled-display {
+  background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+  border: 3px solid #1a3a5c;
+  border-radius: 8px;
+  padding: 12px 20px;
+  min-height: 60px;
+  width: 90%;
+  box-shadow: 
+    inset 0 2px 8px rgba(0, 0, 0, 0.9),
+    0 2px 6px rgba(0, 0, 0, 0.6),
+    0 0 15px rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.timeline-oled-display::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.03) 0px,
+      rgba(255, 255, 255, 0.03) 1px,
+      transparent 1px,
+      transparent 2px
+    );
+  pointer-events: none;
+}
+
+.oled-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.oled-machine-type {
+  font-family: 'Courier New', monospace;
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffffff;
+  text-shadow: 
+    0 0 8px rgba(255, 255, 255, 0.8),
+    0 0 12px rgba(255, 255, 255, 0.5);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+.oled-params {
+  display: flex;
+  gap: 20px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  color: #cccccc;
+  text-shadow: 
+    0 0 4px rgba(255, 255, 255, 0.5);
+}
+
+.timeline-top-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  padding: 0 10px;
+}
+
+.timeline-bottom-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 0 10px;
+}
+
+.timeline-value-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 0 10px;
+  margin-top: 5px;
+}
+
+.value-knob-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.timeline-machine-selector {
+  margin-top: 10px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.machine-buttons {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+}
+
+.machine-btn {
+  padding: 6px 4px;
+  background: linear-gradient(180deg, #2a4a6c 0%, #1a3a5c 100%);
+  border: 1px solid #0f2744;
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 9px;
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 
+    inset 0 1px 2px rgba(255, 255, 255, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.machine-btn:hover {
+  background: linear-gradient(180deg, #3a5a7c 0%, #2a4a6c 100%);
+  color: rgba(255, 255, 255, 0.9);
+  box-shadow: 
+    inset 0 1px 2px rgba(255, 255, 255, 0.15),
+    0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.machine-btn.active {
+  background: linear-gradient(180deg, #4a6a8c 0%, #3a5a7c 100%);
+  color: #ffffff;
+  border-color: #5a7a9c;
+  box-shadow: 
+    inset 0 0 8px rgba(255, 255, 255, 0.3),
+    0 0 8px rgba(255, 255, 255, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+}
+
+/* Strymon Timeline Pedal Specific */
+.pedal-timelinedelay {
+  background: linear-gradient(145deg, #2a4a6c 0%, #1a3a5c 40%, #0f2744 100%);
+}
+
+.pedal-timelinedelay .pedal-brand {
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+}
+
+.pedal-timelinedelay .pedal-name {
+  color: #ffffff;
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  text-shadow: 
+    0 0 10px rgba(255, 255, 255, 0.6),
+    0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.pedal-timelinedelay .pedal-subtitle {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+

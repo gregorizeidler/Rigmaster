@@ -929,19 +929,23 @@ const Pedal = ({ effect, onUpdate, onBypass, onRemove }) => {
         hasVU: true
       },
       
-      // TIMELINE DELAY - Blue Strymon
+      // TIMELINE DELAY - Authentic Strymon Blue
       timelinedelay: {
         primary: '#ffffff',
-        secondary: '#cccccc',
-        bgColor: '#2266aa',
-        bodyGradient: 'linear-gradient(145deg, #3377bb 0%, #2266aa 50%, #115599 100%)',
-        metalColor: '#c0c0c0',
+        secondary: '#e0e0e0',
+        bgColor: '#1a3a5c',
+        bodyGradient: 'linear-gradient(145deg, #2a4a6c 0%, #1a3a5c 40%, #0f2744 100%)',
+        metalColor: '#c8d0d8',
         ledColor: '#ffffff',
         label: 'TIMELINE',
         brand: 'STRYMON',
+        subtitle: 'Delay',
         type: 'rack',
         displayType: 'oled-white',
-        displayText: 'DIGITAL'
+        displayText: 'DIGITAL',
+        hasLargeDisplay: true,
+        knobStyle: 'professional',
+        knobColor: '#c8d0d8'
       },
       
       // BIGSKY REVERB - Blue Strymon
@@ -1182,33 +1186,115 @@ const Pedal = ({ effect, onUpdate, onBypass, onRemove }) => {
       case 'timelinedelay':
         return (
           <>
-            <div className="pedal-selector-group">
-              <label>Delay Type</label>
-              <select 
-                className="pedal-selector"
-                value={effect.params?.type || 'digital'}
-                onChange={(e) => onUpdate(effect.id, 'type', e.target.value)}
-              >
-                <option value="digital">Digital</option>
-                <option value="dual">Dual</option>
-                <option value="pattern">Pattern</option>
-                <option value="reverse">Reverse</option>
-                <option value="iceDelay">Ice</option>
-                <option value="duck">Duck</option>
-                <option value="swell">Swell</option>
-                <option value="trem">Trem</option>
-                <option value="filter">Filter</option>
-                <option value="lofi">Lo-Fi</option>
-                <option value="tape">dTape</option>
-                <option value="dBucket">dBucket</option>
-              </select>
+            <div className="timeline-controls-layout">
+              <div className="timeline-display-section">
+                <div className="timeline-oled-display">
+                  <div className="oled-content">
+                    <div className="oled-machine-type">{(effect.params?.type || 'dtape').toUpperCase()}</div>
+                    <div className="oled-params">
+                      <span>TIME: {Math.round(effect.params?.time || 500)}ms</span>
+                      <span>BPM: {effect.params?.bpm || 120}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="timeline-top-row">
+                <Knob 
+                  label="TIME" 
+                  value={effect.params?.time || 50} 
+                  onChange={handleKnobChange('time')} 
+                  size="large"
+                />
+                <Knob 
+                  label="REPEATS" 
+                  value={effect.params?.repeats || 50} 
+                  onChange={handleKnobChange('repeats')} 
+                  size="large"
+                />
+                <Knob 
+                  label="MIX" 
+                  value={effect.params?.mix || 50} 
+                  onChange={handleKnobChange('mix')} 
+                  size="large"
+                />
+                <Knob 
+                  label="GRIT" 
+                  value={effect.params?.grit || 30} 
+                  onChange={handleKnobChange('grit')} 
+                  size="large"
+                />
+              </div>
+              
+              <div className="timeline-bottom-row">
+                <Knob 
+                  label="FILTER" 
+                  value={effect.params?.filter || 50} 
+                  onChange={handleKnobChange('filter')} 
+                  size="small"
+                />
+                <Knob 
+                  label="MOD" 
+                  value={effect.params?.mod || 20} 
+                  onChange={handleKnobChange('mod')} 
+                  size="small"
+                />
+                <Knob 
+                  label="SPEED" 
+                  value={effect.params?.speed || 20} 
+                  onChange={handleKnobChange('speed')} 
+                  size="small"
+                />
+                <Knob 
+                  label="WIDTH" 
+                  value={effect.params?.width || 100} 
+                  onChange={handleKnobChange('width')} 
+                  size="small"
+                />
+              </div>
+              
+              <div className="timeline-value-buttons">
+                <div className="value-knob-group">
+                  <Knob 
+                    label="VALUE 1" 
+                    value={effect.params?.value1 || 50} 
+                    onChange={handleKnobChange('value1')} 
+                    size="mini"
+                  />
+                </div>
+                <div className="value-knob-group">
+                  <Knob 
+                    label="VALUE 2" 
+                    value={effect.params?.value2 || 50} 
+                    onChange={handleKnobChange('value2')} 
+                    size="mini"
+                  />
+                </div>
+                <div className="value-knob-group">
+                  <Knob 
+                    label="VALUE 3" 
+                    value={effect.params?.value3 || 50} 
+                    onChange={handleKnobChange('value3')} 
+                    size="mini"
+                  />
+                </div>
+              </div>
+              
+              <div className="timeline-machine-selector">
+                <div className="machine-buttons">
+                  {['dtape', 'dbucket', 'tape', 'lofi', 'dual', 'pattern', 'reverse', 'ice', 'duck', 'swell', 'trem', 'filter'].map(type => (
+                    <button
+                      key={type}
+                      className={`machine-btn ${effect.params?.type === type ? 'active' : ''}`}
+                      onClick={() => onUpdate(effect.id, 'type', type)}
+                      title={type.toUpperCase()}
+                    >
+                      {type.substring(0, 4).toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
-            <Knob label="Time" value={effect.params?.time || 50} onChange={handleKnobChange('time')} />
-            <Knob label="Feedbck" value={effect.params?.feedback || 50} onChange={handleKnobChange('feedback')} />
-            <Knob label="Mix" value={effect.params?.mix || 50} onChange={handleKnobChange('mix')} />
-            <Knob label="Filter" value={effect.params?.tone || 50} onChange={handleKnobChange('tone')} />
-            <Knob label="ModRte" value={effect.params?.modrate || 20} onChange={handleKnobChange('modrate')} />
-            <Knob label="ModDpt" value={effect.params?.moddepth || 20} onChange={handleKnobChange('moddepth')} />
           </>
         );
       case 'bigskyreverb':
