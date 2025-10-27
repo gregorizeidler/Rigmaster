@@ -260,7 +260,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       
       // MARSHALL - Presence + Resonance
       crunch: ['presence', 'resonance'],
-      marshall_jcm800: ['presence', 'resonance'],
+      marshall_jcm800: ['marshall_jcm800_controls'],
       marshall_jtm45: ['marshall_jtm45_controls'],
       
       // MESA BOOGIE - Graphic EQ + Presence
@@ -784,6 +784,140 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
               <option value="100">100W</option>
               <option value="150">150W</option>
             </select>
+          </div>
+        );
+      
+      // ============================================
+      // MARSHALL JCM800 - COMPLETE CONTROLS
+      // ============================================
+      case 'marshall_jcm800_controls':
+        return (
+          <div key="marshall_jcm800_controls" className="marshall-jcm800-full-controls" style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '15px',
+            padding: '15px',
+            background: 'linear-gradient(135deg, rgba(0,0,0,0.6), rgba(212,175,55,0.2))',
+            borderRadius: '10px',
+            border: '2px solid rgba(212,175,55,0.4)',
+            width: '100%',
+            maxWidth: '850px'
+          }}>
+            {/* INPUT SELECTOR (High/Low) */}
+            <div style={{ display: 'flex', gap: '15px', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: 'rgba(0,0,0,0.4)', borderRadius: '8px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                <label style={{ fontSize: '10px', fontWeight: 'bold', color: '#d4af37', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  INPUT JACKS
+                </label>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button 
+                    onClick={() => onUpdate(amp.id, 'input_sensitivity', 0)}
+                    style={{
+                      padding: '10px 20px',
+                      background: amp.params?.input_sensitivity === 0 ? '#d4af37' : 'rgba(0,0,0,0.6)',
+                      border: amp.params?.input_sensitivity === 0 ? '2px solid #d4af37' : '2px solid #555',
+                      color: amp.params?.input_sensitivity === 0 ? '#000' : '#d4af37',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '12px',
+                      textTransform: 'uppercase'
+                    }}
+                  >HIGH</button>
+                  <button 
+                    onClick={() => onUpdate(amp.id, 'input_sensitivity', 1)}
+                    style={{
+                      padding: '10px 20px',
+                      background: amp.params?.input_sensitivity === 1 ? '#d4af37' : 'rgba(0,0,0,0.6)',
+                      border: amp.params?.input_sensitivity === 1 ? '2px solid #d4af37' : '2px solid #555',
+                      color: amp.params?.input_sensitivity === 1 ? '#000' : '#d4af37',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '12px',
+                      textTransform: 'uppercase'
+                    }}
+                  >LOW</button>
+                </div>
+              </div>
+            </div>
+            
+            {/* FRONT PANEL KNOBS */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '12px', background: 'rgba(0,0,0,0.3)', borderRadius: '8px' }}>
+              <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#d4af37', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                Front Panel Controls
+              </label>
+              
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <Knob label="Preamp Vol" value={amp.params?.preamp_volume || 70} onChange={handleKnobChange('preamp_volume')} size={46} color="#d4af37" />
+                <Knob label="Bass" value={amp.params?.bass || 60} onChange={handleKnobChange('bass')} size={44} color="#d4af37" />
+                <Knob label="Middle" value={amp.params?.mid || 50} onChange={handleKnobChange('mid')} size={44} color="#d4af37" />
+                <Knob label="Treble" value={amp.params?.treble || 70} onChange={handleKnobChange('treble')} size={44} color="#d4af37" />
+                <Knob label="Presence" value={amp.params?.presence || 60} onChange={handleKnobChange('presence')} size={44} color="#d4af37" />
+                <Knob label="Master" value={amp.params?.master_volume || 50} onChange={handleKnobChange('master_volume')} size={48} color="#ffd700" />
+              </div>
+            </div>
+            
+            {/* BACK PANEL CONTROLS */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '12px', background: 'rgba(0,0,0,0.4)', borderRadius: '8px', border: '1px solid rgba(212,175,55,0.2)' }}>
+              <label style={{ fontSize: '10px', fontWeight: 'bold', color: '#d4af37', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                🔧 Back Panel
+              </label>
+              
+              <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+                {/* POWER MODE (Pentode/Triode) */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'center' }}>
+                  <label style={{ fontSize: '9px', color: '#d4af37', fontWeight: 'bold' }}>POWER</label>
+                  <div className="toggle-switch">
+                    <label style={{ fontSize: '10px' }}>{amp.params?.power_mode === 0 ? '100W PENTODE' : '50W TRIODE'}</label>
+                    <input 
+                      type="checkbox" 
+                      checked={amp.params?.power_mode !== 0}
+                      onChange={(e) => onUpdate(amp.id, 'power_mode', e.target.checked ? 1 : 0)}
+                    />
+                  </div>
+                </div>
+                
+                {/* STANDBY */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'center' }}>
+                  <label style={{ fontSize: '9px', color: '#d4af37', fontWeight: 'bold' }}>STANDBY</label>
+                  <div className="toggle-switch">
+                    <label style={{ fontSize: '10px' }}>{amp.params?.standby ? 'ON' : 'OFF'}</label>
+                    <input 
+                      type="checkbox" 
+                      checked={amp.params?.standby || false}
+                      onChange={(e) => onUpdate(amp.id, 'standby', e.target.checked)}
+                    />
+                  </div>
+                </div>
+                
+                {/* FX LOOP */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'center' }}>
+                  <label style={{ fontSize: '9px', color: '#d4af37', fontWeight: 'bold' }}>FX LOOP</label>
+                  <div className="toggle-switch">
+                    <label style={{ fontSize: '10px' }}>{amp.params?.fx_loop ? 'ON' : 'OFF'}</label>
+                    <input 
+                      type="checkbox" 
+                      checked={amp.params?.fx_loop || false}
+                      onChange={(e) => onUpdate(amp.id, 'fx_loop', e.target.checked)}
+                    />
+                  </div>
+                </div>
+                
+                {/* CABINET TOGGLE */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'center' }}>
+                  <label style={{ fontSize: '9px', color: '#d4af37', fontWeight: 'bold' }}>CABINET</label>
+                  <div className="toggle-switch">
+                    <label style={{ fontSize: '10px' }}>{amp.params?.cabinet_enabled !== false ? 'ON' : 'OFF'}</label>
+                    <input 
+                      type="checkbox" 
+                      checked={amp.params?.cabinet_enabled !== false}
+                      onChange={(e) => onUpdate(amp.id, 'cabinet_enabled', e.target.checked)}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         );
       
@@ -1637,6 +1771,21 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <Knob label="Presence" value={amp.params?.presence || 60} onChange={handleKnobChange('presence')} size={36} />
                     <Knob label="Master" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={36} />
+                  </div>
+                </div>
+              </div>
+            ) : amp.ampType === 'marshall_jcm800' ? (
+              /* MARSHALL JCM800 - Authentic front panel layout */
+              <div className="marshall-jcm800-knobs-layout" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <div className="knob-group" style={{ display: 'flex', gap: '8px', flexDirection: 'column', alignItems: 'center', padding: '8px', background: 'linear-gradient(135deg, rgba(0,0,0,0.3), rgba(212,175,55,0.1))', borderRadius: '8px', border: '1px solid rgba(212,175,55,0.3)' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#d4af37', textTransform: 'uppercase' }}>Channel 1 - High Gain</span>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <Knob label="Preamp" value={amp.params?.preamp_volume || 70} onChange={handleKnobChange('preamp_volume')} size={36} />
+                    <Knob label="Bass" value={amp.params?.bass || 60} onChange={handleKnobChange('bass')} size={36} />
+                    <Knob label="Middle" value={amp.params?.mid || 50} onChange={handleKnobChange('mid')} size={36} />
+                    <Knob label="Treble" value={amp.params?.treble || 70} onChange={handleKnobChange('treble')} size={36} />
+                    <Knob label="Presence" value={amp.params?.presence || 60} onChange={handleKnobChange('presence')} size={36} />
+                    <Knob label="Master" value={amp.params?.master_volume || 50} onChange={handleKnobChange('master_volume')} size={36} />
                   </div>
                 </div>
               </div>
