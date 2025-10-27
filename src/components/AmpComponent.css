@@ -2373,15 +2373,15 @@
 
 .amp-head.amp-fender_twin_reverb ~ .amp-cabinet .cabinet-speaker-grill {
   background: 
-    radial-gradient(circle at 30% 30%, #e0d0a0 0%, #d4af37 50%, #b8941f 100%);
+    radial-gradient(circle at 30% 30%, #d4d4c8 0%, #c0c0aa 50%, #b0b098 100%);
 }
 
 .amp-head.amp-fender_twin_reverb ~ .amp-cabinet .speaker-cone {
-  background: linear-gradient(135deg, #d4af37, #b8941f);
-  border: 2px solid #8b7620;
+  background: linear-gradient(135deg, #c0c0aa, #a8a890);
+  border: 2px solid #888876;
   box-shadow: 
     0 2px 5px rgba(0, 0, 0, 0.6),
-    0 0 12px rgba(212, 175, 55, 0.4),
+    0 0 12px rgba(192, 192, 170, 0.3),
     inset 0 0 15px rgba(255, 255, 255, 0.2);
 }
 
