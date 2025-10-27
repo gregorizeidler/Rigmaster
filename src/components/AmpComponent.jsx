@@ -250,7 +250,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       // FENDER AMPS - Spring Reverb + Bright Switch
       clean: ['reverb', 'bright'],
       fender_deluxe: ['fender_deluxe_channel', 'fender_reverb_dwell', 'bright', 'fender_cabinet'],
-      fender_bassman: ['reverb', 'bright'],
+      fender_bassman: ['fender_bassman_controls'],
       
       // VOX AC30 - Full control suite
       vox_ac30: ['vox_channel', 'vox_normal_volume', 'vox_brilliance', 'vox_tremolo', 'vox_vibrato', 'vox_reverb', 'vox_cut', 'vox_pentode_triode'],
@@ -784,6 +784,70 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
               <option value="100">100W</option>
               <option value="150">150W</option>
             </select>
+          </div>
+        );
+      
+      case 'fender_bassman_controls':
+        return (
+          <div key="fender_bassman_controls" className="fender-bassman-full-controls" style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+            padding: '15px',
+            background: 'linear-gradient(135deg, rgba(212,165,116,0.3), rgba(139,105,20,0.2))',
+            borderRadius: '10px',
+            border: '2px solid rgba(212,165,116,0.5)',
+            width: '100%',
+            maxWidth: '850px'
+          }}>
+            {/* INPUTS */}
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', padding: '10px', background: 'rgba(0,0,0,0.3)', borderRadius: '6px' }}>
+              <label style={{ fontSize: '10px', fontWeight: 'bold', color: '#d4a574', textTransform: 'uppercase', minWidth: '60px' }}>
+                INPUTS
+              </label>
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '9px', color: '#d4a574', fontWeight: 'bold' }}>BRIGHT</span>
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="100" 
+                  value={amp.params?.blend || 0}
+                  onChange={(e) => onUpdate(amp.id, 'blend', parseInt(e.target.value))}
+                  style={{ flex: 1 }}
+                />
+                <span style={{ fontSize: '9px', color: '#d4a574', fontWeight: 'bold' }}>NORMAL</span>
+              </div>
+            </div>
+            
+            {/* CONTROL PANEL */}
+            <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap', padding: '12px', background: 'rgba(212,165,116,0.15)', borderRadius: '8px' }}>
+              <Knob label="Volume" value={amp.params?.volume || 60} onChange={handleKnobChange('volume')} size={50} color="#d4a574" />
+              <Knob label="Bass" value={amp.params?.bass || 55} onChange={handleKnobChange('bass')} size={46} color="#d4a574" />
+              <Knob label="Treble" value={amp.params?.treble || 65} onChange={handleKnobChange('treble')} size={46} color="#d4a574" />
+              <Knob label="Presence" value={amp.params?.presence || 50} onChange={handleKnobChange('presence')} size={44} color="#d4a574" />
+              <Knob label="Master" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={48} color="#8b6914" />
+            </div>
+            
+            {/* SWITCHES */}
+            <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', padding: '10px', background: 'rgba(0,0,0,0.3)', borderRadius: '6px' }}>
+              <div className="toggle-switch">
+                <label>Bright Cap</label>
+                <input 
+                  type="checkbox" 
+                  checked={amp.params?.bright !== 0}
+                  onChange={(e) => onUpdate(amp.id, 'bright', e.target.checked ? 1 : 0)}
+                />
+              </div>
+              
+              <div className="toggle-switch">
+                <label>4×10" Cabinet</label>
+                <input 
+                  type="checkbox" 
+                  checked={amp.params?.cabinet_enabled !== 0}
+                  onChange={(e) => onUpdate(amp.id, 'cabinet_enabled', e.target.checked ? 1 : 0)}
+                />
+              </div>
+            </div>
           </div>
         );
       
@@ -2128,6 +2192,25 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                     <Knob label="Master" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={38} />
                   </>
                 )}
+              </div>
+            ) : amp.ampType === 'hiwatt_dr103' ? (
+              /* HIWATT DR103 - Authentic Custom Hiwatt 100 layout */
+              <div className="hiwatt-dr103-front-panel" style={{ 
+                display: 'flex', 
+                gap: '8px', 
+                justifyContent: 'center',
+                flexWrap: 'wrap'
+              }}>
+                {/* All knobs always visible like real Hiwatt */}
+                <Knob label="NORMAL VOL" value={amp.params?.volume_normal || 50} onChange={handleKnobChange('volume_normal')} size={38} />
+                <Knob label="BRIGHT VOL" value={amp.params?.volume_brilliant || 50} onChange={handleKnobChange('volume_brilliant')} size={38} />
+                <div style={{ width: '1px', height: '60px', background: 'rgba(136,136,136,0.3)', margin: '0 8px' }}></div>
+                <Knob label="BASS" value={amp.params?.bass || 50} onChange={handleKnobChange('bass')} size={36} />
+                <Knob label="TREBLE" value={amp.params?.treble || 60} onChange={handleKnobChange('treble')} size={36} />
+                <Knob label="MIDDLE" value={amp.params?.middle || 50} onChange={handleKnobChange('middle')} size={36} />
+                <Knob label="PRESENCE" value={amp.params?.presence || 50} onChange={handleKnobChange('presence')} size={36} />
+                <div style={{ width: '1px', height: '60px', background: 'rgba(136,136,136,0.3)', margin: '0 8px' }}></div>
+                <Knob label="MASTER VOL" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={38} />
               </div>
             ) : amp.ampType === 'friedman_be100' ? (
               /* FRIEDMAN BE-100 - Authentic front panel layout like VOX */
