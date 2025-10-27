@@ -6,7 +6,7 @@ class BadCatHotCatAmp extends BaseAmp {
     
     // BAD CAT HOT CAT 30R
     // Boutique British-voiced amp with vintage character
-    // Rich harmonics, touch-sensitive dynamics
+    // Rich harmonics, touch-sensitive dynamics, K-Master PPIMV
     
     // ============================================
     // DUAL CHANNELS
@@ -16,6 +16,23 @@ class BadCatHotCatAmp extends BaseAmp {
     
     // Active channel
     this.activeChannel = 1; // 1 or 2
+    
+    // ============================================
+    // INPUT STAGE - FOCUS & BITE
+    // ============================================
+    // Focus - HPF anti-flub (before preamp)
+    this.focus = 40; // 20..160 Hz
+    this.focusHPF = audioContext.createBiquadFilter();
+    this.focusHPF.type = 'highpass';
+    this.focusHPF.frequency.value = 40;
+    this.focusHPF.Q.value = 0.707;
+    
+    // Bite - bright cap 3-position (0=off, 1=+3dB, 2=+6dB)
+    this.bite = 1;
+    this.biteShelf = audioContext.createBiquadFilter();
+    this.biteShelf.type = 'highshelf';
+    this.biteShelf.frequency.value = 3500;
+    this.biteShelf.gain.value = 3;
     
     // ============================================
     // PREAMP (ECC83 + EF86)
@@ -30,6 +47,32 @@ class BadCatHotCatAmp extends BaseAmp {
     this.saturation2.curve = this.makePreampCurve();
     this.saturation1.oversample = '4x';
     this.saturation2.oversample = '4x';
+    
+    // ============================================
+    // CHANNEL 2 - EF86 MODE
+    // ============================================
+    this.ch2Mode = 'EF86'; // 'EF86' | 'ECC83'
+    this.saturation2_EF86 = audioContext.createWaveShaper();
+    this.saturation2_EF86.curve = this.makeEF86Curve();
+    this.saturation2_EF86.oversample = '4x';
+    
+    this.ch2Tilt = audioContext.createBiquadFilter();
+    this.ch2Tilt.type = 'highshelf';
+    this.ch2Tilt.frequency.value = 2200;
+    this.ch2Tilt.gain.value = 1.5; // EF86 air
+    
+    // ============================================
+    // VOLUME PER CHANNEL + K-MASTER (PPIMV)
+    // ============================================
+    this.ch1Volume = audioContext.createGain();
+    this.ch2Volume = audioContext.createGain();
+    this.kMaster = audioContext.createGain();   // PPIMV (feeds power)
+    this.outputLevel = audioContext.createGain(); // post-power, final volume
+    
+    this.ch1Volume.gain.value = 0.6;
+    this.ch2Volume.gain.value = 0.6;
+    this.kMaster.gain.value = 0.7;
+    this.outputLevel.gain.value = 1.0;
     
     // ============================================
     // TONE STACK
@@ -53,8 +96,8 @@ class BadCatHotCatAmp extends BaseAmp {
     this.treble.gain.value = 0;
     
     this.cut.type = 'lowpass';
-    this.cut.frequency.value = 10000;
-    this.cut.Q.value = 0.707;
+    this.cut.frequency.value = 7000;
+    this.cut.Q.value = 0.6; // wider for musical sweep
     
     // ============================================
     // BAD CAT "HARMONIC RICHNESS"
@@ -66,6 +109,53 @@ class BadCatHotCatAmp extends BaseAmp {
     this.harmonics.gain.value = 4;
     
     // ============================================
+    // CLASS A SAG (elastic cathode bias feel)
+    // ============================================
+    this.classASag = audioContext.createDynamicsCompressor();
+    this.classASag.threshold.value = -24;
+    this.classASag.knee.value = 10;
+    this.classASag.ratio.value = 2.2;
+    this.classASag.attack.value = 0.004;
+    this.classASag.release.value = 0.16;
+    
+    // ============================================
+    // REVERB (Hot Cat 30R)
+    // ============================================
+    this.rvSend = audioContext.createGain();
+    this.rvReturn = audioContext.createGain();
+    this.rvHPF = audioContext.createBiquadFilter();
+    this.rvHPF.type = 'highpass';
+    this.rvHPF.frequency.value = 200;
+    
+    this.rv1 = audioContext.createDelay(0.2);
+    this.rv2 = audioContext.createDelay(0.2);
+    this.rv3 = audioContext.createDelay(0.2);
+    this.rv1.delayTime.value = 0.021;
+    this.rv2.delayTime.value = 0.031;
+    this.rv3.delayTime.value = 0.039;
+    
+    this.rvFB = audioContext.createGain();
+    this.rvFB.gain.value = 0.38;
+    
+    this.rvTone = audioContext.createBiquadFilter();
+    this.rvTone.type = 'lowpass';
+    this.rvTone.frequency.value = 3200;
+    
+    this.rvMix = audioContext.createGain();
+    this.rvMix.gain.value = 0.25;
+    
+    // Reverb fixed connections
+    this.rvSend.connect(this.rv1);
+    this.rvSend.connect(this.rv2);
+    this.rvSend.connect(this.rv3);
+    [this.rv1, this.rv2, this.rv3].forEach(d => d.connect(this.rvTone));
+    this.rvTone.connect(this.rvFB);
+    this.rvFB.connect(this.rv1);
+    this.rvTone.connect(this.rvHPF);
+    this.rvHPF.connect(this.rvReturn);
+    this.rvReturn.connect(this.rvMix);
+    
+    // ============================================
     // POWER AMP (2x EL84 - Class A)
     // ============================================
     this.powerAmp = audioContext.createGain();
@@ -73,7 +163,7 @@ class BadCatHotCatAmp extends BaseAmp {
     this.powerSaturation.curve = this.makePowerAmpCurve();
     this.powerSaturation.oversample = '4x';
     
-    // Class A compression
+    // Class A compression (original)
     this.classAComp = audioContext.createDynamicsCompressor();
     this.classAComp.threshold.value = -20;
     this.classAComp.knee.value = 15;
@@ -96,7 +186,10 @@ class BadCatHotCatAmp extends BaseAmp {
       
       // Gain/Volume
       gain: 55,
-      volume: 65,
+      ch1_volume: 60,
+      ch2_volume: 60,
+      k_master: 70,         // drive do power (PPIMV)
+      output_level: 100,    // trim final
       
       // Tone stack
       bass: 50,
@@ -104,8 +197,21 @@ class BadCatHotCatAmp extends BaseAmp {
       treble: 60,
       cut: 50,
       
+      // Switches/Voicings
+      bite: 1,              // 0/1/2
+      focus: 40,            // Hz (20-160)
+      ch2_mode: 'EF86',     // 'EF86' | 'ECC83'
+      
+      // Reverb
+      reverb: 30,
+      reverb_tone: 60,
+      reverb_mix: 25,
+      
       // Master
-      master: 70
+      master: 70,
+      
+      // Cabinet
+      cabinet_enabled: true
     };
     
     this.applyInitialSettings();
@@ -114,20 +220,38 @@ class BadCatHotCatAmp extends BaseAmp {
   setupChannel1() {
     this.disconnectAll();
     
-    this.input.connect(this.channel1);
+    // Input stage: Focus -> Bite -> Channel
+    this.input.connect(this.focusHPF);
+    this.focusHPF.connect(this.biteShelf);
+    this.biteShelf.connect(this.channel1);
+    
+    // Channel 1 path
     this.channel1.connect(this.preamp1);
     this.preamp1.connect(this.saturation1);
     this.saturation1.connect(this.preamp2);
     this.preamp2.connect(this.saturation2);
-    this.saturation2.connect(this.bass);
+    this.saturation2.connect(this.ch1Volume);
+    
+    // Tone stack
+    this.ch1Volume.connect(this.bass);
     this.bass.connect(this.middle);
     this.middle.connect(this.treble);
     this.treble.connect(this.harmonics);
+    
+    // Class A Sag -> Reverb split
     this.harmonics.connect(this.cut);
-    this.cut.connect(this.classAComp);
-    this.classAComp.connect(this.powerAmp);
+    this.cut.connect(this.classASag);
+    
+    // Split: dry path and reverb send
+    this.classASag.connect(this.rvSend);     // reverb send
+    this.classASag.connect(this.kMaster);    // dry path
+    this.rvMix.connect(this.kMaster);        // wet return
+    
+    // Power section with K-Master (PPIMV)
+    this.kMaster.connect(this.powerAmp);
     this.powerAmp.connect(this.powerSaturation);
-    this.powerSaturation.connect(this.master);
+    this.powerSaturation.connect(this.outputLevel);
+    this.outputLevel.connect(this.master);
     this.master.connect(this.output);
     
     this.activeChannel = 1;
@@ -136,20 +260,47 @@ class BadCatHotCatAmp extends BaseAmp {
   setupChannel2() {
     this.disconnectAll();
     
-    this.input.connect(this.channel2);
+    // Input stage: Focus -> Bite -> Channel
+    this.input.connect(this.focusHPF);
+    this.focusHPF.connect(this.biteShelf);
+    this.biteShelf.connect(this.channel2);
+    
+    // Channel 2 path
     this.channel2.connect(this.preamp1);
     this.preamp1.connect(this.saturation1);
     this.saturation1.connect(this.preamp2);
-    this.preamp2.connect(this.saturation2);
-    this.saturation2.connect(this.bass);
+    
+    // EF86 mode switch
+    if (this.ch2Mode === 'EF86') {
+      this.preamp2.connect(this.saturation2_EF86);
+      this.saturation2_EF86.connect(this.ch2Volume);
+      this.ch2Volume.connect(this.ch2Tilt);
+      this.ch2Tilt.connect(this.bass);
+    } else {
+      this.preamp2.connect(this.saturation2);
+      this.saturation2.connect(this.ch2Volume);
+      this.ch2Volume.connect(this.bass);
+    }
+    
+    // Tone stack
     this.bass.connect(this.middle);
     this.middle.connect(this.treble);
     this.treble.connect(this.harmonics);
+    
+    // Class A Sag -> Reverb split
     this.harmonics.connect(this.cut);
-    this.cut.connect(this.classAComp);
-    this.classAComp.connect(this.powerAmp);
+    this.cut.connect(this.classASag);
+    
+    // Split: dry path and reverb send
+    this.classASag.connect(this.rvSend);     // reverb send
+    this.classASag.connect(this.kMaster);    // dry path
+    this.rvMix.connect(this.kMaster);        // wet return
+    
+    // Power section with K-Master (PPIMV)
+    this.kMaster.connect(this.powerAmp);
     this.powerAmp.connect(this.powerSaturation);
-    this.powerSaturation.connect(this.master);
+    this.powerSaturation.connect(this.outputLevel);
+    this.outputLevel.connect(this.master);
     this.master.connect(this.output);
     
     this.activeChannel = 2;
@@ -158,20 +309,31 @@ class BadCatHotCatAmp extends BaseAmp {
   disconnectAll() {
     try {
       this.input.disconnect();
+      this.focusHPF.disconnect();
+      this.biteShelf.disconnect();
       this.channel1.disconnect();
       this.channel2.disconnect();
       this.preamp1.disconnect();
       this.saturation1.disconnect();
       this.preamp2.disconnect();
       this.saturation2.disconnect();
+      this.saturation2_EF86.disconnect();
+      this.ch1Volume.disconnect();
+      this.ch2Volume.disconnect();
+      this.ch2Tilt.disconnect();
       this.bass.disconnect();
       this.middle.disconnect();
       this.treble.disconnect();
       this.harmonics.disconnect();
       this.cut.disconnect();
+      this.classASag.disconnect();
       this.classAComp.disconnect();
+      this.rvSend.disconnect();
+      this.rvMix.disconnect();
+      this.kMaster.disconnect();
       this.powerAmp.disconnect();
       this.powerSaturation.disconnect();
+      this.outputLevel.disconnect();
       this.master.disconnect();
     } catch (e) {}
   }
@@ -223,6 +385,30 @@ class BadCatHotCatAmp extends BaseAmp {
     return curve;
   }
   
+  makeEF86Curve() {
+    // EF86 pentode: punch, 3D character, strong 2nd harmonic
+    const N = 44100;
+    const curve = new Float32Array(N);
+    for (let i = 0; i < N; i++) {
+      const x = (i * 2) / N - 1;
+      let y = Math.tanh(x * 3.2);
+      
+      // Strong 2nd harmonic (even-order distortion)
+      y += 0.14 * Math.tanh(x * 6);
+      
+      // Sweet compression above 0.55
+      if (Math.abs(y) > 0.55) {
+        y *= 0.9;
+      }
+      
+      // Asymmetric (pentode character)
+      if (x > 0) y *= 1.08;
+      
+      curve[i] = y * 0.9;
+    }
+    return curve;
+  }
+  
   updateParameter(parameter, value) {
     const now = this.audioContext.currentTime;
     
@@ -234,28 +420,101 @@ class BadCatHotCatAmp extends BaseAmp {
           this.setupChannel2();
         }
         break;
-      case 'gain':
-        this.preamp1.gain.setTargetAtTime(1 + (value / 30), now, 0.01);
+      
+      // GAIN & VOLUME
+      case 'gain': {
+        const g = 1 + (value / 30);
+        this.preamp1.gain.setTargetAtTime(g, now, 0.01);
+        
+        // Bad Cat touch: adjust tone response based on gain
+        if (this.activeChannel === 1) {
+          // Channel 1 more "clean chime" at low gain
+          this.treble.frequency.setTargetAtTime(value < 40 ? 3200 : 2800, now, 0.02);
+          this.middle.gain.setTargetAtTime((value < 40 ? -1 : 0) + ((this.params.middle - 50) / 10), now, 0.02);
+        } else {
+          // Channel 2 lead: more harmonics at high gain
+          this.harmonics.gain.setTargetAtTime(value > 70 ? 5 : 4, now, 0.02);
+        }
         break;
-      case 'volume':
-        this.powerAmp.gain.setTargetAtTime(value / 100, now, 0.01);
+      }
+      
+      case 'ch1_volume':
+        this.ch1Volume.gain.setTargetAtTime(value / 100, now, 0.01);
         break;
+      
+      case 'ch2_volume':
+        this.ch2Volume.gain.setTargetAtTime(value / 100, now, 0.01);
+        break;
+      
+      case 'k_master':
+        this.kMaster.gain.setTargetAtTime(value / 100, now, 0.01);
+        break;
+      
+      case 'output_level':
+        this.outputLevel.gain.setTargetAtTime(value / 100, now, 0.01);
+        break;
+      
+      // TONE STACK
       case 'bass':
         this.bass.gain.setTargetAtTime((value - 50) / 10, now, 0.01);
         break;
+      
       case 'middle':
       case 'mid':
         this.middle.gain.setTargetAtTime((value - 50) / 10, now, 0.01);
         break;
+      
       case 'treble':
         this.treble.gain.setTargetAtTime((value - 50) / 10, now, 0.01);
         break;
-      case 'cut':
-        const cutFreq = 3000 + (value / 100) * 12000;
-        this.cut.frequency.setTargetAtTime(cutFreq, now, 0.01);
+      
+      case 'cut': {
+        // Vox/Bad Cat-like cut: 2.5k to 12k with musical Q
+        const f = 2500 + (value / 100) * 9500;
+        this.cut.Q.setTargetAtTime(0.6, now, 0.01);
+        this.cut.frequency.setTargetAtTime(f, now, 0.01);
         break;
+      }
+      
+      // INPUT STAGE
+      case 'bite':
+        this.bite = value; // 0/1/2
+        this.biteShelf.gain.setTargetAtTime(value === 0 ? 0 : (value === 1 ? 3 : 6), now, 0.01);
+        break;
+      
+      case 'focus':
+        this.focusHPF.frequency.setTargetAtTime(Math.max(20, value), now, 0.01);
+        break;
+      
+      // CHANNEL 2 MODE
+      case 'ch2_mode':
+        this.ch2Mode = value;
+        if (this.activeChannel === 2) {
+          this.setupChannel2(); // re-route
+        }
+        break;
+      
+      // REVERB
+      case 'reverb':
+        this.rvFB.gain.setTargetAtTime((value / 100) * 0.6, now, 0.01);
+        break;
+      
+      case 'reverb_tone':
+        this.rvTone.frequency.setTargetAtTime(1500 + (value / 100) * 4500, now, 0.01);
+        break;
+      
+      case 'reverb_mix':
+        this.rvMix.gain.setTargetAtTime(value / 100, now, 0.01);
+        break;
+      
+      // MASTER
       case 'master':
         this.master.gain.setTargetAtTime(value / 100, now, 0.01);
+        break;
+      
+      // CABINET
+      case 'cabinet_enabled':
+        // Handled by parent (BaseAmp)
         break;
     }
     
@@ -264,20 +523,38 @@ class BadCatHotCatAmp extends BaseAmp {
   
   disconnect() {
     super.disconnect();
+    this.focusHPF.disconnect();
+    this.biteShelf.disconnect();
     this.channel1.disconnect();
     this.channel2.disconnect();
     this.preamp1.disconnect();
     this.saturation1.disconnect();
     this.preamp2.disconnect();
     this.saturation2.disconnect();
+    this.saturation2_EF86.disconnect();
+    this.ch1Volume.disconnect();
+    this.ch2Volume.disconnect();
+    this.ch2Tilt.disconnect();
     this.bass.disconnect();
     this.middle.disconnect();
     this.treble.disconnect();
     this.harmonics.disconnect();
     this.cut.disconnect();
+    this.classASag.disconnect();
     this.classAComp.disconnect();
+    this.rvSend.disconnect();
+    this.rv1.disconnect();
+    this.rv2.disconnect();
+    this.rv3.disconnect();
+    this.rvTone.disconnect();
+    this.rvFB.disconnect();
+    this.rvHPF.disconnect();
+    this.rvReturn.disconnect();
+    this.rvMix.disconnect();
+    this.kMaster.disconnect();
     this.powerAmp.disconnect();
     this.powerSaturation.disconnect();
+    this.outputLevel.disconnect();
     this.master.disconnect();
   }
 }
