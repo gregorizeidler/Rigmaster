@@ -276,7 +276,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       peavey_5150: ['peavey_channel', 'presence', 'resonance', 'pregain', 'postgain', 'bright', 'gate', 'crunch', 'speaker_impedance'],
       bogner_ecstasy: ['presence', 'depth', 'boost'],
       diezel_vh4: ['presence', 'depth', 'deepcontrol'],
-      friedman_be100: ['presence', 'depth', 'tightswitch'],
+      friedman_be100: ['friedman_channel', 'friedman_depth', 'friedman_tight', 'friedman_fat', 'friedman_sat', 'friedman_bright', 'friedman_cabinet'],
       soldano_slo100: ['soldano_channel', 'master_gain', 'presence', 'depth', 'bright', 'gate', 'cabinet_enabled'],
       
       // MATCHLESS - Cabinet control
@@ -1639,6 +1639,95 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
           </div>
         );
       
+      // ============================================
+      // FRIEDMAN BE-100 CONTROLS (integrated like VOX)
+      // ============================================
+      case 'friedman_channel':
+        const friedmanChannel = amp.params?.channel ?? 1;
+        return (
+          <div key="friedman_channel" className="toggle-switch" style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center' }}>
+            <label style={{ fontSize: '10px', color: '#ffd700', fontWeight: 'bold' }}>Channel</label>
+            <select 
+              value={friedmanChannel}
+              onChange={(e) => onUpdate(amp.id, 'channel', parseInt(e.target.value))}
+              style={{ 
+                padding: '6px 10px', 
+                fontSize: '11px', 
+                borderRadius: '4px', 
+                background: '#000', 
+                color: '#ffd700', 
+                border: '1px solid #ffd700'
+              }}
+            >
+              <option value={0}>CLEAN</option>
+              <option value={1}>BE</option>
+            </select>
+          </div>
+        );
+      
+      case 'friedman_depth':
+        return <Knob key="friedman_depth" label="Depth" value={amp.params?.depth || 50} onChange={handleKnobChange('depth')} size={32} />;
+      
+      case 'friedman_tight':
+        return (
+          <div key="friedman_tight" className="toggle-switch">
+            <label>Tight</label>
+            <input 
+              type="checkbox" 
+              checked={amp.params?.tight || false}
+              onChange={(e) => onUpdate(amp.id, 'tight', e.target.checked)}
+            />
+          </div>
+        );
+      
+      case 'friedman_fat':
+        return (
+          <div key="friedman_fat" className="toggle-switch">
+            <label>Fat</label>
+            <input 
+              type="checkbox" 
+              checked={amp.params?.fat || false}
+              onChange={(e) => onUpdate(amp.id, 'fat', e.target.checked)}
+            />
+          </div>
+        );
+      
+      case 'friedman_sat':
+        return (
+          <div key="friedman_sat" className="toggle-switch">
+            <label>SAT</label>
+            <input 
+              type="checkbox" 
+              checked={amp.params?.sat || false}
+              onChange={(e) => onUpdate(amp.id, 'sat', e.target.checked)}
+            />
+          </div>
+        );
+      
+      case 'friedman_bright':
+        return (
+          <div key="friedman_bright" className="toggle-switch">
+            <label>Bright</label>
+            <input 
+              type="checkbox" 
+              checked={amp.params?.c45 || false}
+              onChange={(e) => onUpdate(amp.id, 'c45', e.target.checked)}
+            />
+          </div>
+        );
+      
+      case 'friedman_cabinet':
+        return (
+          <div key="friedman_cabinet" className="toggle-switch">
+            <label>Cabinet</label>
+            <input 
+              type="checkbox" 
+              checked={amp.params?.cabinet_enabled !== false}
+              onChange={(e) => onUpdate(amp.id, 'cabinet_enabled', e.target.checked)}
+            />
+          </div>
+        );
+      
       default:
         return null;
     }
@@ -1964,6 +2053,24 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                     <Knob label="Master" value={amp.params?.master_volume || 50} onChange={handleKnobChange('master_volume')} size={36} />
                   </div>
                 </div>
+              </div>
+            ) : amp.ampType === 'friedman_be100' ? (
+              /* FRIEDMAN BE-100 - Authentic front panel layout like VOX */
+              <div className="friedman-be100-front-panel" style={{ 
+                display: 'flex', 
+                gap: '8px', 
+                justifyContent: 'center',
+                flexWrap: 'wrap'
+              }}>
+                {/* All main knobs in one row like the real amp */}
+                <Knob label="PRESENCE" value={amp.params?.presence || 65} onChange={handleKnobChange('presence')} size={36} />
+                <Knob label="BASS" value={amp.params?.bass || 60} onChange={handleKnobChange('bass')} size={36} />
+                <Knob label="MIDDLE" value={amp.params?.middle || 50} onChange={handleKnobChange('middle')} size={36} />
+                <Knob label="TREBLE" value={amp.params?.treble || 70} onChange={handleKnobChange('treble')} size={36} />
+                <Knob label="MASTER" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={38} />
+                <div style={{ width: '1px', height: '60px', background: 'rgba(255,215,0,0.3)', margin: '0 8px' }}></div>
+                <Knob label="GAIN" value={amp.params?.gain || 75} onChange={handleKnobChange('gain')} size={38} />
+                <Knob label="VOLUME" value={amp.params?.volume || 70} onChange={handleKnobChange('volume')} size={36} />
               </div>
             ) : (
               /* Standard amp layout */

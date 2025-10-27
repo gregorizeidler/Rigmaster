@@ -42,12 +42,55 @@ class FriedmanBE100Amp extends BaseAmp {
     this.saturation4.oversample = '4x';
     
     // ============================================
+    // FRIEDMAN "TIGHT" SWITCH (before first gain stage)
+    // ============================================
+    this.tightSwitch = false;
+    this.tightFilter = audioContext.createBiquadFilter();
+    this.tightFilter.type = 'highpass';
+    this.tightFilter.frequency.value = 20; // Off by default
+    this.tightFilter.Q.value = 0.707;
+    
+    // ============================================
+    // C45 / BRIGHT CAP (before first gain stage)
+    // ============================================
+    this.brightCap = false;
+    this.brightFilter = audioContext.createBiquadFilter();
+    this.brightFilter.type = 'highshelf';
+    this.brightFilter.frequency.value = 3500;
+    this.brightFilter.gain.value = 0;
+    
+    // ============================================
+    // FAT SWITCH (after saturation1 for more girth without mud)
+    // ============================================
+    this.fatSwitch = false;
+    this.fatFilter = audioContext.createBiquadFilter();
+    this.fatFilter.type = 'lowshelf';
+    this.fatFilter.frequency.value = 120;
+    this.fatFilter.gain.value = 0;
+    
+    // ============================================
+    // SAT SWITCH (Friedman diode clipping between stages)
+    // ============================================
+    this.satEnabled = false;
+    this.satClip = audioContext.createWaveShaper();
+    this.satClip.curve = this.makeSatClipCurve();
+    this.satClip.oversample = '4x';
+    
+    // ============================================
+    // NOISE GATE (soft expander after preamp)
+    // ============================================
+    this.noiseGate = audioContext.createDynamicsCompressor();
+    this.noiseGate.threshold.value = -60;
+    this.noiseGate.ratio.value = 1.5; // Light expansion
+    this.noiseGate.attack.value = 0.01;
+    this.noiseGate.release.value = 0.15;
+    
+    // ============================================
     // TONE STACK (Modified Marshall)
     // ============================================
     this.bass = audioContext.createBiquadFilter();
     this.middle = audioContext.createBiquadFilter();
     this.treble = audioContext.createBiquadFilter();
-    this.presence = audioContext.createBiquadFilter();
     
     this.bass.type = 'lowshelf';
     this.bass.frequency.value = 150;
@@ -62,27 +105,10 @@ class FriedmanBE100Amp extends BaseAmp {
     this.treble.frequency.value = 3000;
     this.treble.gain.value = 0;
     
-    this.presence.type = 'highshelf';
-    this.presence.frequency.value = 4500;
-    this.presence.gain.value = 0;
-    
     // ============================================
-    // FRIEDMAN "TIGHT" SWITCH
+    // CHANNEL VOLUME (pre-phase inverter)
     // ============================================
-    this.tightSwitch = false;
-    this.tightFilter = audioContext.createBiquadFilter();
-    this.tightFilter.type = 'highpass';
-    this.tightFilter.frequency.value = 20; // Off by default
-    this.tightFilter.Q.value = 0.707;
-    
-    // ============================================
-    // FAT SWITCH (adds low-end girth)
-    // ============================================
-    this.fatSwitch = false;
-    this.fatFilter = audioContext.createBiquadFilter();
-    this.fatFilter.type = 'lowshelf';
-    this.fatFilter.frequency.value = 100;
-    this.fatFilter.gain.value = 0;
+    this.channelVolume = audioContext.createGain();
     
     // ============================================
     // POWER AMP (4x KT88 or EL34)
@@ -99,6 +125,36 @@ class FriedmanBE100Amp extends BaseAmp {
     this.powerComp.ratio.value = 4;
     this.powerComp.attack.value = 0.005;
     this.powerComp.release.value = 0.1;
+    
+    // ============================================
+    // DEPTH (Resonance - low shelf in power section)
+    // ============================================
+    this.depth = audioContext.createBiquadFilter();
+    this.depth.type = 'lowshelf';
+    this.depth.frequency.value = 100;
+    this.depth.gain.value = 0;
+    
+    // ============================================
+    // PRESENCE (in power amp section - more realistic)
+    // ============================================
+    this.presence = audioContext.createBiquadFilter();
+    this.presence.type = 'highshelf';
+    this.presence.frequency.value = 4500;
+    this.presence.gain.value = 0;
+    
+    // ============================================
+    // CABINET SIMULATION (HPF/LPF post-power)
+    // ============================================
+    this.cabinetEnabled = true;
+    this.postHPF = audioContext.createBiquadFilter();
+    this.postHPF.type = 'highpass';
+    this.postHPF.frequency.value = 80;
+    this.postHPF.Q.value = 0.707;
+    
+    this.postLPF = audioContext.createBiquadFilter();
+    this.postLPF.type = 'lowpass';
+    this.postLPF.frequency.value = 9000;
+    this.postLPF.Q.value = 0.707;
     
     // ============================================
     // MASTER VOLUME
@@ -122,13 +178,19 @@ class FriedmanBE100Amp extends BaseAmp {
       middle: 50,
       treble: 70,
       presence: 65,
+      depth: 50,
       
       // Switches
       tight: false,
       fat: false,
+      sat: false,
+      c45: false,
       
       // Master
-      master: 70
+      master: 70,
+      
+      // Cabinet
+      cabinet_enabled: true
     };
     
     this.applyInitialSettings();
@@ -137,22 +199,35 @@ class FriedmanBE100Amp extends BaseAmp {
   setupCleanChannel() {
     this.disconnectAll();
     
-    // CLEAN CHANNEL - 2 gain stages
+    // CLEAN CHANNEL - 2 gain stages with proper signal flow
     this.input.connect(this.cleanChannel);
     this.cleanChannel.connect(this.tightFilter);
-    this.tightFilter.connect(this.fatFilter);
-    this.fatFilter.connect(this.preamp1);
+    this.tightFilter.connect(this.brightFilter);
+    this.brightFilter.connect(this.preamp1);
     this.preamp1.connect(this.saturation1);
-    this.saturation1.connect(this.preamp2);
+    this.saturation1.connect(this.fatFilter);
+    this.fatFilter.connect(this.preamp2);
     this.preamp2.connect(this.saturation2);
-    this.saturation2.connect(this.bass);
+    this.saturation2.connect(this.noiseGate);
+    this.noiseGate.connect(this.bass);
     this.bass.connect(this.middle);
     this.middle.connect(this.treble);
-    this.treble.connect(this.presence);
-    this.presence.connect(this.powerComp);
+    this.treble.connect(this.channelVolume);
+    this.channelVolume.connect(this.powerComp);
     this.powerComp.connect(this.powerAmp);
-    this.powerAmp.connect(this.powerSaturation);
-    this.powerSaturation.connect(this.master);
+    this.powerAmp.connect(this.depth);
+    this.depth.connect(this.presence);
+    this.presence.connect(this.powerSaturation);
+    
+    // Cabinet simulation (can be bypassed)
+    if (this.cabinetEnabled) {
+      this.powerSaturation.connect(this.postHPF);
+      this.postHPF.connect(this.postLPF);
+      this.postLPF.connect(this.master);
+    } else {
+      this.powerSaturation.connect(this.master);
+    }
+    
     this.master.connect(this.output);
     
     this.activeChannel = 'clean';
@@ -161,26 +236,47 @@ class FriedmanBE100Amp extends BaseAmp {
   setupBEChannel() {
     this.disconnectAll();
     
-    // BE CHANNEL - 4 cascading gain stages
+    // BE CHANNEL - 4 cascading gain stages with SAT switch
     this.input.connect(this.beChannel);
     this.beChannel.connect(this.tightFilter);
-    this.tightFilter.connect(this.fatFilter);
-    this.fatFilter.connect(this.preamp1);
+    this.tightFilter.connect(this.brightFilter);
+    this.brightFilter.connect(this.preamp1);
     this.preamp1.connect(this.saturation1);
-    this.saturation1.connect(this.preamp2);
+    this.saturation1.connect(this.fatFilter);
+    this.fatFilter.connect(this.preamp2);
     this.preamp2.connect(this.saturation2);
-    this.saturation2.connect(this.preamp3);
+    
+    // SAT switch inserts diode clipping between saturation2 and preamp3
+    if (this.satEnabled) {
+      this.saturation2.connect(this.satClip);
+      this.satClip.connect(this.preamp3);
+    } else {
+      this.saturation2.connect(this.preamp3);
+    }
+    
     this.preamp3.connect(this.saturation3);
     this.saturation3.connect(this.preamp4);
     this.preamp4.connect(this.saturation4);
-    this.saturation4.connect(this.bass);
+    this.saturation4.connect(this.noiseGate);
+    this.noiseGate.connect(this.bass);
     this.bass.connect(this.middle);
     this.middle.connect(this.treble);
-    this.treble.connect(this.presence);
-    this.presence.connect(this.powerComp);
+    this.treble.connect(this.channelVolume);
+    this.channelVolume.connect(this.powerComp);
     this.powerComp.connect(this.powerAmp);
-    this.powerAmp.connect(this.powerSaturation);
-    this.powerSaturation.connect(this.master);
+    this.powerAmp.connect(this.depth);
+    this.depth.connect(this.presence);
+    this.presence.connect(this.powerSaturation);
+    
+    // Cabinet simulation (can be bypassed)
+    if (this.cabinetEnabled) {
+      this.powerSaturation.connect(this.postHPF);
+      this.postHPF.connect(this.postLPF);
+      this.postLPF.connect(this.master);
+    } else {
+      this.powerSaturation.connect(this.master);
+    }
+    
     this.master.connect(this.output);
     
     this.activeChannel = 'be';
@@ -192,22 +288,29 @@ class FriedmanBE100Amp extends BaseAmp {
       this.cleanChannel.disconnect();
       this.beChannel.disconnect();
       this.tightFilter.disconnect();
+      this.brightFilter.disconnect();
       this.fatFilter.disconnect();
       this.preamp1.disconnect();
       this.saturation1.disconnect();
       this.preamp2.disconnect();
       this.saturation2.disconnect();
+      this.satClip.disconnect();
       this.preamp3.disconnect();
       this.saturation3.disconnect();
       this.preamp4.disconnect();
       this.saturation4.disconnect();
+      this.noiseGate.disconnect();
       this.bass.disconnect();
       this.middle.disconnect();
       this.treble.disconnect();
-      this.presence.disconnect();
+      this.channelVolume.disconnect();
       this.powerComp.disconnect();
       this.powerAmp.disconnect();
+      this.depth.disconnect();
+      this.presence.disconnect();
       this.powerSaturation.disconnect();
+      this.postHPF.disconnect();
+      this.postLPF.disconnect();
       this.master.disconnect();
     } catch (e) {}
   }
@@ -219,6 +322,7 @@ class FriedmanBE100Amp extends BaseAmp {
     this.preamp4.gain.value = 1.3;
     this.cleanChannel.gain.value = 0.6;
     this.beChannel.gain.value = 1.0;
+    this.channelVolume.gain.value = 0.7;
     this.powerAmp.gain.value = 1.0;
     this.master.gain.value = 0.7;
   }
@@ -229,19 +333,21 @@ class FriedmanBE100Amp extends BaseAmp {
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
       
-      // FRIEDMAN "BROWN EYE" (modern Plexi)
-      let y = Math.tanh(x * 6);
+      // FRIEDMAN "BROWN EYE" - improved smoothness
+      let y = Math.tanh(x * 5.8);
       
       // "SINGING" SUSTAIN (Friedman signature)
-      y += 0.15 * Math.tanh(x * 12);
+      y += 0.12 * Math.tanh(x * 10);
       
-      // Marshall-like bite with modern tightness
+      // Smoother top end, less harsh
       if (Math.abs(y) > 0.6) {
-        y *= 0.92;
+        y *= 0.94;
       }
       
-      if (x > 0) y *= 1.18;
-      curve[i] = y * 0.82;
+      // Moderate asymmetry for modern character
+      if (x > 0) y *= 1.12;
+      
+      curve[i] = y * 0.84;
     }
     return curve;
   }
@@ -252,23 +358,41 @@ class FriedmanBE100Amp extends BaseAmp {
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
       
-      // KT88 power tubes (tight, powerful)
-      let y = Math.tanh(x * 1.7);
+      // KT88 power tubes (tight, powerful) - smoother
+      let y = Math.tanh(x * 1.6);
       
-      // KT88 compression
+      // KT88 compression - smoother top end
       if (Math.abs(y) > 0.65) {
-        const excess = Math.abs(y) - 0.65;
-        y = Math.sign(y) * (0.65 + excess * 0.45);
+        y = Math.sign(y) * (0.65 + (Math.abs(y) - 0.65) * 0.45);
       }
       
-      // Modern tightness
-      if (x < 0) y *= 1.05;
+      // Controlled modern bite
+      y += 0.06 * Math.tanh(x * 8);
       
-      // High-end bite
-      y += 0.1 * Math.tanh(x * 15);
+      if (x > 0) y *= 1.12;
+      curve[i] = y * 0.85;
+    }
+    return curve;
+  }
+  
+  makeSatClipCurve() {
+    // Friedman SAT switch - diode clipping
+    const samples = 44100;
+    const curve = new Float32Array(samples);
+    for (let i = 0; i < samples; i++) {
+      const x = (i * 2) / samples - 1;
       
-      if (x > 0) y *= 1.2;
-      curve[i] = y * 0.8;
+      // Harder diode clipping
+      let y = Math.tanh(x * 18);
+      
+      // Asymmetric diode response
+      if (x > 0) {
+        y *= 1.08;
+      } else {
+        y *= 0.98;
+      }
+      
+      curve[i] = y * 0.7;
     }
     return curve;
   }
@@ -286,12 +410,20 @@ class FriedmanBE100Amp extends BaseAmp {
         break;
       
       case 'gain':
-        this.preamp1.gain.setTargetAtTime(1 + (value / 10), now, 0.01);
+        // Reduced range to avoid radio-saw at top
+        this.preamp1.gain.setTargetAtTime(1 + (value / 12), now, 0.01);
         break;
       
-      case 'volume':
-        this.powerAmp.gain.setTargetAtTime(value / 100, now, 0.01);
+      case 'volume': {
+        // Channel volume (pre-phase inverter)
+        const v = value / 100;
+        this.channelVolume.gain.setTargetAtTime(v, now, 0.01);
+        
+        // Dynamic bright cap - more boost at lower volumes
+        const brightDb = (1 - v) * 7; // Up to +7dB at low volumes
+        this.brightFilter.gain.setTargetAtTime(this.brightCap ? brightDb : 0, now, 0.03);
         break;
+      }
       
       case 'bass':
         this.bass.gain.setTargetAtTime((value - 50) / 10, now, 0.01);
@@ -310,22 +442,56 @@ class FriedmanBE100Amp extends BaseAmp {
         this.presence.gain.setTargetAtTime((value - 50) / 10, now, 0.01);
         break;
       
+      case 'depth':
+        // Depth/Resonance control in power section
+        this.depth.gain.setTargetAtTime((value - 50) / 8, now, 0.02);
+        break;
+      
       case 'tight':
         this.tightSwitch = value;
-        if (value) {
-          this.tightFilter.frequency.setTargetAtTime(120, now, 0.01); // Cut low-end
-        } else {
-          this.tightFilter.frequency.setTargetAtTime(20, now, 0.01);
-        }
+        // Tight switch - HPF at 100Hz when on
+        this.tightFilter.frequency.setTargetAtTime(value ? 100 : 20, now, 0.02);
         break;
       
       case 'fat':
         this.fatSwitch = value;
-        this.fatFilter.gain.setTargetAtTime(value ? 6 : 0, now, 0.01);
+        // Fat switch - low shelf boost
+        this.fatFilter.gain.setTargetAtTime(value ? 4.5 : 0, now, 0.02);
         break;
       
-      case 'master':
-        this.master.gain.setTargetAtTime(value / 100, now, 0.01);
+      case 'sat':
+        // SAT switch - reconnect signal chain when toggled
+        this.satEnabled = !!value;
+        if (this.activeChannel === 'be') {
+          this.setupBEChannel();
+        }
+        break;
+      
+      case 'c45':
+        // C45 bright cap switch
+        this.brightCap = !!value;
+        // Update bright cap based on current volume
+        const currentVolume = this.params.volume || 70;
+        const v = currentVolume / 100;
+        const brightDb = this.brightCap ? ((1 - v) * 7) : 0;
+        this.brightFilter.gain.setTargetAtTime(brightDb, now, 0.02);
+        break;
+      
+      case 'master': {
+        // Logarithmic taper for musical control
+        const linLog = (val) => 0.001 * Math.pow(1000, val);
+        this.master.gain.setTargetAtTime(linLog(value / 100), now, 0.01);
+        break;
+      }
+      
+      case 'cabinet_enabled':
+        this.cabinetEnabled = !!value;
+        // Reconnect signal chain with/without cabinet
+        if (this.activeChannel === 'clean') {
+          this.setupCleanChannel();
+        } else {
+          this.setupBEChannel();
+        }
         break;
     }
     
@@ -337,22 +503,29 @@ class FriedmanBE100Amp extends BaseAmp {
     this.cleanChannel.disconnect();
     this.beChannel.disconnect();
     this.tightFilter.disconnect();
+    this.brightFilter.disconnect();
     this.fatFilter.disconnect();
     this.preamp1.disconnect();
     this.saturation1.disconnect();
     this.preamp2.disconnect();
     this.saturation2.disconnect();
+    this.satClip.disconnect();
     this.preamp3.disconnect();
     this.saturation3.disconnect();
     this.preamp4.disconnect();
     this.saturation4.disconnect();
+    this.noiseGate.disconnect();
     this.bass.disconnect();
     this.middle.disconnect();
     this.treble.disconnect();
-    this.presence.disconnect();
+    this.channelVolume.disconnect();
     this.powerComp.disconnect();
     this.powerAmp.disconnect();
+    this.depth.disconnect();
+    this.presence.disconnect();
     this.powerSaturation.disconnect();
+    this.postHPF.disconnect();
+    this.postLPF.disconnect();
     this.master.disconnect();
   }
 }
