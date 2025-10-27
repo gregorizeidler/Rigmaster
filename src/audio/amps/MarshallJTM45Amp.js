@@ -7,12 +7,16 @@ class MarshallJTM45Amp extends BaseAmp {
     // MARSHALL JTM45 (1962 Original)
     // THE first Marshall - virtually a Fender Bassman clone
     // Eric Clapton (Bluesbreakers), early British rock
+     // Features: 4 inputs (High/Low x2), 2 channels (Normal/Bright), GZ34 rectifier
+    // Speakers: 2×12 Celestion Greenbacks (Bluesbreaker combo)
     
     // ============================================
     // 4 INPUT JACKS (High/Low x2)
     // ============================================
     this.highInput = audioContext.createGain();
     this.lowInput = audioContext.createGain();
+    this.padLow = audioContext.createGain();
+    this.padLow.gain.value = 0.5; // ~-6 dB pad for low input
     
     // Active input
     this.activeInput = 'high'; // 'high' or 'low'
@@ -38,12 +42,34 @@ class MarshallJTM45Amp extends BaseAmp {
     this.saturation3.oversample = '4x';
     
     // ============================================
+    // TWO CHANNELS (Normal/Bright) + Jumper Mix
+    // ============================================
+    this.chNormalVol = audioContext.createGain();
+    this.chBrightVol = audioContext.createGain();
+    
+    // Bright channel has a high-shelf boost
+    this.brightShelf = audioContext.createBiquadFilter();
+    this.brightShelf.type = 'highshelf';
+    this.brightShelf.frequency.value = 3000;
+    this.brightShelf.gain.value = 3; // +3 dB boost for bright channel
+    
+    // Channel blend (summing both channels - "jumper" technique)
+    this.channelBlend = audioContext.createGain();
+    
+    // ============================================
+    // BRIGHT CAP (Volume-dependent brightness)
+    // ============================================
+    this.brightCap = audioContext.createBiquadFilter();
+    this.brightCap.type = 'highshelf';
+    this.brightCap.frequency.value = 2500;
+    this.brightCap.gain.value = 0;
+    
+    // ============================================
     // TONE STACK (Identical to Bassman)
     // ============================================
     this.bass = audioContext.createBiquadFilter();
     this.middle = audioContext.createBiquadFilter();
     this.treble = audioContext.createBiquadFilter();
-    this.presence = audioContext.createBiquadFilter();
     
     this.bass.type = 'lowshelf';
     this.bass.frequency.value = 100;
@@ -58,10 +84,6 @@ class MarshallJTM45Amp extends BaseAmp {
     this.treble.frequency.value = 2500;
     this.treble.gain.value = 0;
     
-    this.presence.type = 'highshelf';
-    this.presence.frequency.value = 4000;
-    this.presence.gain.value = 0;
-    
     // ============================================
     // "BLUESBREAKER" CHARACTERISTIC
     // ============================================
@@ -71,6 +93,24 @@ class MarshallJTM45Amp extends BaseAmp {
     this.bluesbreaker.frequency.value = 1000; // Mid-range warmth
     this.bluesbreaker.Q.value = 1.5;
     this.bluesbreaker.gain.value = 3;
+    
+    // ============================================
+    // GZ34 RECTIFIER SAG (bloom/compression)
+    // ============================================
+    this.rectifierSag = audioContext.createDynamicsCompressor();
+    this.rectifierSag.threshold.value = -24;
+    this.rectifierSag.knee.value = 20;
+    this.rectifierSag.ratio.value = 1.8;
+    this.rectifierSag.attack.value = 0.01;
+    this.rectifierSag.release.value = 0.18;
+    
+    // ============================================
+    // PRESENCE (NFB - Negative Feedback)
+    // ============================================
+    this.presence = audioContext.createBiquadFilter();
+    this.presence.type = 'highshelf';
+    this.presence.frequency.value = 4000;
+    this.presence.gain.value = 0;
     
     // ============================================
     // POWER AMP (2x KT66 or 5881 tubes)
@@ -89,6 +129,34 @@ class MarshallJTM45Amp extends BaseAmp {
     this.powerComp.release.value = 0.15;
     
     // ============================================
+    // CABINET SIMULATION (2×12 Celestion Greenbacks)
+    // ============================================
+    this.postHPF = audioContext.createBiquadFilter();
+    this.postHPF.type = 'highpass';
+    this.postHPF.frequency.value = 35;
+    this.postHPF.Q.value = 0.707;
+    
+    this.postLPF = audioContext.createBiquadFilter();
+    this.postLPF.type = 'lowpass';
+    this.postLPF.frequency.value = 9500;
+    this.postLPF.Q.value = 0.707;
+    
+    // Cabinet presence bump (Greenback characteristic)
+    this.cabPresence = audioContext.createBiquadFilter();
+    this.cabPresence.type = 'peaking';
+    this.cabPresence.frequency.value = 3500;
+    this.cabPresence.Q.value = 1.2;
+    this.cabPresence.gain.value = 2;
+    
+    // Cabinet bypass path
+    this.cabBypass = audioContext.createGain();
+    this.cabEnabled = true; // Cabinet on by default
+    
+    // Optional: IR loader (for future use)
+    this.cabIR = audioContext.createConvolver();
+    this.loadDefaultCabinetIR();
+    
+    // ============================================
     // VOLUME CONTROLS
     // ============================================
     this.volume1 = audioContext.createGain(); // Preamp volume
@@ -102,6 +170,10 @@ class MarshallJTM45Amp extends BaseAmp {
     this.params = {
       input: 1, // 0=low, 1=high
       
+      // Two-channel controls (jumper setup)
+      ch_normal: 60,
+      ch_bright: 40,
+      
       // Volumes
       volume: 60,
       master: 70,
@@ -110,7 +182,10 @@ class MarshallJTM45Amp extends BaseAmp {
       bass: 55,
       middle: 50,
       treble: 65,
-      presence: 55
+      presence: 55,
+      
+      // Cabinet
+      cabinet_enabled: 1
     };
     
     this.applyInitialSettings();
@@ -119,30 +194,55 @@ class MarshallJTM45Amp extends BaseAmp {
   setupHighInput() {
     this.disconnectAll();
     
-    // HIGH INPUT - More gain
+    // HIGH INPUT - Full gain path
     this.input.connect(this.highInput);
     this.highInput.connect(this.preamp1);
     this.preamp1.connect(this.saturation1);
     this.saturation1.connect(this.preamp2);
     this.preamp2.connect(this.saturation2);
-    this.saturation2.connect(this.preamp3);
+    
+    // Channel split after preamp2 (Normal/Bright)
+    // Normal channel (flat)
+    this.saturation2.connect(this.chNormalVol);
+    this.chNormalVol.connect(this.channelBlend);
+    
+    // Bright channel (high-shelf boost)
+    this.saturation2.connect(this.brightShelf);
+    this.brightShelf.connect(this.chBrightVol);
+    this.chBrightVol.connect(this.channelBlend);
+    
+    // Continue with third preamp stage
+    this.channelBlend.connect(this.preamp3);
     this.preamp3.connect(this.saturation3);
     
-    // Volume
+    // Volume with bright cap
     this.saturation3.connect(this.volume1);
+    this.volume1.connect(this.brightCap);
     
     // Tone stack
-    this.volume1.connect(this.bass);
+    this.brightCap.connect(this.bass);
     this.bass.connect(this.middle);
     this.middle.connect(this.treble);
     this.treble.connect(this.bluesbreaker);
-    this.bluesbreaker.connect(this.presence);
     
-    // Power amp
-    this.presence.connect(this.powerComp);
-    this.powerComp.connect(this.powerAmp);
+    // Power section
+    this.bluesbreaker.connect(this.powerComp);
+    this.powerComp.connect(this.rectifierSag);
+    this.rectifierSag.connect(this.presence);
+    this.presence.connect(this.powerAmp);
     this.powerAmp.connect(this.powerSaturation);
-    this.powerSaturation.connect(this.volume2);
+    
+    // Cabinet routing (can be bypassed)
+    if (this.cabEnabled) {
+      this.powerSaturation.connect(this.postHPF);
+      this.postHPF.connect(this.postLPF);
+      this.postLPF.connect(this.cabPresence);
+      this.cabPresence.connect(this.volume2);
+    } else {
+      this.powerSaturation.connect(this.cabBypass);
+      this.cabBypass.connect(this.volume2);
+    }
+    
     this.volume2.connect(this.output);
     
     this.activeInput = 'high';
@@ -151,28 +251,56 @@ class MarshallJTM45Amp extends BaseAmp {
   setupLowInput() {
     this.disconnectAll();
     
-    // LOW INPUT - Less gain, more clean headroom
+    // LOW INPUT - Pad before first stage (not bypassing any stages!)
     this.input.connect(this.lowInput);
-    this.lowInput.connect(this.preamp1);
+    this.lowInput.connect(this.padLow);
+    this.padLow.connect(this.preamp1);
     this.preamp1.connect(this.saturation1);
     this.saturation1.connect(this.preamp2);
     this.preamp2.connect(this.saturation2);
     
-    // Skip 3rd gain stage for lower gain
-    this.saturation2.connect(this.volume1);
+    // Channel split after preamp2 (Normal/Bright)
+    // Normal channel (flat)
+    this.saturation2.connect(this.chNormalVol);
+    this.chNormalVol.connect(this.channelBlend);
+    
+    // Bright channel (high-shelf boost)
+    this.saturation2.connect(this.brightShelf);
+    this.brightShelf.connect(this.chBrightVol);
+    this.chBrightVol.connect(this.channelBlend);
+    
+    // Continue with third preamp stage
+    this.channelBlend.connect(this.preamp3);
+    this.preamp3.connect(this.saturation3);
+    
+    // Volume with bright cap
+    this.saturation3.connect(this.volume1);
+    this.volume1.connect(this.brightCap);
     
     // Tone stack
-    this.volume1.connect(this.bass);
+    this.brightCap.connect(this.bass);
     this.bass.connect(this.middle);
     this.middle.connect(this.treble);
     this.treble.connect(this.bluesbreaker);
-    this.bluesbreaker.connect(this.presence);
     
-    // Power amp
-    this.presence.connect(this.powerComp);
-    this.powerComp.connect(this.powerAmp);
+    // Power section
+    this.bluesbreaker.connect(this.powerComp);
+    this.powerComp.connect(this.rectifierSag);
+    this.rectifierSag.connect(this.presence);
+    this.presence.connect(this.powerAmp);
     this.powerAmp.connect(this.powerSaturation);
-    this.powerSaturation.connect(this.volume2);
+    
+    // Cabinet routing (can be bypassed)
+    if (this.cabEnabled) {
+      this.powerSaturation.connect(this.postHPF);
+      this.postHPF.connect(this.postLPF);
+      this.postLPF.connect(this.cabPresence);
+      this.cabPresence.connect(this.volume2);
+    } else {
+      this.powerSaturation.connect(this.cabBypass);
+      this.cabBypass.connect(this.volume2);
+    }
+    
     this.volume2.connect(this.output);
     
     this.activeInput = 'low';
@@ -183,21 +311,32 @@ class MarshallJTM45Amp extends BaseAmp {
       this.input.disconnect();
       this.highInput.disconnect();
       this.lowInput.disconnect();
+      this.padLow.disconnect();
       this.preamp1.disconnect();
       this.saturation1.disconnect();
       this.preamp2.disconnect();
       this.saturation2.disconnect();
+      this.chNormalVol.disconnect();
+      this.chBrightVol.disconnect();
+      this.brightShelf.disconnect();
+      this.channelBlend.disconnect();
       this.preamp3.disconnect();
       this.saturation3.disconnect();
       this.volume1.disconnect();
+      this.brightCap.disconnect();
       this.bass.disconnect();
       this.middle.disconnect();
       this.treble.disconnect();
       this.bluesbreaker.disconnect();
-      this.presence.disconnect();
       this.powerComp.disconnect();
+      this.rectifierSag.disconnect();
+      this.presence.disconnect();
       this.powerAmp.disconnect();
       this.powerSaturation.disconnect();
+      this.postHPF.disconnect();
+      this.postLPF.disconnect();
+      this.cabPresence.disconnect();
+      this.cabBypass.disconnect();
       this.volume2.disconnect();
     } catch (e) {}
   }
@@ -214,10 +353,16 @@ class MarshallJTM45Amp extends BaseAmp {
     // INPUTS
     // ============================================
     this.highInput.gain.value = 1.2;
-    this.lowInput.gain.value = 0.5;
+    this.lowInput.gain.value = 1.0; // Pad is applied separately
     
     // ============================================
-    // VOLUMES
+    // CHANNELS (Default jumper mix)
+    // ============================================
+    this.chNormalVol.gain.value = 0.6; // 60%
+    this.chBrightVol.gain.value = 0.4; // 40%
+    
+    // ============================================
+    // VOLUMES (will be set by updateParameter)
     // ============================================
     this.volume1.gain.value = 0.6;
     this.volume2.gain.value = 0.7;
@@ -226,6 +371,11 @@ class MarshallJTM45Amp extends BaseAmp {
     // POWER AMP (2x KT66)
     // ============================================
     this.powerAmp.gain.value = 1.1;
+  }
+  
+  // Helper function for logarithmic volume taper
+  linLog01(v01) {
+    return 0.001 * Math.pow(1000, v01);
   }
   
   makePreampCurve() {
@@ -271,8 +421,11 @@ class MarshallJTM45Amp extends BaseAmp {
       // BLUESBREAKER "SINGING" SUSTAIN
       y += 0.1 * Math.tanh(x * 4);
       
-      // British presence
-      y += 0.06 * Math.sin(x * Math.PI * 6);
+      // Low-end punch (KT66 characteristic)
+      y += 0.12 * Math.tanh(x * 3.2);
+      
+      // Reduced high-end harshness (less glassy than 6L6)
+      y += 0.04 * Math.sin(x * Math.PI * 5);
       
       // Asymmetry
       if (x > 0) y *= 1.08;
@@ -280,6 +433,26 @@ class MarshallJTM45Amp extends BaseAmp {
       curve[i] = y * 0.85;
     }
     return curve;
+  }
+  
+  loadDefaultCabinetIR() {
+    // Create a simple synthetic IR for 2×12 Greenback cabinet
+    // This ensures the amp works out of the box without external IR files
+    const sampleRate = this.audioContext.sampleRate;
+    const length = sampleRate * 0.05; // 50ms
+    const impulse = this.audioContext.createBuffer(2, length, sampleRate);
+    
+    for (let channel = 0; channel < 2; channel++) {
+      const channelData = impulse.getChannelData(channel);
+      for (let i = 0; i < length; i++) {
+        // Exponential decay with slight randomness
+        const decay = Math.exp(-i / (sampleRate * 0.01));
+        const noise = (Math.random() * 2 - 1) * 0.1;
+        channelData[i] = decay * (1 + noise);
+      }
+    }
+    
+    this.cabIR.buffer = impulse;
   }
   
   updateParameter(parameter, value) {
@@ -298,16 +471,37 @@ class MarshallJTM45Amp extends BaseAmp {
         break;
       
       // ============================================
-      // VOLUME
+      // CHANNEL VOLUMES (Normal/Bright)
       // ============================================
-      case 'volume':
-      case 'gain':
-        this.volume1.gain.setTargetAtTime(value / 100, now, 0.01);
+      case 'ch_normal':
+        this.chNormalVol.gain.setTargetAtTime(value / 100, now, 0.01);
         break;
       
-      case 'master':
-        this.volume2.gain.setTargetAtTime(value / 100, now, 0.01);
+      case 'ch_bright':
+        this.chBrightVol.gain.setTargetAtTime(value / 100, now, 0.01);
         break;
+      
+      // ============================================
+      // VOLUME (with bright cap interaction)
+      // ============================================
+      case 'volume':
+      case 'gain': {
+        const v = value / 100;
+        const logV = this.linLog01(v);
+        this.volume1.gain.setTargetAtTime(logV, now, 0.01);
+        
+        // Bright cap: more gain in high frequencies when volume is low
+        const brightGain = (1 - v) * 6; // Up to +6 dB when volume is low
+        this.brightCap.gain.setTargetAtTime(brightGain, now, 0.02);
+        break;
+      }
+      
+      case 'master': {
+        const v = value / 100;
+        const logV = this.linLog01(v);
+        this.volume2.gain.setTargetAtTime(logV, now, 0.01);
+        break;
+      }
       
       // ============================================
       // TONE STACK
@@ -328,9 +522,76 @@ class MarshallJTM45Amp extends BaseAmp {
       case 'presence':
         this.presence.gain.setTargetAtTime((value - 50) / 10, now, 0.01);
         break;
+      
+      // ============================================
+      // CABINET CONTROL
+      // ============================================
+      case 'cabinet_enabled':
+        this.cabEnabled = value;
+        // Re-route to enable/disable cabinet
+        if (this.activeInput === 'low') {
+          this.setupLowInput();
+        } else {
+          this.setupHighInput();
+        }
+        break;
     }
     
     this.params[parameter] = value;
+  }
+  
+  // Preset configurations
+  getPresets() {
+    return {
+      'Beano/Bluesbreaker': {
+        input: 1, // high
+        ch_normal: 65,
+        ch_bright: 35,
+        volume: 60,
+        bass: 55,
+        middle: 52,
+        treble: 64,
+        presence: 56,
+        master: 50,
+        cabinet_enabled: 1
+      },
+      'Clean American': {
+        input: 0, // low
+        ch_normal: 70,
+        ch_bright: 10,
+        volume: 35,
+        bass: 60,
+        middle: 48,
+        treble: 58,
+        presence: 40,
+        master: 65,
+        cabinet_enabled: 1
+      },
+      'Cranked Classic': {
+        input: 1, // high
+        ch_normal: 50,
+        ch_bright: 50,
+        volume: 75,
+        bass: 58,
+        middle: 45,
+        treble: 68,
+        presence: 62,
+        master: 45,
+        cabinet_enabled: 1
+      },
+      'British Crunch': {
+        input: 1, // high
+        ch_normal: 60,
+        ch_bright: 45,
+        volume: 68,
+        bass: 52,
+        middle: 50,
+        treble: 66,
+        presence: 58,
+        master: 55,
+        cabinet_enabled: 1
+      }
+    };
   }
   
   disconnect() {
@@ -339,24 +600,34 @@ class MarshallJTM45Amp extends BaseAmp {
     // Disconnect all nodes
     this.highInput.disconnect();
     this.lowInput.disconnect();
+    this.padLow.disconnect();
     this.preamp1.disconnect();
     this.saturation1.disconnect();
     this.preamp2.disconnect();
     this.saturation2.disconnect();
+    this.chNormalVol.disconnect();
+    this.chBrightVol.disconnect();
+    this.brightShelf.disconnect();
+    this.channelBlend.disconnect();
     this.preamp3.disconnect();
     this.saturation3.disconnect();
     this.volume1.disconnect();
+    this.brightCap.disconnect();
     this.bass.disconnect();
     this.middle.disconnect();
     this.treble.disconnect();
     this.bluesbreaker.disconnect();
-    this.presence.disconnect();
     this.powerComp.disconnect();
+    this.rectifierSag.disconnect();
+    this.presence.disconnect();
     this.powerAmp.disconnect();
     this.powerSaturation.disconnect();
+    this.postHPF.disconnect();
+    this.postLPF.disconnect();
+    this.cabPresence.disconnect();
+    this.cabBypass.disconnect();
     this.volume2.disconnect();
   }
 }
 
 export default MarshallJTM45Amp;
-

@@ -34,7 +34,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       'marshall_jcm800': '4x12_greenback',
       'orange_rockerverb': '2x12_closed',
       'hiwatt_dr103': '4x12_greenback',
-      'marshall_jtm45': '4x12_greenback',
+      'marshall_jtm45': '2x12_greenback',
       'badcat_hotcat': '2x12_closed',
       
       // HIGH GAIN/MODERN
@@ -261,7 +261,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       // MARSHALL - Presence + Resonance
       crunch: ['presence', 'resonance'],
       marshall_jcm800: ['presence', 'resonance'],
-      marshall_jtm45: ['presence'],
+      marshall_jtm45: ['marshall_jtm45_controls'],
       
       // MESA BOOGIE - Graphic EQ + Presence
       lead: ['presence', 'graphiceq'],
@@ -784,6 +784,103 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
               <option value="100">100W</option>
               <option value="150">150W</option>
             </select>
+          </div>
+        );
+      
+      // ============================================
+      // MARSHALL JTM45 - COMPLETE CONTROLS
+      // ============================================
+      case 'marshall_jtm45_controls':
+        return (
+          <div key="marshall_jtm45_controls" className="marshall-jtm45-full-controls" style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '15px',
+            padding: '15px',
+            background: 'linear-gradient(135deg, rgba(0,0,0,0.6), rgba(212,175,55,0.2))',
+            borderRadius: '10px',
+            border: '2px solid rgba(212,175,55,0.4)',
+            width: '100%',
+            maxWidth: '850px'
+          }}>
+            {/* INPUT SELECTOR (High/Low) */}
+            <div style={{ display: 'flex', gap: '15px', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: 'rgba(0,0,0,0.4)', borderRadius: '8px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                <label style={{ fontSize: '10px', fontWeight: 'bold', color: '#d4af37', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  INPUT JACKS
+                </label>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button 
+                    onClick={() => onUpdate(amp.id, 'input', 1)}
+                    style={{
+                      padding: '10px 20px',
+                      background: amp.params?.input === 1 ? '#d4af37' : 'rgba(0,0,0,0.6)',
+                      border: amp.params?.input === 1 ? '2px solid #d4af37' : '2px solid #555',
+                      color: amp.params?.input === 1 ? '#000' : '#d4af37',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '12px',
+                      textTransform: 'uppercase'
+                    }}
+                  >HIGH</button>
+                  <button 
+                    onClick={() => onUpdate(amp.id, 'input', 0)}
+                    style={{
+                      padding: '10px 20px',
+                      background: amp.params?.input === 0 ? '#d4af37' : 'rgba(0,0,0,0.6)',
+                      border: amp.params?.input === 0 ? '2px solid #d4af37' : '2px solid #555',
+                      color: amp.params?.input === 0 ? '#000' : '#d4af37',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '12px',
+                      textTransform: 'uppercase'
+                    }}
+                  >LOW</button>
+                </div>
+              </div>
+            </div>
+            
+            {/* CHANNEL VOLUMES (Normal/Bright - Jumper Setup) */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '12px', background: 'rgba(0,0,0,0.3)', borderRadius: '8px' }}>
+              <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#d4af37', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                Dual Channels
+              </label>
+              
+              <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
+                <Knob label="Normal" value={amp.params?.ch_normal || 60} onChange={handleKnobChange('ch_normal')} size={46} color="#d4af37" />
+                <Knob label="Bright" value={amp.params?.ch_bright || 40} onChange={handleKnobChange('ch_bright')} size={46} color="#d4af37" />
+              </div>
+            </div>
+            
+            {/* FRONT PANEL KNOBS */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '12px', background: 'rgba(0,0,0,0.3)', borderRadius: '8px' }}>
+              <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#d4af37', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                Front Panel Controls
+              </label>
+              
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <Knob label="Volume" value={amp.params?.volume || 60} onChange={handleKnobChange('volume')} size={46} color="#d4af37" />
+                <Knob label="Bass" value={amp.params?.bass || 55} onChange={handleKnobChange('bass')} size={44} color="#d4af37" />
+                <Knob label="Middle" value={amp.params?.middle || 50} onChange={handleKnobChange('middle')} size={44} color="#d4af37" />
+                <Knob label="Treble" value={amp.params?.treble || 65} onChange={handleKnobChange('treble')} size={44} color="#d4af37" />
+                <Knob label="Presence" value={amp.params?.presence || 55} onChange={handleKnobChange('presence')} size={44} color="#d4af37" />
+                <Knob label="Master" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={48} color="#ffd700" />
+              </div>
+            </div>
+            
+            {/* CABINET */}
+            <div style={{ display: 'flex', gap: '15px', alignItems: 'center', justifyContent: 'center', padding: '10px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
+              <div className="toggle-switch">
+                <label style={{ fontSize: '9px', color: '#d4af37' }}>Cabinet</label>
+                <input 
+                  type="checkbox" 
+                  checked={amp.params?.cabinet_enabled !== false}
+                  onChange={(e) => onUpdate(amp.id, 'cabinet_enabled', e.target.checked)}
+                />
+              </div>
+            </div>
           </div>
         );
       
