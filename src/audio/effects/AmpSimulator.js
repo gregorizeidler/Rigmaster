@@ -1,11 +1,7 @@
 import BaseEffect from './BaseEffect';
 import CabinetSimulator from '../amps/CabinetSimulator';
 
-// Import ALL individual amp models (25 total)
-import CleanAmp from '../amps/CleanAmp';
-import CrunchAmp from '../amps/CrunchAmp';
-import LeadAmp from '../amps/LeadAmp';
-import MetalAmp from '../amps/MetalAmp';
+// Import ALL individual amp models (21 professional amps)
 import Peavey5150Amp from '../amps/Peavey5150Amp';
 import VoxAC30Amp from '../amps/VoxAC30Amp';
 import FenderDeluxeReverbAmp from '../amps/FenderDeluxeReverbAmp';
@@ -328,14 +324,9 @@ class AmpSimulator extends BaseEffect {
   }
 
   initializeDedicatedAmp(ampType) {
-    // Map ALL amp types to their dedicated classes (25 total)
+    // Map ALL amp types to their dedicated classes (21 professional amps)
     const ampClasses = {
-      // Basic 4
-      'clean': CleanAmp,
-      'crunch': CrunchAmp,
-      'lead': LeadAmp,
-      'metal': MetalAmp,
-      // Dedicated 21
+      // Professional amps only
       'peavey_5150': Peavey5150Amp,
       'vox_ac30': VoxAC30Amp,
       'fender_deluxe': FenderDeluxeReverbAmp,
@@ -381,35 +372,7 @@ class AmpSimulator extends BaseEffect {
     this.highShelf.gain.value = 0;
     
     switch (type) {
-      // ORIGINAL 4
-      case 'clean':
-        this.preAmpGain.gain.value = 1.5;
-        this.saturation.curve = this.makeCleanCurve();
-        this.masterGain.gain.value = 0.8;
-        this.lowShelf.gain.value = 2;
-        this.highShelf.gain.value = 3;
-        break;
-      case 'crunch':
-        this.preAmpGain.gain.value = 3;
-        this.saturation.curve = this.makeCrunchCurve();
-        this.masterGain.gain.value = 0.6;
-        this.midPeak.gain.value = 4;
-        break;
-      case 'lead':
-        this.preAmpGain.gain.value = 8;
-        this.saturation.curve = this.makeLeadCurve();
-        this.masterGain.gain.value = 0.4;
-        this.midPeak.gain.value = 6;
-        break;
-      case 'metal':
-        this.preAmpGain.gain.value = 15;
-        this.saturation.curve = this.makeMetalCurve();
-        this.masterGain.gain.value = 0.3;
-        this.lowShelf.gain.value = -2;
-        this.midPeak.gain.value = 8;
-        this.highShelf.gain.value = 4;
-        break;
-      
+      // All amps now use dedicated classes - this is fallback only
       // CLEAN/VINTAGE (5)
       case 'vox_ac30':
         this.preAmpGain.gain.value = 2.5;
@@ -578,42 +541,12 @@ class AmpSimulator extends BaseEffect {
   }
 
   makeCleanCurve() {
+    // Fallback clean curve for legacy compatibility
     const samples = 44100;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
       curve[i] = Math.tanh(x * 0.5);
-    }
-    return curve;
-  }
-
-  makeCrunchCurve() {
-    const samples = 44100;
-    const curve = new Float32Array(samples);
-    for (let i = 0; i < samples; i++) {
-      const x = (i * 2) / samples - 1;
-      curve[i] = Math.tanh(x * 2);
-    }
-    return curve;
-  }
-
-  makeLeadCurve() {
-    const samples = 44100;
-    const curve = new Float32Array(samples);
-    for (let i = 0; i < samples; i++) {
-      const x = (i * 2) / samples - 1;
-      curve[i] = Math.tanh(x * 5);
-    }
-    return curve;
-  }
-
-  makeMetalCurve() {
-    const samples = 44100;
-    const curve = new Float32Array(samples);
-    for (let i = 0; i < samples; i++) {
-      const x = (i * 2) / samples - 1;
-      const distortion = Math.tanh(x * 10);
-      curve[i] = distortion * 0.9;
     }
     return curve;
   }

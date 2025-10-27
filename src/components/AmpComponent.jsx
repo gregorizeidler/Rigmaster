@@ -249,7 +249,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
     return styles[type] || styles.clean;
   };
 
-  const ampStyle = getAmpStyle(amp.ampType || 'clean');
+  const ampStyle = getAmpStyle(amp.ampType || 'fender_twin_reverb');
 
   // Get specific controls for each amp type
   const getAmpSpecificControls = (type) => {
@@ -311,7 +311,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
     return controls[type] || [];
   };
 
-  const specificControls = getAmpSpecificControls(amp.ampType || 'clean');
+  const specificControls = getAmpSpecificControls(amp.ampType || 'fender_twin_reverb');
 
   const renderSpecificControl = (controlType) => {
     switch (controlType) {
@@ -2944,7 +2944,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
         <div className="amp-stack-wrapper">
           {/* AMP HEAD */}
           <motion.div
-            className={`amp-head ${amp.bypassed ? 'bypassed' : ''} amp-${amp.ampType || 'clean'}`}
+            className={`amp-head ${amp.bypassed ? 'bypassed' : ''} amp-${amp.ampType || 'fender_twin_reverb'}`}
             whileHover={{ y: -3, scale: 1.02 }}
           >
         <div className="amp-head-top">
@@ -2955,16 +2955,9 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
           
           <select 
             className="amp-type-selector" 
-            value={amp.ampType || 'clean'}
+            value={amp.ampType || 'fender_twin_reverb'}
             onChange={handleTypeChange}
           >
-            <optgroup label="🎸 CLASSIC">
-              <option value="clean">Basic Clean</option>
-              <option value="crunch">Marshall Plexi</option>
-              <option value="lead">Mesa Dual Rect</option>
-              <option value="metal">ENGL High Gain</option>
-            </optgroup>
-            
             <optgroup label="🎵 CLEAN/VINTAGE">
               <option value="fender_twin_reverb">Fender Twin Reverb</option>
               <option value="vox_ac30">Vox AC30</option>
