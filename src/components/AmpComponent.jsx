@@ -249,7 +249,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
     const controls = {
       // FENDER AMPS - Spring Reverb + Bright Switch
       clean: ['reverb', 'bright'],
-      fender_deluxe: ['reverb', 'bright', 'vibrato'],
+      fender_deluxe: ['fender_deluxe_channel', 'fender_reverb_dwell', 'bright', 'fender_cabinet'],
       fender_bassman: ['reverb', 'bright'],
       
       // VOX AC30 - Full control suite
@@ -1728,6 +1728,47 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
           </div>
         );
       
+      // ============================================
+      // FENDER DELUXE REVERB CONTROLS
+      // ============================================
+      case 'fender_deluxe_channel':
+        const fenderChannel = amp.params?.channel ?? 1;
+        return (
+          <div key="fender_deluxe_channel" className="toggle-switch" style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center' }}>
+            <label style={{ fontSize: '10px', color: '#c0c0c0', fontWeight: 'bold' }}>Channel</label>
+            <select 
+              value={fenderChannel}
+              onChange={(e) => onUpdate(amp.id, 'channel', parseInt(e.target.value))}
+              style={{ 
+                padding: '6px 10px', 
+                fontSize: '11px', 
+                borderRadius: '4px', 
+                background: '#000', 
+                color: '#c0c0c0', 
+                border: '1px solid #c0c0c0'
+              }}
+            >
+              <option value={0}>NORMAL</option>
+              <option value={1}>VIBRATO</option>
+            </select>
+          </div>
+        );
+      
+      case 'fender_reverb_dwell':
+        return <Knob key="fender_reverb_dwell" label="Dwell" value={amp.params?.reverb_dwell || 50} onChange={handleKnobChange('reverb_dwell')} size={32} />;
+      
+      case 'fender_cabinet':
+        return (
+          <div key="fender_cabinet" className="toggle-switch">
+            <label>Cabinet</label>
+            <input 
+              type="checkbox" 
+              checked={amp.params?.cabinet_enabled !== false}
+              onChange={(e) => onUpdate(amp.id, 'cabinet_enabled', e.target.checked)}
+            />
+          </div>
+        );
+      
       default:
         return null;
     }
@@ -2053,6 +2094,40 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                     <Knob label="Master" value={amp.params?.master_volume || 50} onChange={handleKnobChange('master_volume')} size={36} />
                   </div>
                 </div>
+              </div>
+            ) : amp.ampType === 'fender_deluxe' ? (
+              /* FENDER DELUXE REVERB - Authentic Blackface layout */
+              <div className="fender-deluxe-knobs-layout" style={{ 
+                display: 'flex', 
+                gap: '8px', 
+                justifyContent: 'center',
+                flexWrap: 'wrap'
+              }}>
+                {/* Channel-specific knobs + shared Reverb */}
+                {amp.params?.channel === 0 ? (
+                  /* NORMAL CHANNEL: Volume, Treble, Bass */
+                  <>
+                    <Knob label="Volume" value={amp.params?.normal_volume || 50} onChange={handleKnobChange('normal_volume')} size={38} />
+                    <Knob label="Treble" value={amp.params?.treble || 60} onChange={handleKnobChange('treble')} size={36} />
+                    <Knob label="Bass" value={amp.params?.bass || 55} onChange={handleKnobChange('bass')} size={36} />
+                    <div style={{ width: '1px', height: '60px', background: 'rgba(192,192,192,0.3)', margin: '0 8px' }}></div>
+                    <Knob label="Reverb" value={amp.params?.reverb || 30} onChange={handleKnobChange('reverb')} size={36} />
+                    <Knob label="Master" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={38} />
+                  </>
+                ) : (
+                  /* VIBRATO CHANNEL: Volume, Treble, Bass, Speed, Intensity */
+                  <>
+                    <Knob label="Volume" value={amp.params?.vibrato_volume || 50} onChange={handleKnobChange('vibrato_volume')} size={38} />
+                    <Knob label="Treble" value={amp.params?.treble || 60} onChange={handleKnobChange('treble')} size={36} />
+                    <Knob label="Bass" value={amp.params?.bass || 55} onChange={handleKnobChange('bass')} size={36} />
+                    <div style={{ width: '1px', height: '60px', background: 'rgba(192,192,192,0.3)', margin: '0 8px' }}></div>
+                    <Knob label="Speed" value={amp.params?.vibrato_speed || 50} onChange={handleKnobChange('vibrato_speed')} size={34} />
+                    <Knob label="Intensity" value={amp.params?.vibrato_intensity || 0} onChange={handleKnobChange('vibrato_intensity')} size={34} />
+                    <div style={{ width: '1px', height: '60px', background: 'rgba(192,192,192,0.3)', margin: '0 8px' }}></div>
+                    <Knob label="Reverb" value={amp.params?.reverb || 30} onChange={handleKnobChange('reverb')} size={36} />
+                    <Knob label="Master" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={38} />
+                  </>
+                )}
               </div>
             ) : amp.ampType === 'friedman_be100' ? (
               /* FRIEDMAN BE-100 - Authentic front panel layout like VOX */

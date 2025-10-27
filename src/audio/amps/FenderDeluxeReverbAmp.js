@@ -11,19 +11,18 @@ class FenderDeluxeReverbAmp extends BaseAmp {
     // NORMAL CHANNEL
     // ============================================
     this.normalVolume = audioContext.createGain();
-    this.normalBright = audioContext.createBiquadFilter();
-    this.normalBright.type = 'highshelf';
-    this.normalBright.frequency.value = 4000;
-    this.normalBright.gain.value = 0; // Off by default
     
     // ============================================
     // VIBRATO CHANNEL
     // ============================================
     this.vibratoVolume = audioContext.createGain();
+    
+    // Bright cap (dynamic, reacts to volume like real cap)
     this.vibratoBright = audioContext.createBiquadFilter();
     this.vibratoBright.type = 'highshelf';
     this.vibratoBright.frequency.value = 4000;
-    this.vibratoBright.gain.value = 0; // Off by default
+    this.vibratoBright.gain.value = 0;
+    this._vBrightOn = false;
     
     // Active channel
     this.activeChannel = 'vibrato'; // 'normal' or 'vibrato'
@@ -50,27 +49,12 @@ class FenderDeluxeReverbAmp extends BaseAmp {
     this.treble.type = 'highshelf';
     this.treble.frequency.value = 2000;
     
-    // BRIGHT SWITCH
-    this.brightSwitch = audioContext.createBiquadFilter();
-    this.brightSwitch.type = 'highshelf';
-    this.brightSwitch.frequency.value = 4000;
-    this.brightSwitch.gain.value = 0;
-    
-    // VOLUME
-    this.volume = audioContext.createGain();
-    
-    // POWER AMP (2x 6V6)
-    this.powerAmp = audioContext.createGain();
-    this.powerSaturation = audioContext.createWaveShaper();
-    this.powerSaturation.curve = this.make6V6Curve();
-    this.powerSaturation.oversample = '4x';
-    
-    // SPARKLE HIGHS (Fender characteristic)
+    // SPARKLE HIGHS (Fender characteristic - more subtle)
     this.sparkle = audioContext.createBiquadFilter();
     this.sparkle.type = 'peaking';
-    this.sparkle.frequency.value = 5000;
+    this.sparkle.frequency.value = 3500;
     this.sparkle.Q.value = 2;
-    this.sparkle.gain.value = 3;
+    this.sparkle.gain.value = 1.5;
     
     // ============================================
     // SPRING REVERB (3-spring tank)
@@ -107,29 +91,58 @@ class FenderDeluxeReverbAmp extends BaseAmp {
     this.reverbFeedback.connect(this.spring3);
     this.reverbFilter.connect(this.reverbMix);
     
+    // Reverb sum (dry + wet mixer BEFORE power amp)
+    this.reverbSum = audioContext.createGain();
+    
     // ============================================
-    // VIBRATO (amplitude + pitch modulation)
+    // VIBRATO/TREMOLO (optical AM tremolo, not pitch)
     // ============================================
     this.vibratoLFO = audioContext.createOscillator();
-    this.vibratoLFO.type = 'sine';
+    this.vibratoLFO.type = 'sine'; // Can use 'triangle' for more opto feel
     this.vibratoLFO.frequency.value = 5;
-    
-    // Pitch modulation via delay
-    this.vibratoDelay = audioContext.createDelay(0.02);
-    this.vibratoDelay.delayTime.value = 0.005; // 5ms base
     
     this.vibratoDepthControl = audioContext.createGain();
     this.vibratoDepthControl.gain.value = 0;
     
-    // Amplitude modulation
+    // Amplitude modulation only (tremolo)
     this.vibratoGain = audioContext.createGain();
     this.vibratoGain.gain.value = 1;
     
     this.vibratoLFO.connect(this.vibratoDepthControl);
-    this.vibratoDepthControl.connect(this.vibratoDelay.delayTime);
     this.vibratoDepthControl.connect(this.vibratoGain.gain);
     
     this.vibratoLFO.start();
+    
+    // ============================================
+    // RECTIFIER SAG (5AR4)
+    // ============================================
+    this.rectifierSag = audioContext.createDynamicsCompressor();
+    this.rectifierSag.threshold.value = -22;
+    this.rectifierSag.ratio.value = 2.2;
+    this.rectifierSag.attack.value = 0.005;
+    this.rectifierSag.release.value = 0.12;
+    
+    // ============================================
+    // POWER AMP (2x 6V6)
+    // ============================================
+    this.powerAmp = audioContext.createGain();
+    this.powerSaturation = audioContext.createWaveShaper();
+    this.powerSaturation.curve = this.make6V6Curve();
+    this.powerSaturation.oversample = '4x';
+    
+    // ============================================
+    // CABINET SIMULATION (HPF/LPF for FRFR)
+    // ============================================
+    this.cabinetEnabled = true;
+    this.postHPF = audioContext.createBiquadFilter();
+    this.postHPF.type = 'highpass';
+    this.postHPF.frequency.value = 60;
+    this.postHPF.Q.value = 0.707;
+    
+    this.postLPF = audioContext.createBiquadFilter();
+    this.postLPF.type = 'lowpass';
+    this.postLPF.frequency.value = 8000;
+    this.postLPF.Q.value = 0.707;
     
     // MASTER
     this.master = audioContext.createGain();
@@ -144,7 +157,6 @@ class FenderDeluxeReverbAmp extends BaseAmp {
       
       // Normal channel
       normal_volume: 50,
-      normal_bright: false,
       
       // Vibrato channel
       vibrato_volume: 50,
@@ -162,7 +174,10 @@ class FenderDeluxeReverbAmp extends BaseAmp {
       vibrato_intensity: 0,
       
       // Master
-      master: 70
+      master: 70,
+      
+      // Cabinet
+      cabinet_enabled: true
     };
     
     this.applyInitialSettings();
@@ -176,27 +191,37 @@ class FenderDeluxeReverbAmp extends BaseAmp {
     this.input.connect(this.preamp);
     this.preamp.connect(this.preampSaturation);
     this.preampSaturation.connect(this.normalVolume);
-    this.normalVolume.connect(this.normalBright); // Bright switch
     
     // Shared tone stack
-    this.normalBright.connect(this.bass);
+    this.normalVolume.connect(this.bass);
     this.bass.connect(this.mid);
     this.mid.connect(this.treble);
+    this.treble.connect(this.sparkle);
     
-    // Power amp
-    this.treble.connect(this.powerAmp);
-    this.powerAmp.connect(this.powerSaturation);
-    this.powerSaturation.connect(this.sparkle);
-    
-    // Reverb send
+    // REVERB BEFORE POWER AMP (like real DR)
+    // Send to reverb
     this.sparkle.connect(this.reverbDwell);
     this.reverbDwell.connect(this.spring1);
     this.reverbDwell.connect(this.spring2);
     this.reverbDwell.connect(this.spring3);
     
-    // Dry + Wet mix
-    this.sparkle.connect(this.master); // Dry
-    this.reverbMix.connect(this.master); // Wet
+    // Mix dry + wet BEFORE power amp
+    this.sparkle.connect(this.reverbSum); // Dry
+    this.reverbMix.connect(this.reverbSum); // Wet
+    
+    // Power section
+    this.reverbSum.connect(this.rectifierSag);
+    this.rectifierSag.connect(this.powerAmp);
+    this.powerAmp.connect(this.powerSaturation);
+    
+    // Cabinet simulation (optional)
+    if (this.cabinetEnabled) {
+      this.powerSaturation.connect(this.postHPF);
+      this.postHPF.connect(this.postLPF);
+      this.postLPF.connect(this.master);
+    } else {
+      this.powerSaturation.connect(this.master);
+    }
     
     this.master.connect(this.output);
     
@@ -207,35 +232,47 @@ class FenderDeluxeReverbAmp extends BaseAmp {
     // Disconnect all first
     this.disconnectAll();
     
-    // VIBRATO CHANNEL - With vibrato effect
+    // VIBRATO CHANNEL - With tremolo effect (AM, not pitch)
     this.input.connect(this.preamp);
     this.preamp.connect(this.preampSaturation);
     this.preampSaturation.connect(this.vibratoVolume);
-    this.vibratoVolume.connect(this.vibratoBright); // Bright switch
+    this.vibratoVolume.connect(this.vibratoBright); // Bright cap
     
     // Shared tone stack
     this.vibratoBright.connect(this.bass);
     this.bass.connect(this.mid);
     this.mid.connect(this.treble);
     
-    // Vibrato effect (before power amp)
-    this.treble.connect(this.vibratoDelay);
-    this.vibratoDelay.connect(this.vibratoGain);
+    // TREMOLO (optical AM modulation)
+    this.treble.connect(this.vibratoGain);
     
-    // Power amp
-    this.vibratoGain.connect(this.powerAmp);
-    this.powerAmp.connect(this.powerSaturation);
-    this.powerSaturation.connect(this.sparkle);
+    // Sparkle
+    this.vibratoGain.connect(this.sparkle);
     
-    // Reverb send
+    // REVERB BEFORE POWER AMP (like real DR)
+    // Send to reverb
     this.sparkle.connect(this.reverbDwell);
     this.reverbDwell.connect(this.spring1);
     this.reverbDwell.connect(this.spring2);
     this.reverbDwell.connect(this.spring3);
     
-    // Dry + Wet mix
-    this.sparkle.connect(this.master); // Dry
-    this.reverbMix.connect(this.master); // Wet
+    // Mix dry + wet BEFORE power amp
+    this.sparkle.connect(this.reverbSum); // Dry
+    this.reverbMix.connect(this.reverbSum); // Wet
+    
+    // Power section
+    this.reverbSum.connect(this.rectifierSag);
+    this.rectifierSag.connect(this.powerAmp);
+    this.powerAmp.connect(this.powerSaturation);
+    
+    // Cabinet simulation (optional)
+    if (this.cabinetEnabled) {
+      this.powerSaturation.connect(this.postHPF);
+      this.postHPF.connect(this.postLPF);
+      this.postLPF.connect(this.master);
+    } else {
+      this.powerSaturation.connect(this.master);
+    }
     
     this.master.connect(this.output);
     
@@ -248,16 +285,12 @@ class FenderDeluxeReverbAmp extends BaseAmp {
       this.preamp.disconnect();
       this.preampSaturation.disconnect();
       this.normalVolume.disconnect();
-      this.normalBright.disconnect();
       this.vibratoVolume.disconnect();
       this.vibratoBright.disconnect();
       this.bass.disconnect();
       this.mid.disconnect();
       this.treble.disconnect();
-      this.vibratoDelay.disconnect();
       this.vibratoGain.disconnect();
-      this.powerAmp.disconnect();
-      this.powerSaturation.disconnect();
       this.sparkle.disconnect();
       this.reverbDwell.disconnect();
       this.spring1.disconnect();
@@ -266,6 +299,12 @@ class FenderDeluxeReverbAmp extends BaseAmp {
       this.reverbFilter.disconnect();
       this.reverbFeedback.disconnect();
       this.reverbMix.disconnect();
+      this.reverbSum.disconnect();
+      this.rectifierSag.disconnect();
+      this.powerAmp.disconnect();
+      this.powerSaturation.disconnect();
+      this.postHPF.disconnect();
+      this.postLPF.disconnect();
       this.master.disconnect();
     } catch (e) {
       // Some nodes may not be connected yet
@@ -306,31 +345,34 @@ class FenderDeluxeReverbAmp extends BaseAmp {
   }
   
   make12AX7Curve() {
+    // Blackface preamp - clean, subtle shimmer
     const samples = 44100;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
-      let y = Math.tanh(x * 0.8);
-      if (Math.abs(x) > 0.3) y *= 0.92;
-      curve[i] = y;
+      let y = Math.tanh(x * 1.1); // Very clean
+      y += 0.04 * Math.tanh(x * 6); // Subtle sparkle
+      if (Math.abs(y) > 0.55) y *= 0.96; // Gentle compression
+      if (x > 0) y *= 1.03; // Soft asymmetry
+      curve[i] = y * 0.98;
     }
     return curve;
   }
   
   make6V6Curve() {
+    // Blackface power tubes - clean with sweet harmonics
     const samples = 44100;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
-      let y = Math.tanh(x * 1.2);
-      if (Math.abs(y) > 0.6) {
-        const excess = Math.abs(y) - 0.6;
-        y = Math.sign(y) * (0.6 + excess * 0.3);
+      let y = Math.tanh(x * 1.35);
+      if (Math.abs(y) > 0.62) {
+        y = Math.sign(x) * (0.62 + (Math.abs(y) - 0.62) * 0.35);
       }
-      y += 0.05 * Math.sin(x * Math.PI * 4);
-      y += 0.08 * Math.tanh(x * 1.6);
-      if (x > 0) y *= 1.05;
-      curve[i] = y * 0.95;
+      y += 0.06 * Math.tanh(x * 3.5); // Subtle punch
+      y += 0.04 * Math.sin(x * Math.PI * 5); // Sweet harmonics
+      if (x > 0) y *= 1.06;
+      curve[i] = y * 0.94;
     }
     return curve;
   }
@@ -357,23 +399,31 @@ class FenderDeluxeReverbAmp extends BaseAmp {
         this.normalVolume.gain.setTargetAtTime(value / 100, now, 0.01);
         break;
       
-      case 'normal_bright':
-        this.normalBright.gain.setTargetAtTime(value ? 6 : 0, now, 0.01);
-        break;
-      
       // ============================================
       // VIBRATO CHANNEL CONTROLS
       // ============================================
       case 'vibrato_volume':
       case 'volume':
-      case 'gain':
-        this.vibratoVolume.gain.setTargetAtTime(value / 100, now, 0.01);
+      case 'gain': {
+        const v = value / 100;
+        this.vibratoVolume.gain.setTargetAtTime(v, now, 0.01);
+        // Dynamic bright cap - more boost at lower volumes
+        if (this._vBrightOn) {
+          const brightDb = (1 - v) * 8; // Up to +8dB at low volume
+          this.vibratoBright.gain.setTargetAtTime(brightDb, now, 0.03);
+        }
         break;
+      }
       
       case 'vibrato_bright':
-      case 'bright':
-        this.vibratoBright.gain.setTargetAtTime(value ? 6 : 0, now, 0.01);
+      case 'bright': {
+        this._vBrightOn = !!value;
+        // Update bright cap based on current volume
+        const v = (this.params.vibrato_volume || 50) / 100;
+        const brightDb = this._vBrightOn ? ((1 - v) * 8) : 0;
+        this.vibratoBright.gain.setTargetAtTime(brightDb, now, 0.03);
         break;
+      }
       
       // ============================================
       // SHARED TONE STACK
@@ -403,24 +453,40 @@ class FenderDeluxeReverbAmp extends BaseAmp {
         break;
       
       // ============================================
-      // VIBRATO EFFECT
+      // TREMOLO (optical AM, not pitch vibrato)
       // ============================================
       case 'vibrato_speed':
-        // 0.5 Hz to 12 Hz
-        this.vibratoLFO.frequency.setTargetAtTime(0.5 + (value / 100) * 11.5, now, 0.01);
+        // 1.5 Hz to 10 Hz (typical optical tremolo range)
+        this.vibratoLFO.frequency.setTargetAtTime(1.5 + (value / 100) * 8.5, now, 0.02);
         break;
       
       case 'vibrato_intensity':
       case 'vibrato_depth':
-        // Controls both pitch and amplitude modulation depth
-        this.vibratoDepthControl.gain.setTargetAtTime((value / 100) * 0.008, now, 0.01);
+        // AM tremolo depth - optical vibra more in mids/lows, depth up to ~40-50%
+        this.vibratoDepthControl.gain.setTargetAtTime((value / 100) * 0.5, now, 0.02);
         break;
       
       // ============================================
       // MASTER
       // ============================================
-      case 'master':
-        this.master.gain.setTargetAtTime(value / 100, now, 0.01);
+      case 'master': {
+        // Logarithmic taper for better control at low volumes
+        const linLog = (v) => 0.001 * Math.pow(1000, v);
+        this.master.gain.setTargetAtTime(linLog(value / 100), now, 0.01);
+        break;
+      }
+      
+      // ============================================
+      // CABINET
+      // ============================================
+      case 'cabinet_enabled':
+        this.cabinetEnabled = !!value;
+        // Reconnect signal chain with/without cabinet
+        if (this.activeChannel === 'normal') {
+          this.setupNormalChannel();
+        } else {
+          this.setupVibratoChannel();
+        }
         break;
     }
     
@@ -441,18 +507,14 @@ class FenderDeluxeReverbAmp extends BaseAmp {
     this.preamp.disconnect();
     this.preampSaturation.disconnect();
     this.normalVolume.disconnect();
-    this.normalBright.disconnect();
     this.vibratoVolume.disconnect();
     this.vibratoBright.disconnect();
     this.bass.disconnect();
     this.mid.disconnect();
     this.treble.disconnect();
     this.vibratoLFO.disconnect();
-    this.vibratoDelay.disconnect();
     this.vibratoDepthControl.disconnect();
     this.vibratoGain.disconnect();
-    this.powerAmp.disconnect();
-    this.powerSaturation.disconnect();
     this.sparkle.disconnect();
     this.reverbDwell.disconnect();
     this.spring1.disconnect();
@@ -461,6 +523,12 @@ class FenderDeluxeReverbAmp extends BaseAmp {
     this.reverbFilter.disconnect();
     this.reverbFeedback.disconnect();
     this.reverbMix.disconnect();
+    this.reverbSum.disconnect();
+    this.rectifierSag.disconnect();
+    this.powerAmp.disconnect();
+    this.powerSaturation.disconnect();
+    this.postHPF.disconnect();
+    this.postLPF.disconnect();
     this.master.disconnect();
   }
 }
