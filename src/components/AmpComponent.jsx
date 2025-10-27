@@ -3512,6 +3512,9 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                   )}
                 </div>
               </div>
+            ) : amp.ampType === 'mesa_mark_v' ? (
+              /* MESA MARK V - Custom layout only (no standard knobs) */
+              <></>
             ) : (
               /* Standard amp layout */
               <>

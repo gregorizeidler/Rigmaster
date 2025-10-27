@@ -12,7 +12,7 @@
   flex-basis: 100%;
   margin: 0;
   max-width: 100%;
-  transform: scale(0.512);
+  transform: scale(0.75);
   transform-origin: center top;
 }
 
@@ -258,12 +258,12 @@
 }
 
 .config-row label {
-  font-size: 6px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.8px;
   color: #7a95b8;
-  min-width: 44px;
+  min-width: 50px;
 }
 
 .config-row select {
@@ -271,9 +271,9 @@
   background: linear-gradient(180deg, #2a3f5f, #1a2f4f);
   border: 1px solid #3a5f8f;
   border-radius: 3px;
-  padding: 2px 4px;
+  padding: 3px 6px;
   color: #ffffff;
-  font-size: 7px;
+  font-size: 9px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1880,7 +1880,7 @@
 }
 
 .toggle-switch label {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
