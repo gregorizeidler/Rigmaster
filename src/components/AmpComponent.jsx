@@ -60,11 +60,11 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
     const styles = {
       // ORIGINAL 4
       clean: {
-        color: '#000000',
+        color: '#2a2a2a',
         accent: '#silver',
-        grill: '#c0c0c0',
-        logo: 'Twin Reverb',
-        brand: 'FENDER'
+        grill: '#808080',
+        logo: 'Basic Clean',
+        brand: 'GENERIC'
       },
       crunch: {
         color: '#d4af37',
@@ -237,6 +237,13 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
         grill: '#d4c5a0',   // Grade bege/creme
         logo: 'The Duchess',
         brand: 'VICTORY'
+      },
+      fender_twin_reverb: {
+        color: '#000000',  // Preto clássico Fender Blackface
+        accent: '#c0c0c0', // Detalhes prateados
+        grill: '#d4af37',  // Grade dourada característica
+        logo: 'Twin Reverb',
+        brand: 'FENDER'
       }
     };
     return styles[type] || styles.clean;
@@ -251,6 +258,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       clean: ['reverb', 'bright'],
       fender_deluxe: ['fender_deluxe_channel', 'fender_reverb_dwell', 'bright', 'fender_cabinet'],
       fender_bassman: ['fender_bassman_controls'],
+      fender_twin_reverb: ['twin_channel', 'twin_speed', 'twin_intensity', 'reverb', 'reverb_dwell', 'bright', 'cabinet_enabled'],
       
       // VOX AC30 - Full control suite
       vox_ac30: ['vox_channel', 'vox_normal_volume', 'vox_brilliance', 'vox_tremolo', 'vox_vibrato', 'vox_reverb', 'vox_cut', 'vox_pentode_triode'],
@@ -308,6 +316,10 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
   const renderSpecificControl = (controlType) => {
     switch (controlType) {
       case 'reverb':
+        // Para Twin Reverb, usa tamanho menor e label uppercase
+        if (amp.ampType === 'fender_twin_reverb') {
+          return <Knob key="reverb" label="REVERB" value={amp.params?.reverb || 0} onChange={handleKnobChange('reverb')} size={28} />;
+        }
         return <Knob key="reverb" label="Reverb" value={amp.params?.reverb || 0} onChange={handleKnobChange('reverb')} size={32} />;
       case 'bright':
         return (
@@ -337,6 +349,58 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
         return <Knob key="tremolo" label="Tremolo" value={amp.params?.tremolo || 0} onChange={handleKnobChange('tremolo')} size={32} />;
       case 'cut':
         return <Knob key="cut" label="Cut" value={amp.params?.cut || 50} onChange={handleKnobChange('cut')} size={32} />;
+      
+      // ============================================
+      // FENDER TWIN REVERB SPECIFIC CONTROLS
+      // ============================================
+      case 'twin_channel':
+        return (
+          <div key="twin_channel" style={{ display: 'inline-flex', gap: '4px', alignItems: 'center' }}>
+            <button
+              onClick={() => onUpdate(amp.id, 'channel', 'normal')}
+              style={{
+                padding: '4px 8px',
+                fontSize: '9px',
+                fontWeight: 'bold',
+                borderRadius: '3px',
+                border: amp.params?.channel === 'normal' ? '1px solid #d4af37' : '1px solid rgba(192,192,192,0.2)',
+                background: amp.params?.channel === 'normal' ? 'rgba(212,175,55,0.3)' : 'rgba(0,0,0,0.3)',
+                color: amp.params?.channel === 'normal' ? '#d4af37' : '#888',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >NORM</button>
+            <button
+              onClick={() => onUpdate(amp.id, 'channel', 'vibrato')}
+              style={{
+                padding: '4px 8px',
+                fontSize: '9px',
+                fontWeight: 'bold',
+                borderRadius: '3px',
+                border: amp.params?.channel === 'vibrato' ? '1px solid #d4af37' : '1px solid rgba(192,192,192,0.2)',
+                background: amp.params?.channel === 'vibrato' ? 'rgba(212,175,55,0.3)' : 'rgba(0,0,0,0.3)',
+                color: amp.params?.channel === 'vibrato' ? '#d4af37' : '#888',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >VIB</button>
+          </div>
+        );
+      
+      case 'twin_normal_volume':
+        return null; // Volume agora está nos knobs principais
+      
+      case 'twin_vibrato_volume':
+        return null; // Volume agora está nos knobs principais
+      
+      case 'twin_speed':
+        return <Knob key="twin_speed" label="SPEED" value={amp.params?.vibrato_speed || 40} onChange={handleKnobChange('vibrato_speed')} size={28} />;
+      
+      case 'twin_intensity':
+        return <Knob key="twin_intensity" label="INTENS" value={amp.params?.vibrato_intensity || 0} onChange={handleKnobChange('vibrato_intensity')} size={28} />;
+      
+      case 'reverb_dwell':
+        return <Knob key="reverb_dwell" label="DWELL" value={amp.params?.reverb_dwell || 50} onChange={handleKnobChange('reverb_dwell')} size={28} />;
       
       // ============================================
       // VOX AC30 SPECIFIC CONTROLS
@@ -2895,13 +2959,14 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
             onChange={handleTypeChange}
           >
             <optgroup label="🎸 CLASSIC">
-              <option value="clean">Fender Twin Reverb</option>
+              <option value="clean">Basic Clean</option>
               <option value="crunch">Marshall Plexi</option>
               <option value="lead">Mesa Dual Rect</option>
               <option value="metal">ENGL High Gain</option>
             </optgroup>
             
             <optgroup label="🎵 CLEAN/VINTAGE">
+              <option value="fender_twin_reverb">Fender Twin Reverb</option>
               <option value="vox_ac30">Vox AC30</option>
               <option value="fender_deluxe">Fender Deluxe Reverb</option>
               <option value="fender_bassman">Fender Bassman</option>
@@ -2946,7 +3011,22 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
         <div className="amp-control-panel">
           <div className="amp-knobs-section">
             {/* VOX AC30 has different control layout */}
-            {amp.ampType === 'vox_ac30' ? (
+            {amp.ampType === 'fender_twin_reverb' ? (
+              /* FENDER TWIN REVERB - Authentic Blackface layout */
+              <div className="twin-reverb-knobs-layout" style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
+                {/* Volume do canal ativo */}
+                <Knob 
+                  label="VOLUME" 
+                  value={amp.params?.channel === 'normal' ? (amp.params?.normal_volume || 50) : (amp.params?.vibrato_volume || 50)} 
+                  onChange={handleKnobChange(amp.params?.channel === 'normal' ? 'normal_volume' : 'vibrato_volume')} 
+                  size={36} 
+                />
+                <Knob label="TREBLE" value={amp.params?.treble || 60} onChange={handleKnobChange('treble')} size={36} />
+                <Knob label="BASS" value={amp.params?.bass || 50} onChange={handleKnobChange('bass')} size={36} />
+                <Knob label="MID" value={amp.params?.mid || 50} onChange={handleKnobChange('mid')} size={36} />
+                <Knob label="MASTER" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={36} />
+              </div>
+            ) : amp.ampType === 'vox_ac30' ? (
               <div className="vox-knobs-layout">
                 {/* Top Boost Channel: Volume, Bass, Treble, Master */}
                 {amp.params?.channel !== 0 && (
