@@ -127,6 +127,13 @@
   text-shadow: 0 0 1px rgba(255, 255, 255, 0.3);
 }
 
+/* Black labels for Z.Vex Fuzz Factory (hand-painted style) */
+.pedal-zvexfuzzfactory .knob-label {
+  color: #000000;
+  font-weight: 700;
+  text-shadow: 0 0 2px rgba(255, 255, 255, 0.5);
+}
+
 /* Transparent knobs with blue LED for Xotic EP Booster */
 .pedal-xoticep .knob {
   background: 

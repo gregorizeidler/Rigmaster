@@ -644,16 +644,19 @@ const Pedal = ({ effect, onUpdate, onBypass, onRemove }) => {
       
       // ZVEX FUZZ FACTORY - Hand Painted
       zvexfuzzfactory: {
-        primary: '#ff00ff',
-        secondary: '#cc00cc',
-        bgColor: '#9933cc', // Purple/pink hand-painted
-        bodyGradient: 'linear-gradient(145deg, #bb55ee 0%, #9933cc 50%, #772299 100%)',
-        metalColor: '#ff6600', // Colorful knobs
-        ledColor: '#ff0000',
-        label: 'FUZZ',
-        brand: 'Z.VEX',
-        subtitle: 'FACTORY',
-        texture: 'hand-painted'
+        primary: '#000000', // Black text (hand-painted style)
+        secondary: '#1a1a1a',
+        bgColor: '#ffdd22', // Bright yellow (most iconic hand-painted version)
+        bodyGradient: 'linear-gradient(145deg, #ffee55 0%, #ffdd22 50%, #ddbb00 100%)',
+        metalColor: '#2a2a2a', // Simple black knobs
+        knobPointer: '#ffffff', // White pointer
+        ledColor: '#ff0000', // Red LED
+        label: 'Fuzz Factory',
+        brand: 'Z.Vex',
+        labelColor: '#000000', // Black hand-painted text
+        texture: 'hand-painted',
+        footswitchColor: '#c0c0c0', // Metallic silver
+        style: 'psychedelic' // Insane, fun, experimental
       },
       
       // FULLTONE OCD - Cream/Off-white
