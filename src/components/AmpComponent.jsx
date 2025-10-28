@@ -2026,61 +2026,26 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
         return (
           <div key="peavey_5150_controls" className="peavey-5150-full-controls" style={{
             display: 'flex',
-            flexDirection: 'row',
-            gap: '5px',
+            flexDirection: 'column',
+            gap: '4px',
             padding: '5px 6px',
             background: 'repeating-radial-gradient(circle at 2px 2px, rgba(0,0,0,0.5) 0px, transparent 1px), linear-gradient(135deg, #484848 0%, #333333 100%)',
             backgroundSize: '4px 4px, 100% 100%',
             borderRadius: '4px',
             border: '2px solid #2a2a2a',
             boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1), inset 0 2px 4px rgba(0,0,0,0.4)',
-            flexWrap: 'wrap',
-            justifyContent: 'center',
+            maxWidth: '800px',
             alignItems: 'center'
           }}>
-            {/* CHANNEL SELECTOR */}
+            {/* LINHA SUPERIOR - KNOBS */}
             <div style={{
               display: 'flex',
-              flexDirection: 'column',
-              gap: '3px',
-              padding: '4px 6px',
-              background: 'rgba(0,0,0,0.5)',
-              borderRadius: '4px',
-              border: '1px solid rgba(80,80,80,0.4)',
-              alignItems: 'center',
-              position: 'relative'
+              flexDirection: 'row',
+              gap: '5px',
+              flexWrap: 'nowrap',
+              justifyContent: 'center',
+              alignItems: 'center'
             }}>
-              <label style={{ fontSize: '6px', color: '#ffffff', fontWeight: 'bold', marginBottom: '1px' }}>CHANNEL</label>
-              <select 
-                value={amp.params?.channel || 1}
-                onChange={(e) => onUpdate(amp.id, 'channel', parseInt(e.target.value))}
-                style={{
-                  padding: '2px 4px',
-                  background: '#1a1a1a',
-                  color: '#ffffff',
-                  border: '1px solid #555555',
-                  borderRadius: '2px',
-                  fontWeight: 'bold',
-                  fontSize: '7px'
-                }}
-              >
-                <option value={0}>RHYTHM</option>
-                <option value={1}>LEAD</option>
-              </select>
-              {/* LED indicador de canal */}
-              <div style={{
-                position: 'absolute',
-                top: '2px',
-                right: '2px',
-                width: '3px',
-                height: '3px',
-                borderRadius: '50%',
-                background: amp.params?.channel === 1 ? '#ff0000' : '#666666',
-                boxShadow: amp.params?.channel === 1 ? '0 0 6px #ff0000, 0 0 12px rgba(255,0,0,0.6)' : 'none',
-                animation: amp.params?.channel === 1 ? 'pulse 1.5s infinite' : 'none'
-              }}></div>
-            </div>
-
             {/* PREGAIN + POSTGAIN */}
             <div style={{
               display: 'flex',
@@ -2121,12 +2086,95 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
               <Knob label="PRES" value={amp.params?.presence || 50} onChange={handleKnobChange('presence')} size={26} color="#ffffff" />
               <Knob label="RESON" value={amp.params?.resonance || 50} onChange={handleKnobChange('resonance')} size={26} color="#ffffff" />
             </div>
-
-            {/* MASTER + SWITCHES */}
+            </div>
+            
+            {/* LINHA INFERIOR - CHANNEL SELECTOR + MASTER + SWITCHES */}
             <div style={{
               display: 'flex',
-              flexDirection: 'column',
+              flexDirection: 'row',
+              gap: '5px',
+              flexWrap: 'nowrap',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}>
+            {/* CHANNEL SELECTOR */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'row',
               gap: '3px',
+              padding: '4px 6px',
+              background: 'rgba(0,0,0,0.5)',
+              borderRadius: '4px',
+              border: '1px solid rgba(80,80,80,0.4)',
+              alignItems: 'center',
+              position: 'relative'
+            }}>
+              <label style={{ fontSize: '6px', color: '#ffffff', fontWeight: 'bold', marginRight: '3px' }}>CH</label>
+              <button 
+                onClick={() => onUpdate(amp.id, 'channel', 0)}
+                style={{
+                  padding: '3px 8px',
+                  background: (amp.params?.channel || 1) === 0 ? 'linear-gradient(135deg, #c0c0c0 0%, #a0a0a0 100%)' : 'rgba(0,0,0,0.7)',
+                  border: '1px solid ' + ((amp.params?.channel || 1) === 0 ? '#c0c0c0' : '#555'),
+                  color: (amp.params?.channel || 1) === 0 ? '#000' : '#ffffff',
+                  borderRadius: '2px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '7px',
+                  position: 'relative'
+                }}
+              >
+                R
+                {(amp.params?.channel || 1) === 0 && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '1px',
+                    right: '1px',
+                    width: '3px',
+                    height: '3px',
+                    borderRadius: '50%',
+                    background: '#ff0000',
+                    boxShadow: '0 0 6px #ff0000, 0 0 12px rgba(255,0,0,0.6)',
+                    animation: 'pulse 1.5s infinite'
+                  }}></div>
+                )}
+              </button>
+              <button 
+                onClick={() => onUpdate(amp.id, 'channel', 1)}
+                style={{
+                  padding: '3px 8px',
+                  background: (amp.params?.channel || 1) === 1 ? 'linear-gradient(135deg, #c0c0c0 0%, #a0a0a0 100%)' : 'rgba(0,0,0,0.7)',
+                  border: '1px solid ' + ((amp.params?.channel || 1) === 1 ? '#c0c0c0' : '#555'),
+                  color: (amp.params?.channel || 1) === 1 ? '#000' : '#ffffff',
+                  borderRadius: '2px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '7px',
+                  position: 'relative'
+                }}
+              >
+                L
+                {(amp.params?.channel || 1) === 1 && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '1px',
+                    right: '1px',
+                    width: '3px',
+                    height: '3px',
+                    borderRadius: '50%',
+                    background: '#ff0000',
+                    boxShadow: '0 0 6px #ff0000, 0 0 12px rgba(255,0,0,0.6)',
+                    animation: 'pulse 1.5s infinite'
+                  }}></div>
+                )}
+              </button>
+            </div>
+
+            {/* MASTER + SWITCHES HORIZONTAL */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'row',
+              gap: '4px',
               padding: '4px 6px',
               background: 'rgba(0,0,0,0.3)',
               borderRadius: '4px',
@@ -2135,94 +2183,54 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
             }}>
               <Knob label="MASTER" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={28} color="#ffffff" />
               
-              <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                <div className="toggle-switch" style={{ position: 'relative' }}>
-                  <label style={{ fontSize: '6px', color: '#ffffff', fontWeight: 'bold' }}>BRIGHT</label>
-                  <input 
-                    type="checkbox" 
-                    checked={amp.params?.bright || false}
-                    onChange={(e) => onUpdate(amp.id, 'bright', e.target.checked)}
-                  />
-                  {amp.params?.bright && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '-2px',
-                      right: '-2px',
-                      width: '4px',
-                      height: '4px',
-                      borderRadius: '50%',
-                      background: '#ff0000',
-                      boxShadow: '0 0 6px #ff0000, 0 0 12px rgba(255,0,0,0.6)',
-                      animation: 'pulse 1.5s infinite'
-                    }}></div>
-                  )}
-                </div>
-                
-                <div className="toggle-switch" style={{ position: 'relative' }}>
-                  <label style={{ fontSize: '6px', color: '#ffffff', fontWeight: 'bold' }}>GATE</label>
-                  <input 
-                    type="checkbox" 
-                    checked={amp.params?.gate || false}
-                    onChange={(e) => onUpdate(amp.id, 'gate', e.target.checked)}
-                  />
-                  {amp.params?.gate && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '-2px',
-                      right: '-2px',
-                      width: '4px',
-                      height: '4px',
-                      borderRadius: '50%',
-                      background: '#ff0000',
-                      boxShadow: '0 0 6px #ff0000, 0 0 12px rgba(255,0,0,0.6)',
-                      animation: 'pulse 1.5s infinite'
-                    }}></div>
-                  )}
-                </div>
-                
-                <div className="toggle-switch" style={{ position: 'relative' }}>
-                  <label style={{ fontSize: '6px', color: '#ffffff', fontWeight: 'bold' }}>CRUNCH</label>
-                  <input 
-                    type="checkbox" 
-                    checked={amp.params?.crunch || false}
-                    onChange={(e) => onUpdate(amp.id, 'crunch', e.target.checked)}
-                  />
-                  {amp.params?.crunch && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '-2px',
-                      right: '-2px',
-                      width: '4px',
-                      height: '4px',
-                      borderRadius: '50%',
-                      background: '#ff0000',
-                      boxShadow: '0 0 6px #ff0000, 0 0 12px rgba(255,0,0,0.6)',
-                      animation: 'pulse 1.5s infinite'
-                    }}></div>
-                  )}
-                </div>
+              <div className="toggle-switch" style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                <label style={{ fontSize: '6px', color: '#ffffff', fontWeight: 'bold' }}>BRT</label>
+                <input 
+                  type="checkbox" 
+                  checked={amp.params?.bright || false}
+                  onChange={(e) => onUpdate(amp.id, 'bright', e.target.checked)}
+                  style={{ transform: 'scale(0.7)' }}
+                />
               </div>
               
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' }}>
-                <label style={{ fontSize: '5px', color: '#ffffff', fontWeight: 'bold' }}>IMPEDANCE</label>
-                <select 
-                  value={amp.params?.speaker_impedance || 16}
-                  onChange={(e) => onUpdate(amp.id, 'speaker_impedance', parseInt(e.target.value))}
-                  style={{
-                    padding: '1px 3px',
-                    background: '#1a1a1a',
-                    color: '#ffffff',
-                    border: '1px solid #555555',
-                    borderRadius: '2px',
-                    fontWeight: 'bold',
-                    fontSize: '6px'
-                  }}
-                >
-                  <option value={4}>4Ω</option>
-                  <option value={8}>8Ω</option>
-                  <option value={16}>16Ω</option>
-                </select>
+              <div className="toggle-switch" style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                <label style={{ fontSize: '6px', color: '#ffffff', fontWeight: 'bold' }}>GT</label>
+                <input 
+                  type="checkbox" 
+                  checked={amp.params?.gate || false}
+                  onChange={(e) => onUpdate(amp.id, 'gate', e.target.checked)}
+                  style={{ transform: 'scale(0.7)' }}
+                />
               </div>
+              
+              <div className="toggle-switch" style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                <label style={{ fontSize: '6px', color: '#ffffff', fontWeight: 'bold' }}>CR</label>
+                <input 
+                  type="checkbox" 
+                  checked={amp.params?.crunch || false}
+                  onChange={(e) => onUpdate(amp.id, 'crunch', e.target.checked)}
+                  style={{ transform: 'scale(0.7)' }}
+                />
+              </div>
+              
+              <select 
+                value={amp.params?.speaker_impedance || 16}
+                onChange={(e) => onUpdate(amp.id, 'speaker_impedance', parseInt(e.target.value))}
+                style={{
+                  padding: '1px 3px',
+                  background: '#1a1a1a',
+                  color: '#ffffff',
+                  border: '1px solid #555555',
+                  borderRadius: '2px',
+                  fontWeight: 'bold',
+                  fontSize: '6px'
+                }}
+              >
+                <option value={4}>4Ω</option>
+                <option value={8}>8Ω</option>
+                <option value={16}>16Ω</option>
+              </select>
+            </div>
             </div>
           </div>
         );
