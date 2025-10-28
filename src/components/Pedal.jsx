@@ -602,8 +602,7 @@ const Pedal = ({ effect, onUpdate, onBypass, onRemove }) => {
         metalColor: '#2a2a2a', // Black knobs
         ledColor: '#ff0000',
         label: 'RAT',
-        brand: 'ProCo',
-        subtitle: 'DISTORTION'
+        brand: 'ProCo'
       },
       
       // BOSS BD-2 - Blue
