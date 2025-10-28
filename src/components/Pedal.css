@@ -19,6 +19,22 @@
   border: 1px solid rgba(0, 0, 0, 0.8);
 }
 
+/* Fulltone OCD - Compact size to match other pedals */
+.pedal-fulltoneocd {
+  width: 180px;
+  padding: 20px 12px 15px 12px;
+  gap: 12px;
+}
+
+.pedal-fulltoneocd .pedal-header {
+  text-align: left;
+}
+
+.pedal-fulltoneocd .pedal-footswitch {
+  align-self: flex-start;
+  margin-left: 15px;
+}
+
 /* LARGE PEDALS (Timeline, Bigsky, etc) */
 .pedal[data-size="large"] {
   width: 400px;
