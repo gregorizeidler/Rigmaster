@@ -1949,36 +1949,97 @@
   background: 
     repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(139,105,20,0.15) 2px, rgba(139,105,20,0.15) 4px),
     linear-gradient(180deg, #e5c88d 0%, #d4af37 50%, #c9a959 100%);
-  border: 3px solid #654321;
+  border: 2px solid #654321;
   box-shadow: 
-    0 10px 40px rgba(212, 175, 55, 0.4),
-    inset 0 2px 0 rgba(255, 235, 180, 0.3);
+    0 8px 30px rgba(212, 175, 55, 0.4),
+    inset 0 1px 0 rgba(255, 235, 180, 0.3);
+  max-width: 750px;
+  padding: 2px 3px;
+  min-height: auto;
+  border-radius: 6px;
 }
 
 .amp-head.amp-dumble_ods .amp-head-top {
   background: linear-gradient(180deg, #8b7355 0%, #654321 100%);
-  border-bottom: 3px solid #d4af37;
+  border-bottom: 2px solid #d4af37;
+  padding: 2px 4px;
+  min-height: auto;
 }
 
 .amp-head.amp-dumble_ods .brand-text {
   color: #ffd700;
   font-weight: 900;
-  letter-spacing: 4px;
+  letter-spacing: 3px;
+  font-size: 9px;
 }
 
 .amp-head.amp-dumble_ods .model-text {
   color: #ffffff;
   text-shadow: 0 0 12px rgba(255, 215, 0, 0.6);
+  font-size: 8px;
 }
 
 .amp-head.amp-dumble_ods ~ .amp-cabinet {
   background: linear-gradient(180deg, #d4af37 0%, #c9a959 100%);
-  border: 3px solid #654321;
+  border: 2px solid #654321;
+  max-width: 750px;
+  padding: 2px 3px;
+  min-height: auto;
+  border-radius: 6px;
+}
+
+.amp-head.amp-dumble_ods ~ .amp-cabinet .cabinet-config {
+  padding: 4px 6px;
+  min-height: auto;
+}
+
+.amp-head.amp-dumble_ods ~ .amp-cabinet .cabinet-config label {
+  color: #ffd700;
+  font-size: 9px;
+  padding: 2px 4px;
+  min-height: auto;
+}
+
+.amp-head.amp-dumble_ods ~ .amp-cabinet .config-row select {
+  background: linear-gradient(180deg, #d4af37, #c9a959);
+  border: 1px solid #654321;
+  color: #000000;
+  font-size: 9px;
+  padding: 2px 4px;
+  min-height: auto;
+}
+
+.amp-head.amp-dumble_ods ~ .amp-cabinet .config-row select:hover {
+  background: linear-gradient(180deg, #e5c88d, #d4af37);
+  border-color: #ffd700;
+  box-shadow:
+    0 3px 10px rgba(212, 175, 55, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.amp-head.amp-dumble_ods ~ .amp-cabinet .config-row select:focus {
+  border-color: #ffd700;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+}
+
+.amp-head.amp-dumble_ods ~ .amp-cabinet .config-row option {
+  background: #c9a959;
+  color: #000000;
+}
+
+.amp-head.amp-dumble_ods ~ .amp-cabinet .cabinet-speaker-grill {
+  background: radial-gradient(circle at 30% 30%, #c9a959 0%, #d4af37 50%, #b8944a 100%);
+  padding: 6px;
+  min-height: 55px;
 }
 
 .amp-head.amp-dumble_ods ~ .amp-cabinet .speaker-cone {
-  background: linear-gradient(135deg, #8b7355, #654321);
+  background: radial-gradient(circle at 35% 35%, #8b7355, #654321, #4a3a2a);
   border: 2px solid #d4af37;
+  box-shadow:
+    0 1px 8px rgba(212, 175, 55, 0.3),
+    inset 0 1px 4px rgba(0, 0, 0, 0.6),
+    inset 0 -1px 4px rgba(212, 175, 55, 0.2);
 }
 
 /* MESA MARK V - Black/Orange */

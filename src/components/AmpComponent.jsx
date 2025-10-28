@@ -4117,20 +4117,20 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                 <Knob label="VOLUME" value={amp.params?.volume || 70} onChange={handleKnobChange('volume')} size={36} />
               </div>
             ) : amp.ampType === 'dumble_ods' ? (
-              /* DUMBLE ODS - Super compact like other amps */
+              /* DUMBLE ODS - Ultra compact */
               <div className="dumble-ods-front-panel" style={{ 
                 display: 'flex', 
-                gap: '4px', 
+                gap: '1px', 
                 justifyContent: 'center',
                 flexWrap: 'wrap',
-                padding: '2px 4px'
+                padding: '1px 2px'
               }}>
                 {/* Inline: Channel + Knobs */}
                 <div style={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
                   <button 
                     onClick={() => onUpdate(amp.id, 'channel', 0)}
                     style={{
-                      padding: '2px 5px',
+                      padding: '2px 4px',
                       background: amp.params?.channel === 0 ? '#d4af37' : 'rgba(0,0,0,0.5)',
                       border: '1px solid #d4af37',
                       color: amp.params?.channel === 0 ? '#000' : '#d4af37',
@@ -4144,7 +4144,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                   <button 
                     onClick={() => onUpdate(amp.id, 'channel', 1)}
                     style={{
-                      padding: '2px 5px',
+                      padding: '2px 4px',
                       background: amp.params?.channel === 1 ? '#d4af37' : 'rgba(0,0,0,0.5)',
                       border: '1px solid #d4af37',
                       color: amp.params?.channel === 1 ? '#000' : '#d4af37',
@@ -4157,38 +4157,38 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                   >O</button>
                 </div>
 
-                <Knob label="Clean" value={amp.params?.clean_volume || 50} onChange={handleKnobChange('clean_volume')} size={26} />
-                <Knob label="Drive" value={amp.params?.od_drive || 50} onChange={handleKnobChange('od_drive')} size={26} />
-                <Knob label="OD" value={amp.params?.od_volume || 50} onChange={handleKnobChange('od_volume')} size={26} />
-                <Knob label="Ratio" value={amp.params?.ratio || 50} onChange={handleKnobChange('ratio')} size={24} />
-                <Knob label="Bass" value={amp.params?.bass || 50} onChange={handleKnobChange('bass')} size={26} />
-                <Knob label="Mid" value={amp.params?.mid || 55} onChange={handleKnobChange('mid')} size={26} />
-                <Knob label="Treble" value={amp.params?.treble || 60} onChange={handleKnobChange('treble')} size={26} />
-                <Knob label="Pres" value={amp.params?.presence || 50} onChange={handleKnobChange('presence')} size={26} />
-                <Knob label="Master" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={28} />
+                <Knob label="Clean" value={amp.params?.clean_volume || 50} onChange={handleKnobChange('clean_volume')} size={20} />
+                <Knob label="Drive" value={amp.params?.od_drive || 50} onChange={handleKnobChange('od_drive')} size={20} />
+                <Knob label="OD" value={amp.params?.od_volume || 50} onChange={handleKnobChange('od_volume')} size={20} />
+                <Knob label="Ratio" value={amp.params?.ratio || 50} onChange={handleKnobChange('ratio')} size={18} />
+                <Knob label="Bass" value={amp.params?.bass || 50} onChange={handleKnobChange('bass')} size={20} />
+                <Knob label="Mid" value={amp.params?.mid || 55} onChange={handleKnobChange('mid')} size={20} />
+                <Knob label="Treble" value={amp.params?.treble || 60} onChange={handleKnobChange('treble')} size={20} />
+                <Knob label="Pres" value={amp.params?.presence || 50} onChange={handleKnobChange('presence')} size={20} />
+                <Knob label="Master" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={22} />
 
                 {/* Compact switches */}
                 <div style={{ 
                   width: '100%', 
                   display: 'flex', 
-                  gap: '3px', 
+                  gap: '4px', 
                   justifyContent: 'center',
                   flexWrap: 'wrap',
-                  padding: '2px 0',
+                  padding: '3px 0',
                   borderTop: '1px solid rgba(212,175,55,0.2)',
-                  marginTop: '1px'
+                  marginTop: '2px'
                 }}>
                   <label style={{ 
                     display: 'flex', 
                     alignItems: 'center', 
-                    gap: '1px', 
-                    fontSize: '6px', 
+                    gap: '3px', 
+                    fontSize: '9px', 
                     fontWeight: 'bold',
                     color: '#d4af37',
                     cursor: 'pointer',
-                    padding: '1px 3px',
+                    padding: '3px 6px',
                     background: amp.params?.pab ? 'rgba(212,175,55,0.25)' : 'rgba(0,0,0,0.3)',
-                    borderRadius: '2px',
+                    borderRadius: '3px',
                     border: '1px solid rgba(212,175,55,0.4)',
                     lineHeight: '1'
                   }}>
@@ -4196,7 +4196,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                       type="checkbox" 
                       checked={amp.params?.pab || false}
                       onChange={(e) => onUpdate(amp.id, 'pab', e.target.checked)}
-                      style={{ cursor: 'pointer', width: '8px', height: '8px', margin: 0 }}
+                      style={{ cursor: 'pointer', width: '12px', height: '12px', margin: 0 }}
                     />
                     PAB
                   </label>
@@ -4204,13 +4204,13 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                   <label style={{ 
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '1px',
-                    fontSize: '6px', 
+                    gap: '3px',
+                    fontSize: '9px', 
                     fontWeight: 'bold',
                     color: '#d4af37',
-                    padding: '1px 3px',
+                    padding: '3px 6px',
                     background: (amp.params?.bright_mode || 0) > 0 ? 'rgba(212,175,55,0.25)' : 'rgba(0,0,0,0.3)',
-                    borderRadius: '2px',
+                    borderRadius: '3px',
                     border: '1px solid rgba(212,175,55,0.4)',
                     lineHeight: '1'
                   }}>
@@ -4219,14 +4219,14 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                       value={amp.params?.bright_mode || 0}
                       onChange={(e) => onUpdate(amp.id, 'bright_mode', parseInt(e.target.value))}
                       style={{
-                        fontSize: '6px',
-                        padding: '0 1px',
+                        fontSize: '9px',
+                        padding: '2px 4px',
                         background: 'rgba(0,0,0,0.5)',
                         color: '#d4af37',
                         border: '1px solid rgba(212,175,55,0.4)',
-                        borderRadius: '2px',
+                        borderRadius: '3px',
                         cursor: 'pointer',
-                        height: '12px',
+                        height: '18px',
                         lineHeight: '1'
                       }}
                     >
@@ -4239,13 +4239,13 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                   <label style={{ 
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '1px',
-                    fontSize: '6px', 
+                    gap: '3px',
+                    fontSize: '9px', 
                     fontWeight: 'bold',
                     color: '#d4af37',
-                    padding: '1px 3px',
+                    padding: '3px 6px',
                     background: 'rgba(0,0,0,0.3)',
-                    borderRadius: '2px',
+                    borderRadius: '3px',
                     border: '1px solid rgba(212,175,55,0.4)',
                     lineHeight: '1'
                   }}>
@@ -4253,14 +4253,14 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                       value={amp.params?.voicing || 'rock'}
                       onChange={(e) => onUpdate(amp.id, 'voicing', e.target.value)}
                       style={{
-                        fontSize: '6px',
-                        padding: '0 1px',
+                        fontSize: '9px',
+                        padding: '2px 4px',
                         background: 'rgba(0,0,0,0.5)',
                         color: '#d4af37',
                         border: '1px solid rgba(212,175,55,0.4)',
-                        borderRadius: '2px',
+                        borderRadius: '3px',
                         cursor: 'pointer',
-                        height: '12px',
+                        height: '18px',
                         lineHeight: '1'
                       }}
                     >
@@ -4272,14 +4272,14 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                   <label style={{ 
                     display: 'flex', 
                     alignItems: 'center', 
-                    gap: '1px', 
-                    fontSize: '6px', 
+                    gap: '3px', 
+                    fontSize: '9px', 
                     fontWeight: 'bold',
                     color: '#d4af37',
                     cursor: 'pointer',
-                    padding: '1px 3px',
+                    padding: '3px 6px',
                     background: amp.params?.mid_boost ? 'rgba(212,175,55,0.25)' : 'rgba(0,0,0,0.3)',
-                    borderRadius: '2px',
+                    borderRadius: '3px',
                     border: '1px solid rgba(212,175,55,0.4)',
                     lineHeight: '1'
                   }}>
@@ -4287,7 +4287,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                       type="checkbox" 
                       checked={amp.params?.mid_boost || false}
                       onChange={(e) => onUpdate(amp.id, 'mid_boost', e.target.checked)}
-                      style={{ cursor: 'pointer', width: '8px', height: '8px', margin: 0 }}
+                      style={{ cursor: 'pointer', width: '12px', height: '12px', margin: 0 }}
                     />
                     M+
                   </label>
@@ -4295,14 +4295,14 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                   <label style={{ 
                     display: 'flex', 
                     alignItems: 'center', 
-                    gap: '1px', 
-                    fontSize: '6px', 
+                    gap: '3px', 
+                    fontSize: '9px', 
                     fontWeight: 'bold',
                     color: '#d4af37',
                     cursor: 'pointer',
-                    padding: '1px 3px',
+                    padding: '3px 6px',
                     background: amp.params?.deep ? 'rgba(212,175,55,0.25)' : 'rgba(0,0,0,0.3)',
-                    borderRadius: '2px',
+                    borderRadius: '3px',
                     border: '1px solid rgba(212,175,55,0.4)',
                     lineHeight: '1'
                   }}>
@@ -4310,7 +4310,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                       type="checkbox" 
                       checked={amp.params?.deep || false}
                       onChange={(e) => onUpdate(amp.id, 'deep', e.target.checked)}
-                      style={{ cursor: 'pointer', width: '8px', height: '8px', margin: 0 }}
+                      style={{ cursor: 'pointer', width: '12px', height: '12px', margin: 0 }}
                     />
                     DPH
                   </label>
@@ -4318,14 +4318,14 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                   <label style={{ 
                     display: 'flex', 
                     alignItems: 'center', 
-                    gap: '1px', 
-                    fontSize: '6px', 
+                    gap: '3px', 
+                    fontSize: '9px', 
                     fontWeight: 'bold',
                     color: '#d4af37',
                     cursor: 'pointer',
-                    padding: '1px 3px',
+                    padding: '3px 6px',
                     background: amp.params?.hrm ? 'rgba(212,175,55,0.25)' : 'rgba(0,0,0,0.3)',
-                    borderRadius: '2px',
+                    borderRadius: '3px',
                     border: '1px solid rgba(212,175,55,0.4)',
                     lineHeight: '1'
                   }}>
@@ -4333,7 +4333,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                       type="checkbox" 
                       checked={amp.params?.hrm || false}
                       onChange={(e) => onUpdate(amp.id, 'hrm', e.target.checked)}
-                      style={{ cursor: 'pointer', width: '8px', height: '8px', margin: 0 }}
+                      style={{ cursor: 'pointer', width: '12px', height: '12px', margin: 0 }}
                     />
                     HRM
                   </label>
@@ -4341,14 +4341,14 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                   <label style={{ 
                     display: 'flex', 
                     alignItems: 'center', 
-                    gap: '1px', 
-                    fontSize: '6px', 
+                    gap: '3px', 
+                    fontSize: '9px', 
                     fontWeight: 'bold',
                     color: '#d4af37',
                     cursor: 'pointer',
-                    padding: '1px 3px',
+                    padding: '3px 6px',
                     background: amp.params?.cab_sim ? 'rgba(212,175,55,0.25)' : 'rgba(0,0,0,0.3)',
-                    borderRadius: '2px',
+                    borderRadius: '3px',
                     border: '1px solid rgba(212,175,55,0.4)',
                     lineHeight: '1'
                   }}>
@@ -4356,7 +4356,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                       type="checkbox" 
                       checked={amp.params?.cab_sim || false}
                       onChange={(e) => onUpdate(amp.id, 'cab_sim', e.target.checked)}
-                      style={{ cursor: 'pointer', width: '8px', height: '8px', margin: 0 }}
+                      style={{ cursor: 'pointer', width: '12px', height: '12px', margin: 0 }}
                     />
                     CAB
                   </label>
