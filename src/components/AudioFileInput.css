@@ -1,0 +1,416 @@
+.audio-file-input {
+  background: var(--surface-color, #1a1a1a);
+  border: 2px solid var(--border-color, #333);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+}
+
+.audio-file-input.active {
+  border-color: var(--accent-color, #00ff88);
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+}
+
+.audio-file-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color, #333);
+}
+
+.audio-file-header svg {
+  color: var(--accent-color, #00ff88);
+}
+
+.audio-file-header h3 {
+  flex: 1;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-color, #fff);
+}
+
+.toggle-button {
+  padding: 6px 16px;
+  background: var(--accent-color, #00ff88);
+  color: var(--bg-color, #000);
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toggle-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 255, 136, 0.3);
+}
+
+.audio-file-input:not(.active) .toggle-button {
+  background: var(--border-color, #444);
+  color: var(--text-muted, #999);
+}
+
+/* Upload Section */
+.audio-file-upload {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.upload-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 32px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.upload-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.upload-button:active {
+  transform: translateY(-1px);
+}
+
+.upload-hint {
+  margin-top: 16px;
+  color: var(--text-muted, #999);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.upload-hint small {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-muted, #777);
+}
+
+/* Player Section */
+.audio-file-player {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.file-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.file-name svg {
+  flex-shrink: 0;
+  color: var(--accent-color, #00ff88);
+}
+
+.file-name span {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-color, #fff);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.remove-file-button {
+  padding: 6px;
+  background: transparent;
+  border: 1px solid var(--border-color, #444);
+  border-radius: 4px;
+  color: var(--text-muted, #999);
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.remove-file-button:hover {
+  background: rgba(255, 68, 68, 0.1);
+  border-color: #ff4444;
+  color: #ff4444;
+}
+
+.file-meta {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-muted, #999);
+}
+
+/* Playback Controls */
+.playback-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+}
+
+.play-pause-button {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-color, #00ff88);
+  border: none;
+  border-radius: 50%;
+  color: var(--bg-color, #000);
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(0, 255, 136, 0.3);
+}
+
+.play-pause-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 255, 136, 0.5);
+}
+
+.play-pause-button.playing {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  box-shadow: 0 4px 12px rgba(245, 87, 108, 0.4);
+}
+
+.loop-button {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-light, #2a2a2a);
+  border: 2px solid var(--border-color, #444);
+  border-radius: 8px;
+  color: var(--text-muted, #999);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.loop-button:hover {
+  border-color: var(--accent-color, #00ff88);
+  color: var(--accent-color, #00ff88);
+}
+
+.loop-button.active {
+  background: var(--accent-color, #00ff88);
+  border-color: var(--accent-color, #00ff88);
+  color: var(--bg-color, #000);
+}
+
+.stop-button {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-light, #2a2a2a);
+  border: 2px solid var(--border-color, #444);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.stop-button:hover {
+  border-color: #ff4444;
+  background: rgba(255, 68, 68, 0.1);
+}
+
+.stop-icon {
+  width: 14px;
+  height: 14px;
+  background: var(--text-muted, #999);
+  border-radius: 2px;
+}
+
+.stop-button:hover .stop-icon {
+  background: #ff4444;
+}
+
+/* Progress Bar */
+.progress-bar {
+  position: relative;
+  height: 32px;
+  background: var(--surface-light, #2a2a2a);
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.progress-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-color, #00ff88) 0%, #00ccff 100%);
+  transition: width 0.1s linear;
+  border-radius: 6px;
+}
+
+.progress-time {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-color, #fff);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Volume Control */
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--surface-light, #2a2a2a);
+  border-radius: 8px;
+}
+
+.volume-control svg {
+  color: var(--text-muted, #999);
+  flex-shrink: 0;
+}
+
+.volume-slider {
+  flex: 1;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--border-color, #444);
+  border-radius: 2px;
+  outline: none;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent-color, #00ff88);
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 255, 136, 0.4);
+  transition: all 0.2s;
+}
+
+.volume-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 3px 12px rgba(0, 255, 136, 0.6);
+}
+
+.volume-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent-color, #00ff88);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 6px rgba(0, 255, 136, 0.4);
+  transition: all 0.2s;
+}
+
+.volume-slider::-moz-range-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 3px 12px rgba(0, 255, 136, 0.6);
+}
+
+.volume-value {
+  min-width: 40px;
+  text-align: right;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-color, #fff);
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .audio-file-input {
+  background: #0a0a0a;
+  border-color: #222;
+}
+
+[data-theme="dark"] .audio-file-input.active {
+  border-color: #00ff88;
+}
+
+[data-theme="dark"] .progress-bar,
+[data-theme="dark"] .volume-control {
+  background: #1a1a1a;
+}
+
+/* Light theme adjustments */
+[data-theme="light"] .audio-file-input {
+  background: #ffffff;
+  border-color: #e0e0e0;
+}
+
+[data-theme="light"] .audio-file-header h3,
+[data-theme="light"] .file-name span,
+[data-theme="light"] .progress-time,
+[data-theme="light"] .volume-value {
+  color: #1a1a1a;
+}
+
+[data-theme="light"] .upload-hint,
+[data-theme="light"] .file-meta {
+  color: #666;
+}
+
+[data-theme="light"] .progress-bar,
+[data-theme="light"] .volume-control {
+  background: #f5f5f5;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .audio-file-input {
+    padding: 16px;
+  }
+
+  .audio-file-header h3 {
+    font-size: 16px;
+  }
+
+  .upload-button {
+    padding: 12px 24px;
+    font-size: 14px;
+  }
+
+  .play-pause-button {
+    width: 48px;
+    height: 48px;
+  }
+
+  .loop-button,
+  .stop-button {
+    width: 36px;
+    height: 36px;
+  }
+}
+

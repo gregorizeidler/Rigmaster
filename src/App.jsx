@@ -104,6 +104,7 @@ import EffectIcon from './components/EffectIcon';
 import RecorderPanel from './components/RecorderPanel';
 import InputMonitor from './components/InputMonitor';
 import AudioDeviceSelector from './components/AudioDeviceSelector';
+import AudioFileInput from './components/AudioFileInput';
 import PresetManager from './utils/PresetManager';
 import { useTheme } from './contexts/ThemeContext';
 import useKeyboardShortcuts from './hooks/useKeyboardShortcuts';
@@ -117,6 +118,7 @@ function App() {
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [showPresetMenu, setShowPresetMenu] = useState(false);
   const [selectedAudioDevice, setSelectedAudioDevice] = useState(null);
+  const [usingAudioFile, setUsingAudioFile] = useState(false);
   const [presets, setPresets] = useState([]);
   const [selectedEffect, setSelectedEffect] = useState(null);
   const [backendConnected, setBackendConnected] = useState(false);
@@ -916,6 +918,13 @@ function App() {
         <AudioDeviceSelector 
           onDeviceChange={handleDeviceChange}
           currentDevice={selectedAudioDevice}
+        />
+
+        {/* Audio File Input - Upload audio files to test effects */}
+        <AudioFileInput 
+          audioEngine={audioEngineRef.current}
+          isActive={usingAudioFile}
+          onToggle={() => setUsingAudioFile(!usingAudioFile)}
         />
 
         {/* Input Monitor - Always Visible */}
