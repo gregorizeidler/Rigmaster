@@ -120,6 +120,13 @@
   text-shadow: 0 1px 2px rgba(212, 175, 55, 0.3);
 }
 
+/* Black labels for MXR Distortion+ on yellow background */
+.pedal-mxrdistortionplus .knob-label {
+  color: #000000;
+  font-weight: 700;
+  text-shadow: 0 0 1px rgba(255, 255, 255, 0.3);
+}
+
 /* Transparent knobs with blue LED for Xotic EP Booster */
 .pedal-xoticep .knob {
   background: 

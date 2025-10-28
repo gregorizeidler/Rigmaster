@@ -726,15 +726,18 @@ const Pedal = ({ effect, onUpdate, onBypass, onRemove }) => {
       
       // MXR DISTORTION+ - Yellow
       mxrdistortionplus: {
-        primary: '#ff0000',
-        secondary: '#cc0000',
-        bgColor: '#ffdd00', // MXR yellow
+        primary: '#000000', // Black text (authentic)
+        secondary: '#1a1a1a',
+        bgColor: '#ffdd00', // Bright MXR yellow
         bodyGradient: 'linear-gradient(145deg, #ffee22 0%, #ffdd00 50%, #ddbb00 100%)',
-        metalColor: '#2a2a2a',
-        ledColor: '#ff0000',
-        label: 'M104',
+        metalColor: '#2a2a2a', // Black knobs
+        knobPointer: '#ffffff', // White pointer
+        ledColor: '#ff0000', // Simple red LED
+        label: 'Distortion+',
         brand: 'MXR',
-        subtitle: 'Distortion +'
+        labelColor: '#000000', // Black text on yellow
+        texture: 'matte',
+        style: 'vintage' // Classic rock vintage feel
       },
       
       // MXR PHASE 90 - Orange
