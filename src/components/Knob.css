@@ -106,6 +106,60 @@
   text-shadow: 0 0 2px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
+/* Transparent knobs with blue LED for Xotic EP Booster */
+.pedal-xoticep .knob {
+  background: 
+    radial-gradient(circle at 30% 30%, 
+      rgba(255, 255, 255, 0.3), 
+      rgba(255, 255, 255, 0.1), 
+      rgba(200, 200, 200, 0.15)
+    );
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  box-shadow:
+    inset 0 2px 4px rgba(255, 255, 255, 0.3),
+    inset 0 -2px 8px rgba(0, 0, 0, 0.4),
+    inset 0 0 20px rgba(0, 170, 255, 0.3),
+    0 4px 8px rgba(0, 0, 0, 0.6),
+    0 8px 16px rgba(0, 0, 0, 0.4),
+    0 0 15px rgba(0, 170, 255, 0.2);
+}
+
+.pedal-xoticep .knob::before {
+  background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.4) 0%, transparent 60%);
+}
+
+.pedal-xoticep .knob::after {
+  background: radial-gradient(circle at 50% 50%, #00aaff 0%, #0088cc 100%);
+  box-shadow: 
+    inset 0 1px 3px rgba(0, 0, 0, 0.9),
+    0 0 10px rgba(0, 170, 255, 0.8),
+    0 0 20px rgba(0, 170, 255, 0.4);
+}
+
+.pedal-xoticep .knob-indicator {
+  background: linear-gradient(180deg, #00aaff 0%, #0099dd 50%, #0088cc 100%);
+  box-shadow: 
+    0 0 10px rgba(0, 170, 255, 1),
+    0 0 20px rgba(0, 170, 255, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.pedal-xoticep .knob:hover {
+  box-shadow:
+    inset 0 2px 4px rgba(255, 255, 255, 0.4),
+    inset 0 -2px 8px rgba(0, 0, 0, 0.4),
+    inset 0 0 25px rgba(0, 170, 255, 0.5),
+    0 4px 8px rgba(0, 0, 0, 0.6),
+    0 8px 16px rgba(0, 0, 0, 0.4),
+    0 0 20px rgba(0, 170, 255, 0.5);
+}
+
+.pedal-xoticep .knob-label {
+  color: #333333;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
 /* ============================================
    KNOB TOOLTIP
    ======================================== */

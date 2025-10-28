@@ -705,6 +705,24 @@ const Pedal = ({ effect, onUpdate, onBypass, onRemove }) => {
         style: 'boutique' // Vintage artisan feel
       },
       
+      // XOTIC EP BOOSTER - Metallic with transparent knobs
+      xoticep: {
+        primary: '#ffffff', // White text
+        secondary: '#e0e0e0',
+        bgColor: '#b8b8b8', // Metallic silver/aluminum
+        bodyGradient: 'linear-gradient(145deg, #d0d0d0 0%, #b8b8b8 50%, #9a9a9a 100%)',
+        metalColor: 'rgba(255, 255, 255, 0.15)', // Transparent knobs
+        knobPointer: '#00aaff', // Blue LED pointer
+        ledColor: '#00aaff', // Blue LED
+        label: 'EP BOOSTER',
+        brand: 'Xotic',
+        labelColor: '#333333', // Dark gray text for contrast
+        texture: 'metallic',
+        footswitchColor: '#b8b8b8', // Metallic footswitch
+        style: 'hifi-boutique', // Vintage, hi-fi and artisan
+        knobStyle: 'transparent-blue' // Special knob style
+      },
+      
       // MXR DISTORTION+ - Yellow
       mxrdistortionplus: {
         primary: '#ff0000',
@@ -1125,6 +1143,12 @@ const Pedal = ({ effect, onUpdate, onBypass, onRemove }) => {
               <span style={{ fontSize: '8px', color: '#ffffff', fontWeight: 'bold', opacity: 0.7 }}>HI</span>
             </div>
           </div>
+        );
+      case 'xoticep':
+        return (
+          <>
+            <Knob label="Boost" value={effect.params?.boost || 50} onChange={handleKnobChange('boost')} />
+          </>
         );
       case 'procorat':
         return (
