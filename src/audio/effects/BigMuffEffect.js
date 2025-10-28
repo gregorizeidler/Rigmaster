@@ -1,137 +1,211 @@
 import BaseEffect from './BaseEffect';
 
+/**
+ * BigMuffEffect (turbo)
+ * 
+ * Electro-Harmonix Big Muff Pi com:
+ *  - Dual-stage diode clipping (2 estágios com características diferentes)
+ *  - HPF de entrada (~90Hz) para evitar mud
+ *  - LPF pós-clip dinâmico (ajusta com sustain)
+ *  - Tone stack paralelo real (LP + HP em paralelo)
+ *  - DC blocker
+ *  - Alto headroom de saída (típico do Muff)
+ *
+ * Params aceitos:
+ *   sustain, tone, volume, mix
+ */
 class BigMuffEffect extends BaseEffect {
   constructor(audioContext, id) {
     super(audioContext, id, 'Big Muff', 'bigmuff');
-    
-    // EHX BIG MUFF PI (1969)
-    // Iconic sustain/fuzz pedal
-    // 4 transistor stages: 2 gain + 2 clipping
-    
-    // Two gain stages
+
+    // ===== Estágios de ganho (pré-clipping) =====
+    this.preHPF = audioContext.createBiquadFilter();
+    this.preHPF.type = 'highpass';
+    this.preHPF.frequency.value = 90;
+    this.preHPF.Q.value = 0.707;
+
     this.preGain1 = audioContext.createGain();
     this.preGain2 = audioContext.createGain();
-    
-    // Two clipping stages
+    this.preGain1.gain.value = 8;   // forte, como no circuito
+    this.preGain2.gain.value = 6;
+
+    // ===== Clipping em dois estágios (diodes-to-ground vibe) =====
     this.clipper1 = audioContext.createWaveShaper();
     this.clipper2 = audioContext.createWaveShaper();
-    
-    // BIG MUFF TONE STACK (REAL IMPLEMENTATION)
-    // The Big Muff uses PARALLEL LP + HP filters (not shelf!)
-    // This creates the famous "mid scoop"
-    
-    // Bass path (lowpass)
+    this.clipper1.oversample = '4x';
+    this.clipper2.oversample = '4x';
+    this.clipper1.curve = this.makeMuffClipCurve(36, 0.28, 0.22); // drive, vt+, vt-
+    this.clipper2.curve = this.makeMuffClipCurve(48, 0.26, 0.24); // mais fechado
+
+    // ===== Anti-fizz LPF pós-clip (dinâmico com sustain) =====
+    this.postLPF = audioContext.createBiquadFilter();
+    this.postLPF.type = 'lowpass';
+    this.postLPF.frequency.value = 7500;
+    this.postLPF.Q.value = 0.7;
+
+    // ===== Tone stack paralelo REAL (LP + HP em paralelo) =====
     this.bassPath = audioContext.createBiquadFilter();
     this.bassPath.type = 'lowpass';
-    this.bassPath.frequency.value = 500;
+    this.bassPath.frequency.value = 650;
     this.bassPath.Q.value = 0.707;
-    
-    // Treble path (highpass)
+
     this.treblePath = audioContext.createBiquadFilter();
     this.treblePath.type = 'highpass';
-    this.treblePath.frequency.value = 2000;
+    this.treblePath.frequency.value = 1600;
     this.treblePath.Q.value = 0.707;
-    
-    // Crossfade gains
+
     this.bassGain = audioContext.createGain();
     this.trebleGain = audioContext.createGain();
     this.bassGain.gain.value = 0.5;
     this.trebleGain.gain.value = 0.5;
-    
-    // Tone mixer
+
     this.toneMixer = audioContext.createGain();
     this.toneMixer.gain.value = 1.0;
-    
+
+    // ===== Saída / Normalização =====
+    this.dcBlock = audioContext.createBiquadFilter();
+    this.dcBlock.type = 'highpass';
+    this.dcBlock.frequency.value = 20;
+
     this.postGain = audioContext.createGain();
-    
-    this.preGain1.gain.value = 8;
-    this.preGain2.gain.value = 6;
-    this.postGain.gain.value = 0.25;
-    
-    this.createBigMuffCurve();
-    
-    // Connect chain - two stages of clipping
-    this.input.connect(this.preGain1);
+    this.postGain.gain.value = 0.35; // Muff tem MUITO volume disponível
+
+    // ===== Roteamento =====
+    this.input.connect(this.preHPF);
+    this.preHPF.connect(this.preGain1);
     this.preGain1.connect(this.clipper1);
     this.clipper1.connect(this.preGain2);
     this.preGain2.connect(this.clipper2);
-    
-    // REAL BIG MUFF TONE STACK (parallel paths)
+
+    // Tone stack paralelo
     this.clipper2.connect(this.bassPath);
     this.clipper2.connect(this.treblePath);
     this.bassPath.connect(this.bassGain);
     this.treblePath.connect(this.trebleGain);
     this.bassGain.connect(this.toneMixer);
     this.trebleGain.connect(this.toneMixer);
-    
-    this.toneMixer.connect(this.postGain);
+
+    // Pós-clip + saída
+    this.toneMixer.connect(this.postLPF);
+    this.postLPF.connect(this.dcBlock);
+    this.dcBlock.connect(this.postGain);
     this.postGain.connect(this.wetGain);
     this.wetGain.connect(this.output);
-    
-    // Dry signal
+
+    // Dry paralelo
     this.input.connect(this.dryGain);
     this.dryGain.connect(this.output);
+    
+    // Inicializa params para UI
+    this.params = {
+      sustain: 50,
+      tone: 50,
+      volume: 70
+    };
   }
 
-  createBigMuffCurve() {
+  // Curva de clipping estilo diodo: limiar assimétrico leve + joelho suave
+  // drive: ganho interno; vtP/vtN: thresholds +/- (em "volts" normalizados)
+  makeMuffClipCurve(drive = 40, vtP = 0.28, vtN = 0.28) {
     const samples = 44100;
     const curve = new Float32Array(samples);
-    
+    const knee = 0.22; // suavidade do joelho
+
     for (let i = 0; i < samples; i++) {
-      const x = (i * 2) / samples - 1;
-      // Hard symmetrical clipping (fuzz)
-      curve[i] = Math.max(-0.9, Math.min(0.9, x * 10));
+      const x = (i * 2) / samples - 1; // [-1, 1]
+      let y = x * (1 + drive / 20);
+
+      // Lado positivo
+      if (y > vtP) {
+        const over = y - vtP;
+        y = vtP + Math.tanh(over / knee) * knee;
+      }
+      // Lado negativo
+      if (y < -vtN) {
+        const under = y + vtN;
+        y = -vtN + Math.tanh(under / knee) * knee;
+      }
+
+      // Compressão central (mantém sustain sem serrilhar)
+      y = Math.tanh(y * 1.15);
+
+      // Realce leve de ímpares (raspado Muff)
+      y += 0.07 * Math.tanh(x * (1 + drive / 15) * 3.0);
+
+      curve[i] = y * 0.95;
     }
-    
-    this.clipper1.curve = curve;
-    this.clipper2.curve = curve;
+    return curve;
   }
 
   updateParameter(parameter, value) {
     const now = this.audioContext.currentTime;
     
+    if (this.params) {
+      this.params[parameter] = value;
+    }
+
     switch (parameter) {
-      case 'sustain':
-        this.preGain1.gain.setTargetAtTime(2 + (value / 100) * 18, now, 0.01);
-        this.preGain2.gain.setTargetAtTime(1 + (value / 100) * 12, now, 0.01);
+      case 'sustain': {
+        // Ganho dos estágios de pré conforme sustain
+        const g1 = 3 + (value / 100) * 17; // ~3–20
+        const g2 = 1.5 + (value / 100) * 10.5; // ~1.5–12
+        this.preGain1.gain.setTargetAtTime(g1, now, 0.01);
+        this.preGain2.gain.setTargetAtTime(g2, now, 0.01);
+
+        // Mais sustain => LPF um pouco mais baixo (controla fizz)
+        const fAA = 6500 + (100 - value) * 25; // ~6.5–9 kHz
+        this.postLPF.frequency.setTargetAtTime(fAA, now, 0.02);
         break;
-      case 'tone':
-        // REAL BIG MUFF TONE CONTROL
-        // Crossfade between bass (LP) and treble (HP) paths
-        const toneValue = value / 100; // 0 to 1
-        
-        if (toneValue < 0.5) {
-          // Bass emphasis (0-50%)
-          this.bassGain.gain.setTargetAtTime(1.0, now, 0.01);
-          this.trebleGain.gain.setTargetAtTime(toneValue * 2, now, 0.01);
-        } else {
-          // Treble emphasis (50-100%)
-          this.bassGain.gain.setTargetAtTime(2 - (toneValue * 2), now, 0.01);
-          this.trebleGain.gain.setTargetAtTime(1.0, now, 0.01);
-        }
+      }
+
+      case 'tone': {
+        // Crossfade musical (curva levemente log) entre LP (bass) e HP (treble)
+        const t = value / 100; // 0..1
+        // Dou uma leve curva S pra zona central ficar mais utilizável
+        const shape = (u) => 0.5 + 0.5 * Math.tanh((u - 0.5) * 2.2);
+        const treble = shape(t);
+        const bass = 1 - treble;
+        // Normaliza para 0..1 relativo
+        const norm = Math.max(0.001, bass + treble);
+        this.bassGain.gain.setTargetAtTime(bass / norm, now, 0.01);
+        this.trebleGain.gain.setTargetAtTime(treble / norm, now, 0.01);
         break;
+      }
+
       case 'volume':
-        this.postGain.gain.setTargetAtTime((value / 100) * 0.8, now, 0.01);
+        // Headroom alto típico do Muff
+        this.postGain.gain.setTargetAtTime((value / 100) * 0.9, now, 0.01);
         break;
+
+      case 'mix':
+        // se você usa blend global, mantém consistente
+        this.updateMix(value);
+        break;
+
       default:
+        super.updateParameter?.(parameter, value);
         break;
     }
   }
 
   disconnect() {
     super.disconnect();
-    this.preGain1.disconnect();
-    this.preGain2.disconnect();
-    this.clipper1.disconnect();
-    this.clipper2.disconnect();
-    this.bassPath.disconnect();
-    this.treblePath.disconnect();
-    this.bassGain.disconnect();
-    this.trebleGain.disconnect();
-    this.toneMixer.disconnect();
-    this.postGain.disconnect();
+    try {
+      this.preHPF.disconnect();
+      this.preGain1.disconnect();
+      this.preGain2.disconnect();
+      this.clipper1.disconnect();
+      this.clipper2.disconnect();
+      this.bassPath.disconnect();
+      this.treblePath.disconnect();
+      this.bassGain.disconnect();
+      this.trebleGain.disconnect();
+      this.toneMixer.disconnect();
+      this.postLPF.disconnect();
+      this.dcBlock.disconnect();
+      this.postGain.disconnect();
+    } catch (e) {}
   }
 }
 
 export default BigMuffEffect;
-
