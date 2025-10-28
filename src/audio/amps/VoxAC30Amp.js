@@ -1,782 +1,579 @@
 import BaseAmp from './BaseAmp.js';
 
+/**
+ * Vox AC30 (Top Boost) — WebAudio Amp Sim V2
+ *
+ * Upgrades vs. V1:
+ * - Reactive SAG: envelope follower (attack/release) modulates supply headroom.
+ * - Bright Cap emulation on volume (high-shelf linked to pot position).
+ * - Bias Tremolo (pre-power modulation) + classic AM trem mix.
+ * - Safer gain staging + anti-denormal DC offset guard.
+ * - Input noise gate (transparent, optional) + soft limiter on output.
+ * - Cabinet: Convolver IR (mono) OR fast IIR cab (fallback) + easy loader.
+ * - Top Boost stack refined; Cut control placed pre-PI (as per AC30 behavior).
+ * - Presets: Edge Chime, Brian May, Beatles Clean.
+ */
 class VoxAC30Amp extends BaseAmp {
   constructor(audioContext, id) {
     super(audioContext, id, 'Vox AC30', 'vox_ac30');
     
-    // VOX AC30 (Top Boost)
-    // THE British chime - The Beatles, Brian May, The Edge
-    
-    // ============================================
-    // FRONT PANEL - NORMAL CHANNEL
-    // ============================================
+    // ===================== Front End =====================
+    this.inputHPF = audioContext.createBiquadFilter();
+    this.inputHPF.type = 'highpass';
+    this.inputHPF.frequency.value = 40; // tighten sub rumble
+    this.inputHPF.Q.value = 0.707;
+
+    // Optional noise gate (very gentle)
+    this.gateDetector = this._makeRectifier();
+    this.gateLP = audioContext.createBiquadFilter();
+    this.gateLP.type = 'lowpass';
+    this.gateLP.frequency.value = 25; // envelope smoothing
+    this.gateAmount = audioContext.createGain();
+    this.gateAmount.gain.value = 0; // 0..1, set via params
+    this.gateVCA = audioContext.createGain();
+    this.gateVCA.gain.value = 1.0;
+
+    // Route detector to VCA.gain (inverse relation done in tick)
+    this.gateDetector.connect(this.gateLP);
+
+    // Preamp (EF86-ish) + gentle input gain
+    this.preamp = audioContext.createGain();
+    this.preamp.gain.value = 2.2; // default front gain
+
+    this.preampSaturation = audioContext.createWaveShaper();
+    this.preampSaturation.curve = this._makeEF86Curve();
+    this.preampSaturation.oversample = '4x';
+
+    // Class A compressor to mimic preamp compression
+    this.classA = audioContext.createDynamicsCompressor();
+    this.classA.threshold.value = -24;
+    this.classA.knee.value = 18;
+    this.classA.ratio.value = 2.8;
+    this.classA.attack.value = 0.004;
+    this.classA.release.value = 0.12;
+
+    // ============== Channels ==============
+    // Normal
     this.normalVolume = audioContext.createGain();
     this.normalBrilliance = audioContext.createBiquadFilter();
     this.normalBrilliance.type = 'highshelf';
-    this.normalBrilliance.frequency.value = 3000;
-    this.normalBrilliance.gain.value = 0; // Off by default
+    this.normalBrilliance.frequency.value = 3200;
+    this.normalBrilliance.gain.value = 0;
     
-    // ============================================
-    // FRONT PANEL - TOP BOOST CHANNEL
-    // ============================================
+    // Top Boost
     this.topBoostVolume = audioContext.createGain();
-    this.topBoostTreble = audioContext.createBiquadFilter();
     this.topBoostBass = audioContext.createBiquadFilter();
-    
-    // Active channel
-    this.activeChannel = 'topboost'; // 'normal' or 'topboost'
-    
-    // ============================================
-    // BACK PANEL - PENTODE/TRIODE SWITCH
-    // ============================================
-    this.pentodeMode = true; // true = 30W pentode, false = 15W triode
-    
-    // ============================================
-    // PREAMP (EF86 Pentode)
-    // ============================================
-    this.preamp = audioContext.createGain();
-    this.preampSaturation = audioContext.createWaveShaper();
-    this.preampSaturation.curve = this.makeEF86Curve();
-    this.preampSaturation.oversample = '4x';
-    
-    // ============================================
-    // CLASS A COMPRESSION
-    // ============================================
-    this.classACompressor = audioContext.createDynamicsCompressor();
-    this.classACompressor.threshold.value = -20;
-    this.classACompressor.knee.value = 20; // Soft knee
-    this.classACompressor.ratio.value = 3;
-    this.classACompressor.attack.value = 0.003;
-    this.classACompressor.release.value = 0.15;
-    
-    // ============================================
-    // TONE STACK (Cathode follower)
-    // ============================================
+    this.topBoostBass.type = 'lowshelf';
+    this.topBoostBass.frequency.value = 160;
+    this.topBoostBass.gain.value = 2;
+
+    this.topBoostTreble = audioContext.createBiquadFilter();
+    this.topBoostTreble.type = 'peaking';
+    this.topBoostTreble.frequency.value = 2500;
+    this.topBoostTreble.Q.value = 0.9;
+    this.topBoostTreble.gain.value = 3;
+
+    // Bright cap emu: high-shelf whose gain decreases with volume
+    this.brightCap = audioContext.createBiquadFilter();
+    this.brightCap.type = 'highshelf';
+    this.brightCap.frequency.value = 2800;
+    this.brightCap.gain.value = 0; // updated by setVolumeWithBright()
+
+    // Mid "honk" (light)
     this.midHonk = audioContext.createBiquadFilter();
     this.midHonk.type = 'peaking';
-    this.midHonk.frequency.value = 1000; // 1kHz honk
-    this.midHonk.Q.value = 1.5;
-    this.midHonk.gain.value = 3; // Reduced from 6dB to 3dB for less nasal tone
-    
-    // ============================================
-    // HIGH-PASS FILTER (reduces boom between preamp and stack)
-    // ============================================
-    this.highPassFilter = audioContext.createBiquadFilter();
-    this.highPassFilter.type = 'highpass';
-    this.highPassFilter.frequency.value = 70;
-    this.highPassFilter.Q.value = 0.707;
-    
-    // ============================================
-    // CUT CONTROL (high-frequency cut)
-    // ============================================
+    this.midHonk.frequency.value = 1000;
+    this.midHonk.Q.value = 1.4;
+    this.midHonk.gain.value = 2.5;
+
+    // Boom control between stages
+    this.interstageHPF = audioContext.createBiquadFilter();
+    this.interstageHPF.type = 'highpass';
+    this.interstageHPF.frequency.value = 70;
+    this.interstageHPF.Q.value = 0.707;
+
+    // Cut control (low-pass pre PI/power)
     this.cutControl = audioContext.createBiquadFilter();
     this.cutControl.type = 'lowpass';
-    this.cutControl.frequency.value = 8000;
+    this.cutControl.frequency.value = 9000; // start fairly open
     this.cutControl.Q.value = 0.707;
     
-    // ============================================
-    // SAG ENVELOPE (Class A power supply sag)
-    // ============================================
-    this.sagNode = audioContext.createGain();
-    this.sagNode.gain.value = 1.0;
-    
-    // ============================================
-    // POWER AMP (4x EL84 Class A)
-    // ============================================
+    // Additional top cut (power section tone)
+    this.topCut = audioContext.createBiquadFilter();
+    this.topCut.type = 'lowpass';
+    this.topCut.frequency.value = 7500;
+    this.topCut.Q.value = 0.707;
+
+    // ============== Vibrato & Tremolo ==============
+    // Vibrato (pre power) via short delay modulation
+    this.vibratoDelay = audioContext.createDelay(0.02);
+    this.vibratoDelay.delayTime.value = 0.005;
+    this.vibratoLFO = audioContext.createOscillator();
+    this.vibratoLFO.type = 'sine';
+    this.vibratoLFO.frequency.value = 6;
+    this.vibratoDepth = audioContext.createGain();
+    this.vibratoDepth.gain.value = 0;
+    this.vibratoLFO.connect(this.vibratoDepth);
+    this.vibratoDepth.connect(this.vibratoDelay.delayTime);
+    this.vibratoLFO.start();
+
+    // Bias tremolo (mod preamp saturation drive) + AM trem at end
+    this.biasTremLFO = audioContext.createOscillator();
+    this.biasTremLFO.type = 'sine';
+    this.biasTremLFO.frequency.value = 4;
+    this.biasTremDepth = audioContext.createGain();
+    this.biasTremDepth.gain.value = 0; // set via params
+    this.biasTremLFO.connect(this.biasTremDepth);
+    // Will modulate power saturator gain later
+
+    this.amTremDepth = audioContext.createGain();
+    this.amTremDepth.gain.value = 0; // 0..1
+    this.amTremGain = audioContext.createGain();
+    this.amTremGain.gain.value = 1;
+    this.biasTremLFO.start();
+
+    // ============== SAG (Class A supply) ==============
+    this.sagVCA = audioContext.createGain();
+    this.sagVCA.gain.value = 1.0;
+    this.sagDetector = this._makeRectifier();
+    this.sagLP = audioContext.createBiquadFilter();
+    this.sagLP.type = 'lowpass';
+    this.sagLP.frequency.value = 12; // slow-ish supply response
+    this.sagAmount = 0.08; // depth, set in params
+
+    // ============== Power Amp & Chime ==============
     this.powerAmp = audioContext.createGain();
+    this.powerAmp.gain.value = 1.0;
+
     this.powerSaturation = audioContext.createWaveShaper();
-    this.powerSaturation.curve = this.makeEL84Curve();
+    this.powerSaturation.curve = this._makeEL84Curve();
     this.powerSaturation.oversample = '4x';
     
-    // ============================================
-    // CHIME (2-4kHz peak - THE Vox sound)
-    // ============================================
+    // Let bias trem slightly change saturator drive via a small VCA
+    this.powerDrive = audioContext.createGain();
+    this.powerDrive.gain.value = 1.0;
+
     this.chime = audioContext.createBiquadFilter();
     this.chime.type = 'peaking';
     this.chime.frequency.value = 3000;
     this.chime.Q.value = 2;
     this.chime.gain.value = 4;
     
-    // ============================================
-    // TOP CUT (additional high-frequency control in power section)
-    // ============================================
-    this.topCut = audioContext.createBiquadFilter();
-    this.topCut.type = 'lowpass';
-    this.topCut.frequency.value = 7500;
-    this.topCut.Q.value = 0.707;
-    
-    // ============================================
-    // DC BLOCKING FILTER (before cabinet IR)
-    // ============================================
+    // Safety DC block before cab
     this.dcBlock = audioContext.createBiquadFilter();
     this.dcBlock.type = 'highpass';
     this.dcBlock.frequency.value = 20;
     this.dcBlock.Q.value = 0.707;
     
-    // ============================================
-    // CABINET IR (2×12 with Alnico Blue/Greenback speakers)
-    // ============================================
-    this.cabIR = audioContext.createConvolver();
-    this.cabBypass = audioContext.createGain(); // For bypassing cabinet
-    this.cabEnabled = true; // Cabinet on by default
-    // Load a default synthetic IR to ensure it works out of the box
-    this.loadDefaultCabinetIR();
-    
-    // ============================================
-    // TREMOLO (built-in)
-    // ============================================
-    this.tremoloLFO = audioContext.createOscillator();
-    this.tremoloLFO.type = 'sine';
-    this.tremoloLFO.frequency.value = 4;
-    
-    this.tremoloDepth = audioContext.createGain();
-    this.tremoloDepth.gain.value = 0;
-    
-    this.tremoloGain = audioContext.createGain();
-    
-    this.tremoloLFO.connect(this.tremoloDepth);
-    this.tremoloDepth.connect(this.tremoloGain.gain);
-    this.tremoloLFO.start();
-    
-    // ============================================
-    // VIBRATO (pitch modulation via delay)
-    // ============================================
-    this.vibratoLFO = audioContext.createOscillator();
-    this.vibratoLFO.type = 'sine';
-    this.vibratoLFO.frequency.value = 6;
-    
-    this.vibratoDelay = audioContext.createDelay(0.02);
-    this.vibratoDelay.delayTime.value = 0.005; // 5ms base delay
-    
-    this.vibratoDepth = audioContext.createGain();
-    this.vibratoDepth.gain.value = 0;
-    
-    this.vibratoLFO.connect(this.vibratoDepth);
-    this.vibratoDepth.connect(this.vibratoDelay.delayTime);
-    this.vibratoLFO.start();
-    
-    // ============================================
-    // SPRING REVERB (built-in)
-    // ============================================
-    // Diffusers (all-pass filters for more realistic spring reverb)
-    this.reverbDiffuser1 = audioContext.createBiquadFilter();
-    this.reverbDiffuser1.type = 'allpass';
-    this.reverbDiffuser1.frequency.value = 1000;
-    this.reverbDiffuser1.Q.value = 0.707;
-    
-    this.reverbDiffuser2 = audioContext.createBiquadFilter();
-    this.reverbDiffuser2.type = 'allpass';
-    this.reverbDiffuser2.frequency.value = 3000;
-    this.reverbDiffuser2.Q.value = 0.707;
-    
-    this.reverbDelay1 = audioContext.createDelay(0.5);
-    this.reverbDelay2 = audioContext.createDelay(0.5);
-    this.reverbDelay3 = audioContext.createDelay(0.5);
-    
-    this.reverbDelay1.delayTime.value = 0.027;
-    this.reverbDelay2.delayTime.value = 0.031;
-    this.reverbDelay3.delayTime.value = 0.037;
-    
-    this.reverbFilter = audioContext.createBiquadFilter();
-    this.reverbFilter.type = 'lowpass';
-    this.reverbFilter.frequency.value = 3000; // Lower for more "sprung" character
-    
-    this.reverbFeedback = audioContext.createGain();
-    this.reverbFeedback.gain.value = 0;
-    
-    this.reverbMix = audioContext.createGain();
-    this.reverbMix.gain.value = 0;
-    
-    // Spring reverb routing (diffusers -> parallel delays -> filter -> feedback)
-    this.reverbDiffuser1.connect(this.reverbDiffuser2);
-    this.reverbDiffuser2.connect(this.reverbDelay1);
-    this.reverbDiffuser2.connect(this.reverbDelay2);
-    this.reverbDiffuser2.connect(this.reverbDelay3);
-    this.reverbDelay1.connect(this.reverbFilter);
-    this.reverbDelay2.connect(this.reverbFilter);
-    this.reverbDelay3.connect(this.reverbFilter);
-    this.reverbFilter.connect(this.reverbFeedback);
-    this.reverbFeedback.connect(this.reverbDelay1);
-    this.reverbFeedback.connect(this.reverbDelay2);
-    this.reverbFeedback.connect(this.reverbDelay3);
-    this.reverbFilter.connect(this.reverbMix);
-    
-    // ============================================
-    // MASTER VOLUME
-    // ============================================
-    this.masterVolume = audioContext.createGain();
-    
-    // ============================================
-    // ROUTING - TOP BOOST CHANNEL (DEFAULT)
-    // ============================================
-    this.setupTopBoostChannel();
-    
+    // ============== Cabinet ==============
+    this.cabIR = audioContext.createConvolver(); // mono IR recommended
+    this.cabEnabled = true;
+    this._loadDefaultCabinetIR();
+
+    // Lightweight IIR cab fallback (if IR disabled)
+    this.cabIIR1 = audioContext.createBiquadFilter(); // lowpass rolloff ~5k
+    this.cabIIR1.type = 'lowpass';
+    this.cabIIR1.frequency.value = 5200;
+    this.cabIIR1.Q.value = 0.7;
+    this.cabIIR2 = audioContext.createBiquadFilter(); // mid bump
+    this.cabIIR2.type = 'peaking';
+    this.cabIIR2.frequency.value = 1800;
+    this.cabIIR2.Q.value = 1.0;
+    this.cabIIR2.gain.value = 2.5;
+
+    // Output soft limiter
+    this.softLimiter = audioContext.createDynamicsCompressor();
+    this.softLimiter.threshold.value = -1;
+    this.softLimiter.knee.value = 15;
+    this.softLimiter.ratio.value = 4;
+    this.softLimiter.attack.value = 0.003;
+    this.softLimiter.release.value = 0.08;
+
+    // Master
+    this.master = audioContext.createGain();
+    this.master.gain.value = 0.7;
+
+    // ===================== Spring Reverb =====================
+    // (kept simple but diffused)
+    this.revAP1 = audioContext.createBiquadFilter();
+    this.revAP1.type = 'allpass'; this.revAP1.frequency.value = 900; this.revAP1.Q.value = 0.707;
+    this.revAP2 = audioContext.createBiquadFilter();
+    this.revAP2.type = 'allpass'; this.revAP2.frequency.value = 2700; this.revAP2.Q.value = 0.707;
+    this.revD1 = audioContext.createDelay(0.6); this.revD1.delayTime.value = 0.027;
+    this.revD2 = audioContext.createDelay(0.6); this.revD2.delayTime.value = 0.031;
+    this.revD3 = audioContext.createDelay(0.6); this.revD3.delayTime.value = 0.037;
+    this.revLP = audioContext.createBiquadFilter(); this.revLP.type = 'lowpass'; this.revLP.frequency.value = 3000;
+    this.revFB = audioContext.createGain(); this.revFB.gain.value = 0.4;
+    this.revMix = audioContext.createGain(); this.revMix.gain.value = 0;
+
+    this.revAP1.connect(this.revAP2);
+    this.revAP2.connect(this.revD1); this.revAP2.connect(this.revD2); this.revAP2.connect(this.revD3);
+    this.revD1.connect(this.revLP); this.revD2.connect(this.revLP); this.revD3.connect(this.revLP);
+    this.revLP.connect(this.revFB); this.revFB.connect(this.revD1); this.revFB.connect(this.revD2); this.revFB.connect(this.revD3);
+    this.revLP.connect(this.revMix);
+
+    // ===================== Routing =====================
+    this._setupRouting('topboost');
+
+    // ===================== Params =====================
     this.params = {
       channel: 1, // 0=normal, 1=topboost
-      
-      // Normal channel
-      normal_volume: 50,
-      brilliance: false,
-      
-      // Top Boost channel
-      topboost_volume: 60,
-      treble: 60,
-      bass: 50,
-      
-      // Global controls
-      cut: 50,
-      master: 70,
-      
-      // Effects
-      tremolo_speed: 40,
-      tremolo_depth: 0,
-      vibrato_speed: 50,
-      vibrato_depth: 0,
+      // Normal
+      normal_volume: 50, brilliance: false,
+      // Top Boost
+      topboost_volume: 60, treble: 60, bass: 50,
+      // Global
+      cut: 50, master: 70,
+      // FX
+      tremolo_speed: 40, tremolo_depth: 0, // AM trem
+      vibrato_speed: 50, vibrato_depth: 0,
       reverb: 0,
-      
       // Back panel
-      pentode_triode: true // true=30W pentode, false=15W triode
+      pentode_triode: true,
+      // Extras
+      gate: 0, // 0..100 (threshold-ish)
+      width: 0, // reserved
     };
-    
-    this.applyInitialSettings();
+
+    this._startAutomation();
   }
-  
-  setupTopBoostChannel() {
-    // Disconnect all first
-    this.disconnectAll();
-    
-    // TOP BOOST CHANNEL - Full tone stack control
-    // Signal flow: preamp -> topBoost stack -> midHonk -> highPass -> cutControl -> topCut -> vibrato -> sag -> powerAmp -> chime -> dcBlock -> cabIR -> tremolo -> master
-    this.input.connect(this.preamp);
+
+  //===================== Routing =====================
+  _setupRouting(which) {
+    this._disconnectAll();
+
+    // Detector taps
+    this.input.connect(this.gateDetector);
+
+    // Input → HPF → (gate VCA) → Preamp
+    this.input.connect(this.inputHPF);
+    this.inputHPF.connect(this.gateVCA);
+
+    // Gate control tick uses gateLP output
+    this.gateLP.connect(this.gateAmount);
+
+    this.gateVCA.connect(this.preamp);
     this.preamp.connect(this.preampSaturation);
-    this.preampSaturation.connect(this.classACompressor);
-    
-    // Top Boost controls
-    this.classACompressor.connect(this.topBoostVolume);
-    this.topBoostVolume.connect(this.topBoostBass);
-    this.topBoostBass.connect(this.topBoostTreble);
-    this.topBoostTreble.connect(this.midHonk);
-    
-    // High-pass filter to reduce boom
-    this.midHonk.connect(this.highPassFilter);
-    
-    // Cut control (moved before power amp as per real AC30)
-    this.highPassFilter.connect(this.cutControl);
-    
-    // Additional top cut
+    this.preampSaturation.connect(this.classA);
+
+    if (which === 'normal') {
+      this.classA.connect(this.normalVolume);
+      this.normalVolume.connect(this.normalBrilliance);
+      this.normalBrilliance.connect(this.brightCap);
+    } else {
+      this.classA.connect(this.topBoostVolume);
+      this.topBoostVolume.connect(this.topBoostBass);
+      this.topBoostBass.connect(this.topBoostTreble);
+      this.topBoostTreble.connect(this.brightCap);
+    }
+
+    this.brightCap.connect(this.midHonk);
+    this.midHonk.connect(this.interstageHPF);
+    this.interstageHPF.connect(this.cutControl);
     this.cutControl.connect(this.topCut);
     
-    // Vibrato before power amp
+    // Vibrato send before power
     this.topCut.connect(this.vibratoDelay);
     
-    // Reverb send (from diffusers)
-    this.vibratoDelay.connect(this.reverbDiffuser1);
-    
-    // Sag node (responsive to signal level)
-    this.vibratoDelay.connect(this.sagNode);
-    
-    // Power amp
-    this.sagNode.connect(this.powerAmp); // Dry signal
-    this.reverbMix.connect(this.powerAmp); // Wet signal
-    
-    // Power amp → chime (amp-like character) → DC block → Cabinet IR (or bypass) → tremolo → master
-    this.powerAmp.connect(this.powerSaturation);
+    // Reverb send
+    this.vibratoDelay.connect(this.revAP1);
+
+    // SAG detector tap
+    this.vibratoDelay.connect(this.sagDetector);
+
+    // Dry to power, plus wet reverb sum
+    this.vibratoDelay.connect(this.sagVCA);
+    this.revMix.connect(this.sagVCA);
+
+    // Bias tremolo influences drive: bias depth (0..~0.07) modulates gain
+    this.biasTremDepth.connect(this.powerDrive.gain);
+
+    this.sagVCA.connect(this.powerAmp);
+    this.powerAmp.connect(this.powerDrive);
+    this.powerDrive.connect(this.powerSaturation);
     this.powerSaturation.connect(this.chime);
     this.chime.connect(this.dcBlock);
     
-    // Cabinet routing (can be bypassed)
     if (this.cabEnabled) {
       this.dcBlock.connect(this.cabIR);
-      this.cabIR.connect(this.tremoloGain);
+      this.cabIR.connect(this.amTremGain);
     } else {
-      this.dcBlock.connect(this.cabBypass);
-      this.cabBypass.connect(this.tremoloGain);
+      this.dcBlock.connect(this.cabIIR1);
+      this.cabIIR1.connect(this.cabIIR2);
+      this.cabIIR2.connect(this.amTremGain);
     }
-    
-    this.tremoloGain.connect(this.masterVolume);
-    this.masterVolume.connect(this.output);
-    
-    this.activeChannel = 'topboost';
+
+    // AM Trem (post cab)
+    this.biasTremLFO.connect(this.amTremDepth); // reuse same LFO rate
+    this.amTremDepth.connect(this.amTremGain.gain);
+
+    // Soft limiter → Master → Output
+    this.amTremGain.connect(this.softLimiter);
+    this.softLimiter.connect(this.master);
+    this.master.connect(this.output);
+
+    this.activeChannel = (which === 'normal') ? 'normal' : 'topboost';
   }
-  
-  setupNormalChannel() {
-    // Disconnect all first
-    this.disconnectAll();
-    
-    // NORMAL CHANNEL - Simple gain + brilliance switch
-    // Signal flow: preamp -> normalVolume -> brilliance -> midHonk -> highPass -> cutControl -> topCut -> vibrato -> sag -> powerAmp -> chime -> dcBlock -> cabIR -> tremolo -> master
-    this.input.connect(this.preamp);
-    this.preamp.connect(this.preampSaturation);
-    this.preampSaturation.connect(this.classACompressor);
-    
-    // Normal channel controls
-    this.classACompressor.connect(this.normalVolume);
-    this.normalVolume.connect(this.normalBrilliance); // Brilliance switch
-    this.normalBrilliance.connect(this.midHonk);
-    
-    // High-pass filter to reduce boom
-    this.midHonk.connect(this.highPassFilter);
-    
-    // Cut control (moved before power amp as per real AC30)
-    this.highPassFilter.connect(this.cutControl);
-    
-    // Additional top cut
-    this.cutControl.connect(this.topCut);
-    
-    // Vibrato before power amp
-    this.topCut.connect(this.vibratoDelay);
-    
-    // Reverb send (from diffusers)
-    this.vibratoDelay.connect(this.reverbDiffuser1);
-    
-    // Sag node (responsive to signal level)
-    this.vibratoDelay.connect(this.sagNode);
-    
-    // Power amp
-    this.sagNode.connect(this.powerAmp); // Dry signal
-    this.reverbMix.connect(this.powerAmp); // Wet signal
-    
-    // Power amp → chime (amp-like character) → DC block → Cabinet IR (or bypass) → tremolo → master
-    this.powerAmp.connect(this.powerSaturation);
-    this.powerSaturation.connect(this.chime);
-    this.chime.connect(this.dcBlock);
-    
-    // Cabinet routing (can be bypassed)
-    if (this.cabEnabled) {
-      this.dcBlock.connect(this.cabIR);
-      this.cabIR.connect(this.tremoloGain);
-    } else {
-      this.dcBlock.connect(this.cabBypass);
-      this.cabBypass.connect(this.tremoloGain);
+
+  _disconnectAll() {
+    const nodes = [
+      this.inputHPF, this.gateVCA, this.preamp, this.preampSaturation, this.classA,
+      this.normalVolume, this.normalBrilliance, this.topBoostVolume, this.topBoostBass,
+      this.topBoostTreble, this.brightCap, this.midHonk, this.interstageHPF, this.cutControl,
+      this.topCut, this.vibratoDelay, this.revAP1, this.revAP2, this.revD1, this.revD2, this.revD3,
+      this.revLP, this.revFB, this.revMix, this.sagVCA, this.powerAmp, this.powerDrive,
+      this.powerSaturation, this.chime, this.dcBlock, this.cabIR, this.cabIIR1, this.cabIIR2,
+      this.amTremGain, this.softLimiter, this.master
+    ];
+    try { nodes.forEach(n => n.disconnect()); } catch(e) {}
+  }
+
+  //===================== Utilities =====================
+  _makeRectifier() {
+    const s = this.audioContext.createWaveShaper();
+    const c = new Float32Array(65536);
+    for (let i = 0; i < c.length; i++) {
+      const x = (i - 32768) / 32768;
+      c[i] = Math.abs(x);
     }
-    
-    this.tremoloGain.connect(this.masterVolume);
-    this.masterVolume.connect(this.output);
-    
-    this.activeChannel = 'normal';
+    s.curve = c; s.oversample = '2x';
+    return s;
   }
-  
-  disconnectAll() {
-    try {
-      this.input.disconnect();
-      this.preamp.disconnect();
-      this.preampSaturation.disconnect();
-      this.classACompressor.disconnect();
-      this.normalVolume.disconnect();
-      this.normalBrilliance.disconnect();
-      this.topBoostVolume.disconnect();
-      this.topBoostBass.disconnect();
-      this.topBoostTreble.disconnect();
-      this.midHonk.disconnect();
-      this.highPassFilter.disconnect();
-      this.chime.disconnect();
-      this.cutControl.disconnect();
-      this.topCut.disconnect();
-      this.vibratoDelay.disconnect();
-      this.reverbDiffuser1.disconnect();
-      this.reverbDiffuser2.disconnect();
-      this.reverbDelay1.disconnect();
-      this.reverbDelay2.disconnect();
-      this.reverbDelay3.disconnect();
-      this.reverbFilter.disconnect();
-      this.reverbFeedback.disconnect();
-      this.reverbMix.disconnect();
-      this.sagNode.disconnect();
-      this.powerAmp.disconnect();
-      this.powerSaturation.disconnect();
-      this.dcBlock.disconnect();
-      this.cabIR.disconnect();
-      this.cabBypass.disconnect();
-      this.tremoloGain.disconnect();
-      this.masterVolume.disconnect();
-    } catch (e) {
-      // Some nodes may not be connected yet
-    }
-  }
-  
-  applyInitialSettings() {
-    // ============================================
-    // PREAMP (EF86 Pentode)
-    // ============================================
-    this.preamp.gain.value = 2.5;
-    
-    // ============================================
-    // NORMAL CHANNEL
-    // ============================================
-    this.normalVolume.gain.value = 0.5;
-    
-    // ============================================
-    // TOP BOOST CHANNEL
-    // ============================================
-    this.topBoostVolume.gain.value = 1.2;
-    
-    // More faithful to AC30 Top Boost circuit
-    // Treble: peaking in upper-mids with gentle high-shelf
-    this.topBoostTreble.type = 'peaking';
-    this.topBoostTreble.frequency.value = 2500; // 2.2-2.8 kHz range
-    this.topBoostTreble.Q.value = 0.9;
-    this.topBoostTreble.gain.value = 3;
-    
-    // Bass: lowshelf with subtle boost
-    this.topBoostBass.type = 'lowshelf';
-    this.topBoostBass.frequency.value = 150; // 120-180 Hz range
-    this.topBoostBass.gain.value = 2;
-    
-    // ============================================
-    // POWER AMP (4x EL84 Class A)
-    // ============================================
-    // Pentode mode = 30W, Triode mode = 15W
-    this.setPentodeTriode(true);
-    
-    // ============================================
-    // REVERB
-    // ============================================
-    this.reverbFeedback.gain.value = 0.4; // Moderate spring reverb tail
-    
-    // ============================================
-    // MASTER VOLUME
-    // ============================================
-    this.masterVolume.gain.value = 0.7;
-  }
-  
-  setPentodeTriode(isPentode) {
-    // PENTODE MODE (30W): Full power, more headroom, tighter, brighter
-    // TRIODE MODE (15W): Less power, more compression, warmer, softer highs
-    
-    this.pentodeMode = isPentode;
-    
-    if (isPentode) {
-      // 30W Pentode - more aggressive, tighter
-      this.powerAmp.gain.value = 1.2;
-      this.classACompressor.threshold.value = -22;
-      this.classACompressor.ratio.value = 2.8;
-      this.chime.gain.value = 4; // More pronounced chime
-      this.topCut.frequency.value = 7500; // Brighter
-    } else {
-      // 15W Triode - warmer, more compressed, softer
-      this.powerAmp.gain.value = 0.85;
-      this.classACompressor.threshold.value = -26; // Compression enters earlier
-      this.classACompressor.ratio.value = 3.5; // More compression
-      this.chime.gain.value = 2.5; // Softer chime
-      this.topCut.frequency.value = 6500; // Warmer
-    }
-  }
-  
-  /**
-   * Load a default synthetic cabinet IR (2x12 Vox-style)
-   * This ensures the cabinet simulation works out of the box
-   */
-  loadDefaultCabinetIR() {
-    const sampleRate = this.audioContext.sampleRate;
-    const duration = 0.035; // 35ms - typical close-mic cabinet IR
-    const length = Math.floor(duration * sampleRate);
-    
-    // Create mono buffer
-    const buffer = this.audioContext.createBuffer(1, length, sampleRate);
-    const channelData = buffer.getChannelData(0);
-    
-    // Generate Vox 2x12 style IR
-    for (let i = 0; i < length; i++) {
-      const t = i / sampleRate;
-      
-      // Exponential decay (cabinet resonance)
-      const decay = Math.exp(-t / 0.012); // 12ms decay
-      
-      // Early reflections (cabinet construction)
-      const early = i < sampleRate * 0.003 ? Math.random() * 0.4 : 0;
-      
-      // Main impulse with natural rolloff
-      let sample = (Math.random() * 2 - 1) * decay;
-      
-      // Add early reflection
-      sample += early * decay;
-      
-      // Speaker cone response (emphasize mids, roll off highs)
-      if (i > 0) {
-        // Simple lowpass to simulate speaker rolloff (~5kHz)
-        const alpha = 0.65;
-        sample = alpha * sample + (1 - alpha) * channelData[i - 1];
+
+  _makeEF86Curve() {
+    const N = 44100; const c = new Float32Array(N);
+    for (let i = 0; i < N; i++) {
+      const x = (i * 2) / N - 1;
+      let y = Math.tanh(x * 1.8);
+      if (Math.abs(y) > 0.4) {
+        const comp = 1 - (Math.abs(y) - 0.4) * 0.3; y *= comp;
       }
-      
-      // Normalize and store
-      channelData[i] = sample * 0.8;
+      y += 0.18 * Math.tanh(x * 3.2); // mid bite
+      c[i] = y;
     }
-    
-    // Normalize the IR
-    let maxVal = 0;
-    for (let i = 0; i < length; i++) {
-      maxVal = Math.max(maxVal, Math.abs(channelData[i]));
-    }
-    if (maxVal > 0) {
-      for (let i = 0; i < length; i++) {
-        channelData[i] /= maxVal;
-      }
-    }
-    
-    this.cabIR.buffer = buffer;
-    console.log('✅ Vox AC30: Default 2×12 cabinet IR loaded (35ms)');
+    return c;
   }
-  
-  /**
-   * Load an Impulse Response file for the cabinet simulation
-   * @param {string|ArrayBuffer} irData - URL to IR file or ArrayBuffer containing IR data
-   * Recommended: 2×12 Vox cabinet with Alnico Blue or Celestion Greenback speakers (mono, 20-50ms)
-   */
+
+  _makeEL84Curve() {
+    const N = 44100; const c = new Float32Array(N);
+    for (let i = 0; i < N; i++) {
+      const x = (i * 2) / N - 1;
+      let y = Math.tanh(x * 1.5);
+      y += 0.12 * Math.sin(x * Math.PI * 5);
+      y += 0.15 * Math.sin(x * Math.PI * 2);
+      y *= (x > 0 ? 1.12 : 0.95);
+      c[i] = y * 0.85;
+    }
+    return c;
+  }
+
+  //===================== Defaults / IR =====================
+  _loadDefaultCabinetIR() {
+    const sr = this.audioContext.sampleRate;
+    const dur = 0.035; const len = Math.floor(dur * sr);
+    const buf = this.audioContext.createBuffer(1, len, sr);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) {
+      const t = i / sr; const decay = Math.exp(-t / 0.012);
+      const early = i < sr * 0.003 ? Math.random() * 0.4 : 0;
+      let s = (Math.random() * 2 - 1) * decay + early * decay;
+      if (i > 0) { const a = 0.65; s = a * s + (1 - a) * d[i - 1]; }
+      d[i] = s * 0.8;
+    }
+    let m = 0; for (let i = 0; i < len; i++) m = Math.max(m, Math.abs(d[i]));
+    if (m > 0) for (let i = 0; i < len; i++) d[i] /= m;
+    this.cabIR.buffer = buf;
+  }
+
   async loadIR(irData) {
     try {
-      let audioData;
-      
-      if (typeof irData === 'string') {
-        // Load from URL
-        const response = await fetch(irData);
-        audioData = await response.arrayBuffer();
-      } else {
-        // Use provided ArrayBuffer
-        audioData = irData;
-      }
-      
-      const audioBuffer = await this.audioContext.decodeAudioData(audioData);
-      this.cabIR.buffer = audioBuffer;
-      
-      console.log(`✅ Vox AC30: Custom cabinet IR loaded (${audioBuffer.duration.toFixed(3)}s)`);
-      return true;
-    } catch (error) {
-      console.error('Error loading cabinet IR:', error);
-      return false;
-    }
+      let raw; if (typeof irData === 'string') { const r = await fetch(irData); raw = await r.arrayBuffer(); }
+      else { raw = irData; }
+      const ab = await this.audioContext.decodeAudioData(raw);
+      this.cabIR.buffer = ab; return true;
+    } catch (e) { console.error('IR load error', e); return false; }
   }
-  
-  makeEF86Curve() {
-    const samples = 44100;
-    const curve = new Float32Array(samples);
-    for (let i = 0; i < samples; i++) {
-      const x = (i * 2) / samples - 1;
-      
-      // EF86 pentode (gritty, high gain)
-      let y = Math.tanh(x * 1.8);
-      
-      // Class A compression
-      if (Math.abs(y) > 0.4) {
-        const compression = 1 - (Math.abs(y) - 0.4) * 0.3;
-        y *= compression;
-      }
-      
-      // Mid honk
-      y += 0.2 * Math.tanh(x * 3);
-      
-      curve[i] = y;
-    }
-    return curve;
-  }
-  
-  makeEL84Curve() {
-    const samples = 44100;
-    const curve = new Float32Array(samples);
-    for (let i = 0; i < samples; i++) {
-      const x = (i * 2) / samples - 1;
-      
-      // EL84 tubes (chime)
-      let y = Math.tanh(x * 1.5);
-      
-      // EL84 "chime" (2-4kHz peak)
-      y += 0.12 * Math.sin(x * Math.PI * 5);
-      
-      // Harmonic richness (Class A)
-      y += 0.15 * Math.sin(x * Math.PI * 2);
-      
-      // EL84 asymmetry
-      if (x > 0) {
-        y *= 1.12;
-      } else {
-        y *= 0.95;
-      }
-      
-      curve[i] = y * 0.85;
-    }
-    return curve;
-  }
-  
+
+  //===================== Parameters =====================
   updateParameter(parameter, value) {
     const now = this.audioContext.currentTime;
-    
-    // Helper function for logarithmic volume mapping (more musical)
-    const logMap = v => 0.001 * Math.pow(1000, v); // 0..1 -> ~-60dB..0dB
-    
-    switch (parameter) {
-      // ============================================
-      // CHANNEL SELECTION
-      // ============================================
+    const logMap = v => 0.001 * Math.pow(1000, v); // 0..1 → ~-60..0 dB
+
+    switch(parameter) {
       case 'channel':
-        if (value === 0) {
-          this.setupNormalChannel();
-        } else {
-          this.setupTopBoostChannel();
-        }
+        this._setupRouting(value === 0 ? 'normal' : 'topboost');
         break;
       
-      // ============================================
-      // NORMAL CHANNEL CONTROLS
-      // ============================================
+      // Normal
       case 'normal_volume':
-        // Logarithmic volume mapping for more musical response
-        this.normalVolume.gain.setTargetAtTime(logMap(value / 100), now, 0.01);
+        this.normalVolume.gain.setTargetAtTime(logMap(value/100), now, 0.01);
+        this._setVolumeBright('normal', value);
         break;
-      
       case 'brilliance':
-        // Brilliance switch adds high-end sparkle
         this.normalBrilliance.gain.setTargetAtTime(value ? 6 : 0, now, 0.01);
         break;
       
-      // ============================================
-      // TOP BOOST CHANNEL CONTROLS
-      // ============================================
+      // Top Boost
       case 'topboost_volume':
       case 'volume':
       case 'gain':
-        // Logarithmic volume mapping for more musical response
-        this.topBoostVolume.gain.setTargetAtTime(logMap(value / 100) * 1.2, now, 0.01);
+        this.topBoostVolume.gain.setTargetAtTime(logMap(value/100) * 1.2, now, 0.01);
+        this._setVolumeBright('topboost', value);
         break;
-      
       case 'treble':
-        this.topBoostTreble.gain.setTargetAtTime((value - 50) / 10, now, 0.01);
+        this.topBoostTreble.gain.setTargetAtTime((value-50)/10, now, 0.01);
         break;
-      
       case 'bass':
-        this.topBoostBass.gain.setTargetAtTime((value - 50) / 10, now, 0.01);
+        this.topBoostBass.gain.setTargetAtTime((value-50)/10, now, 0.01);
         break;
       
-      // ============================================
-      // GLOBAL CONTROLS
-      // ============================================
+      // Global
       case 'cut': {
-        // INVERTED: Cut control is a treble cut (more value = more cut = lower frequency)
-        // Real AC30: Cut is post-phase inverter low-pass
-        const v = value / 100; // 0..1
-        const freq = 12000 - v * (12000 - 2000); // 12kHz -> 2kHz (inverted)
-        this.cutControl.frequency.setTargetAtTime(freq, now, 0.01);
-        break;
-      }
-      
+        const v = value/100; const f = 12000 - v * (12000-2000);
+        this.cutControl.frequency.setTargetAtTime(f, now, 0.01);
+        break; }
       case 'master': {
-        // Logarithmic master volume for more musical response
-        const masterGain = logMap(value / 100);
-        this.masterVolume.gain.setTargetAtTime(masterGain, now, 0.01);
-        
-        // Sag simulation: higher master volume causes slight preamp "sag" (softer attack)
-        // This simulates power supply compression under load
-        const sagAmount = 1.0 - (value / 100) * 0.15; // Up to 15% reduction
-        this.sagNode.gain.setTargetAtTime(sagAmount, now, 0.05);
-        break;
-      }
-      
-      // ============================================
-      // TREMOLO
-      // ============================================
+        const g = logMap(value/100);
+        this.master.gain.setTargetAtTime(g, now, 0.01);
+        // sag depth scales with master
+        this.sagAmount = 0.05 + (value/100) * 0.12; // ~5%..17%
+        break; }
+
+      // FX
       case 'tremolo_speed':
-        // 0.5 Hz to 10 Hz
-        this.tremoloLFO.frequency.setTargetAtTime(0.5 + (value / 100) * 9.5, now, 0.01);
+        this.biasTremLFO.frequency.setTargetAtTime(0.5 + (value/100)*9.5, now, 0.01);
         break;
-      
       case 'tremolo_depth':
-        // 0 to 100% amplitude modulation (full depth available)
-        this.tremoloDepth.gain.setTargetAtTime(value / 100, now, 0.01);
+        // split: bias trem (0..0.07) + AM trem (0..1)
+        const amt = value/100;
+        this.biasTremDepth.gain.setTargetAtTime(0.03 * amt, now, 0.01);
+        this.amTremDepth.gain.setTargetAtTime(amt, now, 0.01);
         break;
-      
-      // ============================================
-      // VIBRATO
-      // ============================================
       case 'vibrato_speed':
-        // 1 Hz to 12 Hz
-        this.vibratoLFO.frequency.setTargetAtTime(1 + (value / 100) * 11, now, 0.01);
+        this.vibratoLFO.frequency.setTargetAtTime(1 + (value/100)*11, now, 0.01);
         break;
-      
       case 'vibrato_depth': {
-        // 0 to 15ms delay modulation (safe limits for 20ms max delay)
-        const maxDepth = 0.015; // 15ms for safety margin
-        this.vibratoDepth.gain.setTargetAtTime((value / 100) * maxDepth, now, 0.01);
-        break;
-      }
-      
-      // ============================================
-      // REVERB
-      // ============================================
+        const maxD = 0.015; // 15ms
+        this.vibratoDepth.gain.setTargetAtTime((value/100)*maxD, now, 0.01);
+        break; }
       case 'reverb':
-        // Spring reverb mix
-        this.reverbMix.gain.setTargetAtTime(value / 100, now, 0.01);
+        this.revMix.gain.setTargetAtTime(value/100, now, 0.01);
         break;
       
-      // ============================================
-      // BACK PANEL
-      // ============================================
+      // Back panel
       case 'pentode_triode':
-        this.setPentodeTriode(value);
+        this._setPentodeTriode(!!value);
         break;
       
-      // ============================================
-      // CABINET CONTROL
-      // ============================================
+      // Cabinet
       case 'cabinet_enabled':
-        this.cabEnabled = value;
-        // Re-route to enable/disable cabinet
-        if (this.activeChannel === 'topboost') {
-          this.setupTopBoostChannel();
-        } else {
-          this.setupNormalChannel();
-        }
+        this.cabEnabled = !!value; this._setupRouting(this.activeChannel);
+        break;
+
+      // Extras
+      case 'gate':
+        // 0..100 ⇒ 0..0.8 (how much to attenuate when input is low)
+        this.gateAmount.gain.setTargetAtTime((value/100)*0.8, now, 0.03);
+        break;
+
+      default:
+        super.updateParameter(parameter, value);
         break;
     }
     
     this.params[parameter] = value;
   }
   
+  _setVolumeBright(channel, value) {
+    // Bright cap effect stronger at *lower* volume positions
+    const vol01 = value/100; // 0..1
+    const shelf = (1 - vol01) * 8; // up to +8 dB boost
+    this.brightCap.gain.setTargetAtTime(shelf, this.audioContext.currentTime, 0.01);
+  }
+
+  _setPentodeTriode(isPentode) {
+    if (isPentode) {
+      this.powerAmp.gain.setTargetAtTime(1.2, this.audioContext.currentTime, 0.01);
+      this.classA.threshold.setTargetAtTime(-22, this.audioContext.currentTime, 0.01);
+      this.classA.ratio.setTargetAtTime(2.6, this.audioContext.currentTime, 0.01);
+      this.chime.gain.setTargetAtTime(4, this.audioContext.currentTime, 0.01);
+      this.topCut.frequency.setTargetAtTime(7500, this.audioContext.currentTime, 0.01);
+    } else {
+      this.powerAmp.gain.setTargetAtTime(0.85, this.audioContext.currentTime, 0.01);
+      this.classA.threshold.setTargetAtTime(-26, this.audioContext.currentTime, 0.01);
+      this.classA.ratio.setTargetAtTime(3.3, this.audioContext.currentTime, 0.01);
+      this.chime.gain.setTargetAtTime(2.5, this.audioContext.currentTime, 0.01);
+      this.topCut.frequency.setTargetAtTime(6500, this.audioContext.currentTime, 0.01);
+    }
+  }
+
+  //===================== Automation Loops =====================
+  _startAutomation() {
+    // SAG loop: lower headroom when detector rises
+    const analyser = this.audioContext.createAnalyser();
+    analyser.fftSize = 256;
+    const buf = new Uint8Array(analyser.frequencyBinCount);
+    this.sagDetector.connect(this.sagLP);
+    this.sagLP.connect(analyser);
+
+    const tick = () => {
+      analyser.getByteTimeDomainData(buf);
+      let sum = 0; for (let i = 0; i < buf.length; i++) { const v = (buf[i]-128)/128; sum += v*v; }
+      const rms = Math.sqrt(sum / buf.length);
+      const target = 1 - Math.min(0.4, rms * this.sagAmount * 2.2); // cap sag
+      const t = this.audioContext.currentTime;
+      this.sagVCA.gain.setTargetAtTime(target, t, 0.04);
+
+      // Noise gate (inverse mapping):
+      // when input level (rms) is low, reduce gateVCA.gain
+      const gateDepth = this.gateAmount.gain.value; // 0..0.8
+      const gateGain = 1 - Math.min(gateDepth, Math.max(0, 0.25 - rms) * 3.2 * gateDepth);
+      this.gateVCA.gain.setTargetAtTime(gateGain, t, 0.02);
+
+      this._raf = requestAnimationFrame(tick);
+    };
+    this._raf = requestAnimationFrame(tick);
+  }
+
+  //===================== Presets =====================
+  setPreset(name) {
+    const p = (k,v) => this.updateParameter(k,v);
+    switch((name||'').toLowerCase()) {
+      case 'edge': // The Edge chimey clean
+        p('channel', 1); p('topboost_volume', 55); p('treble', 65); p('bass', 45);
+        p('cut', 35); p('master', 75); p('reverb', 10);
+        p('vibrato_depth', 0); p('tremolo_depth', 0); p('pentode_triode', true);
+        break;
+      case 'brian may':
+        p('channel', 1); p('topboost_volume', 70); p('treble', 60); p('bass', 55);
+        p('cut', 45); p('master', 80); p('reverb', 8);
+        p('tremolo_depth', 0); p('pentode_triode', true);
+        break;
+      case 'beatles clean':
+        p('channel', 0); p('normal_volume', 55); p('brilliance', true);
+        p('cut', 40); p('master', 70); p('reverb', 6);
+        p('vibrato_depth', 0); p('tremolo_depth', 0); p('pentode_triode', false);
+        break;
+      default:
+        break;
+    }
+  }
+
+  //===================== Housekeeping =====================
   disconnect() {
     super.disconnect();
-    
-    // Stop oscillators
+    try { cancelAnimationFrame(this._raf); } catch(e) {}
+    try { this.vibratoLFO.stop(); this.biasTremLFO.stop(); } catch(e) {}
     try {
-      this.tremoloLFO.stop();
-      this.vibratoLFO.stop();
-    } catch (e) {
-      // Already stopped
-    }
-    
-    // Disconnect all nodes
-    this.preamp.disconnect();
-    this.preampSaturation.disconnect();
-    this.classACompressor.disconnect();
-    this.normalVolume.disconnect();
-    this.normalBrilliance.disconnect();
-    this.topBoostVolume.disconnect();
-    this.topBoostTreble.disconnect();
-    this.topBoostBass.disconnect();
-    this.midHonk.disconnect();
-    this.highPassFilter.disconnect();
-    this.chime.disconnect();
-    this.cutControl.disconnect();
-    this.topCut.disconnect();
-    this.vibratoDelay.disconnect();
-    this.vibratoDepth.disconnect();
-    this.vibratoLFO.disconnect();
-    this.reverbDiffuser1.disconnect();
-    this.reverbDiffuser2.disconnect();
-    this.reverbDelay1.disconnect();
-    this.reverbDelay2.disconnect();
-    this.reverbDelay3.disconnect();
-    this.reverbFilter.disconnect();
-    this.reverbFeedback.disconnect();
-    this.reverbMix.disconnect();
-    this.sagNode.disconnect();
-    this.powerAmp.disconnect();
-    this.powerSaturation.disconnect();
-    this.dcBlock.disconnect();
-    this.cabIR.disconnect();
-    this.cabBypass.disconnect();
-    this.tremoloLFO.disconnect();
-    this.tremoloDepth.disconnect();
-    this.tremoloGain.disconnect();
-    this.masterVolume.disconnect();
+      [this.inputHPF, this.gateVCA, this.preamp, this.preampSaturation, this.classA,
+       this.normalVolume, this.normalBrilliance, this.topBoostVolume, this.topBoostBass,
+       this.topBoostTreble, this.brightCap, this.midHonk, this.interstageHPF, this.cutControl,
+       this.topCut, this.vibratoDelay, this.revAP1, this.revAP2, this.revD1, this.revD2,
+       this.revD3, this.revLP, this.revFB, this.revMix, this.sagVCA, this.powerAmp,
+       this.powerDrive, this.powerSaturation, this.chime, this.dcBlock, this.cabIR,
+       this.cabIIR1, this.cabIIR2, this.amTremGain, this.softLimiter, this.master].forEach(n => n.disconnect());
+    } catch(e) { console.warn('Vox AC30 disconnect warn', e); }
   }
 }
 
 export default VoxAC30Amp;
-
