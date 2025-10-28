@@ -3989,3 +3989,156 @@ assed state - cold tubes */
   gap: 8px;
 }
 
+/* MESA DUAL RECTIFIER - Preto fosco metálico com cromado */
+.amp-head.amp-mesa_dual_rectifier {
+  background: 
+    repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(255,255,255,0.02) 1px, rgba(255,255,255,0.02) 2px),
+    linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 50%, #000000 100%);
+  border: 3px solid #2a2a2a;
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.8);
+  max-width: 980px;
+  padding: 5px 8px;
+  min-height: auto;
+}
+
+.amp-head.amp-mesa_dual_rectifier .amp-head-top {
+  background: 
+    repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(255,255,255,0.05) 1px, rgba(255,255,255,0.05) 2px),
+    linear-gradient(135deg, #4a4a4a 0%, #3a3a3a 100%);
+  border-bottom: 2px solid #555555;
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+  padding: 4px 8px;
+  min-height: auto;
+}
+
+.amp-head.amp-mesa_dual_rectifier .brand-text {
+  color: #e0e0e0;
+  letter-spacing: 2px;
+  font-size: 11px;
+  font-weight: 900;
+  text-shadow: 
+    0 1px 0 rgba(255, 255, 255, 0.2),
+    0 -1px 0 rgba(0, 0, 0, 0.8);
+}
+
+.amp-head.amp-mesa_dual_rectifier .model-text {
+  color: #c0c0c0;
+  font-size: 14px;
+  font-weight: 700;
+  text-shadow: 
+    0 1px 0 rgba(255, 255, 255, 0.3),
+    0 -1px 0 rgba(0, 0, 0, 0.8),
+    0 2px 4px rgba(0, 0, 0, 0.9);
+}
+
+.amp-head.amp-mesa_dual_rectifier .amp-control-panel {
+  padding: 5px 8px;
+  gap: 5px;
+}
+
+.amp-head.amp-mesa_dual_rectifier .amp-knobs-section {
+  padding: 4px 6px;
+  gap: 5px;
+}
+
+/* MESA DUAL RECTIFIER - Knob Labels cromados/prateados */
+.mesa-dual-rectifier-full-controls .knob-label {
+  color: #e0e0e0 !important;
+  font-weight: 700 !important;
+  text-shadow: 
+    0 1px 0 rgba(255, 255, 255, 0.3),
+    0 -1px 0 rgba(0, 0, 0, 0.7),
+    0 2px 4px rgba(0, 0, 0, 0.9) !important;
+  font-size: 9px !important;
+}
+
+.mesa-dual-rectifier-full-controls .knob-label-value {
+  color: #d0d0d0 !important;
+  font-weight: 700 !important;
+  text-shadow: 
+    0 1px 0 rgba(255, 255, 255, 0.2),
+    0 -1px 0 rgba(0, 0, 0, 0.8),
+    0 2px 4px rgba(0, 0, 0, 0.9) !important;
+  font-size: 8px !important;
+}
+
+.amp-head.amp-mesa_dual_rectifier .knob-label {
+  color: #e0e0e0 !important;
+  font-weight: 700 !important;
+  text-shadow: 
+    0 1px 0 rgba(255, 255, 255, 0.3),
+    0 -1px 0 rgba(0, 0, 0, 0.7),
+    0 2px 4px rgba(0, 0, 0, 0.9) !important;
+}
+
+.amp-head.amp-mesa_dual_rectifier .knob-label-value {
+  color: #d0d0d0 !important;
+  font-weight: 700 !important;
+  text-shadow: 
+    0 1px 0 rgba(255, 255, 255, 0.2),
+    0 -1px 0 rgba(0, 0, 0, 0.8),
+    0 2px 4px rgba(0, 0, 0, 0.9) !important;
+}
+
+/* MESA DUAL RECTIFIER - Cabinet preto fosco */
+.amp-head.amp-mesa_dual_rectifier ~ .amp-cabinet {
+  background: 
+    repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(255,255,255,0.02) 1px, rgba(255,255,255,0.02) 2px),
+    linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+  border: 3px solid #2a2a2a;
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 4px 12px rgba(0, 0, 0, 0.9);
+  padding: 8px 12px;
+  min-height: auto;
+}
+
+.amp-head.amp-mesa_dual_rectifier ~ .amp-cabinet .cabinet-config {
+  background: 
+    repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(255,255,255,0.04) 1px, rgba(255,255,255,0.04) 2px),
+    linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+  border-bottom: 2px solid #555555;
+  padding: 5px 8px;
+  gap: 6px;
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.amp-head.amp-mesa_dual_rectifier ~ .amp-cabinet .config-row label {
+  color: #d0d0d0;
+  font-weight: 700;
+  text-shadow: 
+    0 1px 0 rgba(255, 255, 255, 0.2),
+    0 -1px 0 rgba(0, 0, 0, 0.8);
+}
+
+.amp-head.amp-mesa_dual_rectifier ~ .amp-cabinet .cabinet-speaker-grill {
+  background: 
+    repeating-radial-gradient(circle at 3px 3px, rgba(0,0,0,0.9) 0px, transparent 1px),
+    repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(255,255,255,0.01) 1px, rgba(255,255,255,0.01) 2px),
+    radial-gradient(circle at 50% 50%, #1a1a1a, #000000);
+  background-size: 6px 6px, 100% 100%, 100% 100%;
+  border: 2px solid #2a2a2a;
+  box-shadow: 
+    inset 0 0 30px rgba(0, 0, 0, 0.8),
+    inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  padding: 8px;
+  gap: 8px;
+}
+
+.amp-head.amp-mesa_dual_rectifier ~ .amp-cabinet .speaker-cone {
+  background: 
+    repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(255,255,255,0.02) 1px, rgba(255,255,255,0.02) 2px),
+    linear-gradient(135deg, #2a2a2a, #0a0a0a);
+  border: 2px solid #2a2a2a;
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 10px rgba(0, 0, 0, 0.7);
+}
+
