@@ -16,7 +16,7 @@ import BaseEffect from './BaseEffect';
  */
 class BossBD2Effect extends BaseEffect {
   constructor(audioContext, id) {
-    super(audioContext, id, 'Boss BD-2', 'bossbd2');
+    super(audioContext, id, 'BD-2', 'bossbd2');
 
     // ===== Front-end / condicionamento =====
     this.inHPF = audioContext.createBiquadFilter();

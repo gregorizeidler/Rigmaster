@@ -15,7 +15,7 @@ import BaseEffect from './BaseEffect';
  */
 class BossDS1Effect extends BaseEffect {
   constructor(audioContext, id) {
-    super(audioContext, id, 'Boss DS-1', 'bossds1');
+    super(audioContext, id, 'DS-1', 'bossds1');
 
     // ===== Front-end / condicionamento =====
     this.inHPF = audioContext.createBiquadFilter(); // remove subgrave antes do ganho

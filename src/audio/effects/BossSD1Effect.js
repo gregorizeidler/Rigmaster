@@ -16,7 +16,7 @@ import BaseEffect from './BaseEffect';
  */
 class BossSD1Effect extends BaseEffect {
   constructor(audioContext, id) {
-    super(audioContext, id, 'Boss SD-1', 'bosssd1');
+    super(audioContext, id, 'SD-1', 'bosssd1');
 
     // ===== Condicionamento de entrada =====
     this.inHPF = audioContext.createBiquadFilter();
