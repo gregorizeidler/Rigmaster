@@ -117,18 +117,6 @@ const AudioFileInput = ({ audioEngine, isActive, onToggle }) => {
 
   return (
     <div className={`audio-file-input ${isActive ? 'active' : ''}`}>
-      <div className="audio-file-header">
-        <FileAudio size={20} />
-        <h3>Audio File Input</h3>
-        <button 
-          className="toggle-button"
-          onClick={onToggle}
-          title={isActive ? 'Switch to Microphone' : 'Use Audio File'}
-        >
-          {isActive ? 'Using File' : 'Use File'}
-        </button>
-      </div>
-
       {!audioFile ? (
         <div className="audio-file-upload">
           <input
@@ -142,13 +130,11 @@ const AudioFileInput = ({ audioEngine, isActive, onToggle }) => {
             className="upload-button"
             onClick={() => fileInputRef.current?.click()}
           >
-            <Upload size={24} />
-            <span>Upload Audio File</span>
+            <Upload size={16} />
+            <span>Upload Audio</span>
           </button>
           <p className="upload-hint">
-            Supports: WAV, MP3, OGG, M4A
-            <br />
-            <small>Upload guitar tracks to test effects</small>
+            WAV, MP3, OGG, M4A
           </p>
         </div>
       ) : (
