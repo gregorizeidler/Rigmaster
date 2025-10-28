@@ -204,9 +204,9 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       },
       // BOUTIQUE/MODERN (5)
       tworock_classic: {
-        color: '#4a4a4a',
-        accent: '#4a9eff',
-        grill: '#5a5a5a',
+        color: '#6a6a6a',     // Cinza metálico discreto
+        accent: '#d0d0d0',    // Prateado
+        grill: '#8a8a8a',     // Grade metálica clara
         logo: 'Classic Reverb',
         brand: 'TWO-ROCK'
       },
@@ -298,7 +298,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       hiwatt_dr103: ['hiwatt_dr103_controls'],
       
       // TWO-ROCK - Full control suite
-      tworock_classic: ['tworock_channel', 'channel_volume', 'presence', 'depth', 'reverb', 'reverb_decay', 'boost', 'cabinet_enabled'],
+      tworock_classic: ['tworock_classic_controls'],
       
       // DUMBLE ODS - Has complete custom layout (no specific controls needed)
       dumble_ods: [],
@@ -3082,7 +3082,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                   }}></div>
                   <button 
                     onClick={() => onUpdate(amp.id, 'channel', 1)}
-                    style={{
+                style={{ 
                       padding: '4px 8px',
                       background: diezelChannel === 1 ? 'linear-gradient(135deg, #e0e0e0 0%, #c0c0c0 100%)' : 'rgba(0,0,0,0.7)',
                       border: '1px solid ' + (diezelChannel === 1 ? '#e0e0e0' : '#666'),
@@ -3189,7 +3189,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                 gap: '4px',
                 padding: '4px 6px',
                 background: 'rgba(0,0,0,0.8)',
-                borderRadius: '4px',
+                  borderRadius: '4px', 
                 border: '1px solid rgba(255,255,255,0.4)',
                 alignItems: 'center'
               }}>
@@ -3279,8 +3279,8 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
             alignItems: 'center'
           }}>
             {/* LINHA SUPERIOR - KNOBS PRINCIPAIS */}
-              <div style={{
-                display: 'flex',
+            <div style={{
+              display: 'flex',
               flexDirection: 'row',
               gap: '5px',
               flexWrap: 'nowrap',
@@ -3292,7 +3292,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                 display: 'flex',
                 gap: '6px',
                 padding: '4px 6px',
-                background: 'rgba(0,0,0,0.3)',
+              background: 'rgba(0,0,0,0.3)',
                 borderRadius: '4px',
                 border: '1px solid rgba(255,255,255,0.2)'
               }}>
@@ -3338,8 +3338,8 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                 <Knob label="PRES" value={amp.params?.presence || 60} onChange={handleKnobChange('presence')} size={26} color="#1a1a1a" />
                 <Knob label="DEPTH" value={amp.params?.depth || 50} onChange={handleKnobChange('depth')} size={26} color="#1a1a1a" />
                 <Knob label="MSTR" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={28} color="#1a1a1a" />
+                </div>
               </div>
-            </div>
 
             {/* LINHA INFERIOR - CHANNEL SELECTOR + SWITCHES */}
             <div style={{
@@ -3418,11 +3418,11 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                     }}
                   >OD</button>
               </div>
-              </div>
+            </div>
 
               {/* BRIGHT SWITCH */}
-              <div style={{
-                display: 'flex',
+            <div style={{
+              display: 'flex',
                 gap: '4px',
                 padding: '4px 6px',
                 background: 'rgba(0,0,0,0.5)',
@@ -3449,8 +3449,8 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
             </div>
 
               {/* GATE + CABINET */}
-            <div style={{
-              display: 'flex',
+              <div style={{
+                display: 'flex',
                 gap: '4px',
                 padding: '4px 6px',
                 background: 'rgba(0,0,0,0.5)',
@@ -3489,6 +3489,239 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                     textTransform: 'uppercase',
                     transition: 'all 0.2s',
                     boxShadow: amp.params?.cabinet_enabled !== false ? 'inset 0 1px 0 rgba(255,255,255,0.5)' : 'none'
+                  }}
+                >CAB</button>
+                </div>
+              </div>
+          </div>
+        );
+      
+      // ============================================
+      // TWO-ROCK CLASSIC - COMPLETE CONTROLS
+      // ============================================
+      case 'tworock_classic_controls':
+        const tworockChannel = amp.params?.channel || 0;
+        return (
+          <div key="tworock_classic_controls" className="tworock-classic-full-controls" style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '5px',
+            padding: '6px 8px',
+            background: 'repeating-radial-gradient(circle at 2px 2px, rgba(90,90,90,0.6) 0px, transparent 1px), linear-gradient(135deg, #6a6a6a 0%, #5a5a5a 100%)',
+            backgroundSize: '4px 4px, 100% 100%',
+            borderRadius: '4px',
+            border: '2px solid #4a4a4a',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1), inset 0 2px 4px rgba(0,0,0,0.4)',
+            maxWidth: '850px',
+            alignItems: 'center'
+          }}>
+            {/* LINHA SUPERIOR - KNOBS PRINCIPAIS */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'row',
+              gap: '5px',
+              flexWrap: 'nowrap',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}>
+              {/* GAIN + VOLUME */}
+              <div style={{
+                display: 'flex',
+                gap: '6px',
+                padding: '4px 6px',
+                background: 'rgba(0,0,0,0.3)',
+                borderRadius: '4px',
+                border: '1px solid rgba(192,192,192,0.2)'
+              }}>
+                <Knob 
+                  label="GAIN" 
+                  value={amp.params?.gain || 50} 
+                  onChange={handleKnobChange('gain')} 
+                  size={28} 
+                  color="#1a1a1a" 
+                />
+                <Knob 
+                  label="VOL" 
+                  value={amp.params?.channel_volume || 70} 
+                  onChange={handleKnobChange('channel_volume')} 
+                  size={28} 
+                  color="#1a1a1a" 
+                />
+              </div>
+
+              {/* TONE STACK */}
+              <div style={{
+                display: 'flex',
+                gap: '6px',
+                padding: '4px 6px',
+                background: 'rgba(0,0,0,0.3)',
+                borderRadius: '4px',
+                border: '1px solid rgba(192,192,192,0.2)'
+              }}>
+                <Knob label="BASS" value={amp.params?.bass || 50} onChange={handleKnobChange('bass')} size={26} color="#1a1a1a" />
+                <Knob label="MID" value={amp.params?.mid || 50} onChange={handleKnobChange('mid')} size={26} color="#1a1a1a" />
+                <Knob label="TREB" value={amp.params?.treble || 50} onChange={handleKnobChange('treble')} size={26} color="#1a1a1a" />
+            </div>
+
+              {/* PRESENCE + DEPTH + MASTER */}
+            <div style={{
+              display: 'flex',
+                gap: '6px',
+                padding: '4px 6px',
+                background: 'rgba(0,0,0,0.3)',
+                borderRadius: '4px',
+                border: '1px solid rgba(192,192,192,0.2)'
+              }}>
+                <Knob label="PRES" value={amp.params?.presence || 50} onChange={handleKnobChange('presence')} size={26} color="#1a1a1a" />
+                <Knob label="DEPTH" value={amp.params?.depth || 50} onChange={handleKnobChange('depth')} size={26} color="#1a1a1a" />
+                <Knob label="MSTR" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={28} color="#1a1a1a" />
+              </div>
+
+              {/* REVERB */}
+              <div style={{
+                display: 'flex',
+                gap: '6px',
+                padding: '4px 6px',
+                background: 'rgba(0,0,0,0.3)',
+                borderRadius: '4px',
+                border: '1px solid rgba(192,192,192,0.2)'
+              }}>
+                <Knob label="REV" value={amp.params?.reverb || 30} onChange={handleKnobChange('reverb')} size={26} color="#1a1a1a" />
+                <Knob label="DECAY" value={amp.params?.reverb_decay || 45} onChange={handleKnobChange('reverb_decay')} size={26} color="#1a1a1a" />
+                </div>
+              </div>
+
+            {/* LINHA INFERIOR - CHANNEL SELECTOR + SWITCHES */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'row',
+              gap: '6px',
+              flexWrap: 'nowrap',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}>
+              {/* CHANNEL SELECTOR COM LEDs */}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'row',
+                gap: '4px',
+                padding: '4px 8px',
+                background: 'rgba(0,0,0,0.5)',
+                borderRadius: '4px',
+                border: '1px solid rgba(192,192,192,0.3)',
+                alignItems: 'center'
+              }}>
+                <label style={{ fontSize: '8px', color: '#e0e0e0', fontWeight: 'bold', marginRight: '4px', textTransform: 'uppercase' }}>CHANNEL</label>
+                
+                {/* Clean LED + Button */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                  <div style={{
+                    width: '9px',
+                    height: '9px',
+                    borderRadius: '50%',
+                    background: tworockChannel === 0 ? 'radial-gradient(circle, #00ff00 0%, #00aa00 100%)' : '#1a1a1a',
+                    boxShadow: tworockChannel === 0 ? '0 0 10px #00ff00, inset 0 1px 2px rgba(255,255,255,0.3)' : 'inset 0 1px 2px rgba(0,0,0,0.8)',
+                    border: '1px solid ' + (tworockChannel === 0 ? '#00ff00' : '#0a0a0a')
+                  }}></div>
+                  <button 
+                    onClick={() => onUpdate(amp.id, 'channel', 0)}
+                    style={{
+                      padding: '4px 10px',
+                      background: tworockChannel === 0 ? 'linear-gradient(135deg, #d0d0d0 0%, #b0b0b0 100%)' : 'rgba(0,0,0,0.7)',
+                      border: '1px solid ' + (tworockChannel === 0 ? '#e0e0e0' : '#666'),
+                      color: tworockChannel === 0 ? '#000' : '#e0e0e0',
+                      borderRadius: '2px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '8px',
+                      textTransform: 'uppercase',
+                      transition: 'all 0.2s',
+                      boxShadow: tworockChannel === 0 ? 'inset 0 1px 0 rgba(255,255,255,0.4)' : 'none'
+                    }}
+                  >CLEAN</button>
+                </div>
+
+                {/* Lead LED + Button */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                  <div style={{
+                    width: '9px',
+                    height: '9px',
+                    borderRadius: '50%',
+                    background: tworockChannel === 1 ? 'radial-gradient(circle, #ffa500 0%, #cc8400 100%)' : '#1a1a1a',
+                    boxShadow: tworockChannel === 1 ? '0 0 10px #ffa500, inset 0 1px 2px rgba(255,255,255,0.3)' : 'inset 0 1px 2px rgba(0,0,0,0.8)',
+                    border: '1px solid ' + (tworockChannel === 1 ? '#ffa500' : '#0a0a0a')
+                  }}></div>
+                  <button 
+                    onClick={() => onUpdate(amp.id, 'channel', 1)}
+                    style={{
+                      padding: '4px 10px',
+                      background: tworockChannel === 1 ? 'linear-gradient(135deg, #d0d0d0 0%, #b0b0b0 100%)' : 'rgba(0,0,0,0.7)',
+                      border: '1px solid ' + (tworockChannel === 1 ? '#e0e0e0' : '#666'),
+                      color: tworockChannel === 1 ? '#000' : '#e0e0e0',
+                      borderRadius: '2px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '8px',
+                      textTransform: 'uppercase',
+                      transition: 'all 0.2s',
+                      boxShadow: tworockChannel === 1 ? 'inset 0 1px 0 rgba(255,255,255,0.4)' : 'none'
+                    }}
+                  >LEAD</button>
+              </div>
+            </div>
+
+              {/* BOOST SWITCH */}
+            <div style={{
+              display: 'flex',
+                gap: '4px',
+                padding: '4px 6px',
+                background: 'rgba(0,0,0,0.5)',
+                borderRadius: '4px',
+                border: '1px solid rgba(192,192,192,0.3)',
+                alignItems: 'center'
+              }}>
+                <button
+                  onClick={() => onUpdate(amp.id, 'boost', !amp.params?.boost)}
+                  style={{
+                    padding: '5px 12px',
+                    background: amp.params?.boost ? 'linear-gradient(135deg, #ff8c00 0%, #cc7000 100%)' : 'rgba(0,0,0,0.7)',
+                    border: '1px solid ' + (amp.params?.boost ? '#ff8c00' : '#666'),
+                    color: amp.params?.boost ? '#000' : '#ff8c00',
+                    borderRadius: '2px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '8px',
+                    textTransform: 'uppercase',
+                    transition: 'all 0.2s',
+                    boxShadow: amp.params?.boost ? '0 0 6px rgba(255,140,0,0.6), inset 0 1px 0 rgba(255,255,255,0.3)' : 'none'
+                  }}
+                >BOOST</button>
+              </div>
+
+              {/* CABINET */}
+              <div style={{
+                display: 'flex',
+                gap: '4px',
+                padding: '4px 6px',
+                background: 'rgba(0,0,0,0.5)',
+                borderRadius: '4px',
+                border: '1px solid rgba(192,192,192,0.3)',
+                alignItems: 'center'
+              }}>
+                <button
+                  onClick={() => onUpdate(amp.id, 'cabinet_enabled', !(amp.params?.cabinet_enabled !== false))}
+                  style={{
+                    padding: '5px 12px',
+                    background: amp.params?.cabinet_enabled !== false ? 'linear-gradient(135deg, #d0d0d0 0%, #b0b0b0 100%)' : 'rgba(0,0,0,0.7)',
+                    border: '1px solid ' + (amp.params?.cabinet_enabled !== false ? '#e0e0e0' : '#666'),
+                    color: amp.params?.cabinet_enabled !== false ? '#000' : '#e0e0e0',
+                    borderRadius: '2px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '8px',
+                    textTransform: 'uppercase',
+                    transition: 'all 0.2s',
+                    boxShadow: amp.params?.cabinet_enabled !== false ? 'inset 0 1px 0 rgba(255,255,255,0.4)' : 'none'
                   }}
                 >CAB</button>
               </div>
@@ -4158,6 +4391,9 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
               <div style={{ display: 'none' }}></div>
             ) : amp.ampType === 'soldano_slo100' ? (
               /* SOLDANO SLO-100 - Controls handled in custom section below */
+              <div style={{ display: 'none' }}></div>
+            ) : amp.ampType === 'tworock_classic' ? (
+              /* TWO-ROCK CLASSIC - Controls handled in custom section below */
               <div style={{ display: 'none' }}></div>
             ) : amp.ampType === 'mesa_dual_rectifier' ? (
               /* MESA DUAL RECTIFIER - Controls handled in custom section below */
