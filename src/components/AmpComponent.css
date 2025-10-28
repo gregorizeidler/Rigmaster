@@ -1591,41 +1591,82 @@
     0 0 10px rgba(0, 0, 0, 0.5);
 }
 
-/* BOGNER ECSTASY - Dark Blue */
+/* BOGNER ECSTASY - Black/Gold (Like Real Amp) */
 .amp-head.amp-bogner_ecstasy {
   background: 
-    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(74,158,255,0.1) 2px, rgba(74,158,255,0.1) 4px),
-    linear-gradient(180deg, #2a3a5a 0%, #1a2a4a 50%, #16213e 100%);
-  border: 3px solid #4a9eff;
+    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(212,175,55,0.1) 2px, rgba(212,175,55,0.1) 4px),
+    linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 50%, #000000 100%);
+  border: 3px solid #d4af37;
   box-shadow: 
-    0 10px 40px rgba(74, 158, 255, 0.4),
-    inset 0 2px 0 rgba(74, 158, 255, 0.2);
+    0 10px 40px rgba(212, 175, 55, 0.4),
+    inset 0 2px 0 rgba(212, 175, 55, 0.2);
 }
 
 .amp-head.amp-bogner_ecstasy .amp-head-top {
-  background: linear-gradient(180deg, #16213e 0%, #0f1a2e 100%);
-  border-bottom: 3px solid #4a9eff;
+  background: linear-gradient(180deg, #000000 0%, #0a0a0a 100%);
+  border-bottom: 3px solid #d4af37;
 }
 
 .amp-head.amp-bogner_ecstasy .brand-text {
-  color: #4a9eff;
+  color: #d4af37;
   font-weight: 900;
   letter-spacing: 4px;
 }
 
 .amp-head.amp-bogner_ecstasy .model-text {
   color: #ffffff;
-  text-shadow: 0 0 15px rgba(74, 158, 255, 0.8);
+  text-shadow: 0 0 15px rgba(212, 175, 55, 0.8);
 }
 
 .amp-head.amp-bogner_ecstasy ~ .amp-cabinet {
-  background: linear-gradient(180deg, #1a2a4a 0%, #16213e 100%);
-  border: 3px solid #4a9eff;
+  background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+  border: 3px solid #d4af37;
+}
+
+.amp-head.amp-bogner_ecstasy ~ .amp-cabinet .cabinet-config {
+  background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+  border-bottom: 2px solid #d4af37;
+}
+
+.amp-head.amp-bogner_ecstasy ~ .amp-cabinet .cabinet-config label {
+  color: #d4af37;
+}
+
+.amp-head.amp-bogner_ecstasy ~ .amp-cabinet .config-row select {
+  background: linear-gradient(180deg, #1a1a1a, #0a0a0a);
+  border: 1px solid #d4af37;
+  color: #ffffff;
+}
+
+.amp-head.amp-bogner_ecstasy ~ .amp-cabinet .config-row select:hover {
+  background: linear-gradient(180deg, #2a2a2a, #1a1a1a);
+  border-color: #ffd700;
+  box-shadow:
+    0 3px 10px rgba(212, 175, 55, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.amp-head.amp-bogner_ecstasy ~ .amp-cabinet .config-row select:focus {
+  border-color: #ffd700;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+}
+
+.amp-head.amp-bogner_ecstasy ~ .amp-cabinet .config-row option {
+  background: #0a0a0a;
+  color: #ffffff;
+}
+
+.amp-head.amp-bogner_ecstasy ~ .amp-cabinet .cabinet-speaker-grill {
+  background: radial-gradient(circle at 30% 30%, #2a2a2a 0%, #1a1a1a 50%, #0a0a0a 100%);
 }
 
 .amp-head.amp-bogner_ecstasy ~ .amp-cabinet .speaker-cone {
-  background: linear-gradient(135deg, #16213e, #0f1a2e);
-  border: 2px solid #4a9eff;
+  background: radial-gradient(circle at 35% 35%, #2a2a2a, #1a1a1a, #0a0a0a);
+  border: 2px solid #d4af37;
+  box-shadow:
+    0 1px 8px rgba(212, 175, 55, 0.2),
+    inset 0 1px 4px rgba(0, 0, 0, 0.6),
+    inset 0 -1px 4px rgba(212, 175, 55, 0.1);
 }
 
 /* DIEZEL VH4 - Gray/White */
