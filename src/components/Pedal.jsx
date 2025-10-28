@@ -89,8 +89,7 @@ const Pedal = ({ effect, onUpdate, onBypass, onRemove }) => {
         metalColor: '#2a2a2a', // Black knobs
         ledColor: '#ff0000',
         label: 'DS-1',
-        brand: 'BOSS',
-        subtitle: 'Distortion'
+        brand: 'BOSS'
       },
       
       // Generic distortion
@@ -616,8 +615,7 @@ const Pedal = ({ effect, onUpdate, onBypass, onRemove }) => {
         metalColor: '#2a2a2a',
         ledColor: '#0099ff',
         label: 'BD-2',
-        brand: 'BOSS',
-        subtitle: 'Blues Driver'
+        brand: 'BOSS'
       },
       
       // BOSS SD-1 - Yellow
@@ -629,8 +627,7 @@ const Pedal = ({ effect, onUpdate, onBypass, onRemove }) => {
         metalColor: '#2a2a2a',
         ledColor: '#ffff00',
         label: 'SD-1',
-        brand: 'BOSS',
-        subtitle: 'Super Overdrive'
+        brand: 'BOSS'
       },
       
       // FUZZ FACE - Gray
