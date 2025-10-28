@@ -1538,43 +1538,57 @@
 /* PEAVEY 5150 - Black/Red */
 .amp-head.amp-peavey_5150 {
   background: 
-    repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(20,20,20,0.3) 1px, rgba(20,20,20,0.3) 2px),
-    linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 50%, #000000 100%);
-  border: 3px solid #cc0000;
+    repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(255,255,255,0.05) 1px, rgba(255,255,255,0.05) 2px),
+    linear-gradient(135deg, #505050 0%, #3a3a3a 50%, #2a2a2a 100%);
+  border: 3px solid #2a2a2a;
   box-shadow: 
     0 10px 40px rgba(0, 0, 0, 0.8),
-    inset 0 2px 0 rgba(204, 0, 0, 0.15),
-    inset 0 -2px 0 rgba(0, 0, 0, 0.7);
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.5);
 }
 
 .amp-head.amp-peavey_5150 .amp-head-top {
-  background: linear-gradient(180deg, #0f0f0f 0%, #000000 100%);
-  border-bottom: 3px solid #cc0000;
+  background: 
+    repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(255,255,255,0.04) 1px, rgba(255,255,255,0.04) 2px),
+    linear-gradient(135deg, #555555 0%, #404040 100%);
+  border-bottom: 2px solid #2a2a2a;
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .amp-head.amp-peavey_5150 .brand-text {
-  color: #ff2020;
+  color: #ffffff;
   font-weight: 900;
   letter-spacing: 5px;
-  text-shadow: 0 0 15px rgba(255, 32, 32, 0.6);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 .amp-head.amp-peavey_5150 .model-text {
-  color: #ffffff;
-  text-shadow: 0 0 12px rgba(255, 32, 32, 0.5);
+  color: #ff0000;
+  text-shadow: 0 0 12px rgba(255, 0, 0, 0.8), 0 1px 2px rgba(0, 0, 0, 0.8);
   font-size: 22px;
   font-weight: 700;
 }
 
 .amp-head.amp-peavey_5150 ~ .amp-cabinet {
-  background: linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 100%);
-  border: 3px solid #cc0000;
+  background: 
+    repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(255,255,255,0.04) 1px, rgba(255,255,255,0.04) 2px),
+    linear-gradient(135deg, #4a4a4a 0%, #353535 100%);
+  border: 3px solid #2a2a2a;
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 4px 12px rgba(0, 0, 0, 0.8);
 }
 
 .amp-head.amp-peavey_5150 ~ .amp-cabinet .speaker-cone {
-  background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
-  border: 2px solid #cc0000;
-  box-shadow: 0 0 10px rgba(204, 0, 0, 0.3);
+  background: 
+    repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(255,255,255,0.03) 1px, rgba(255,255,255,0.03) 2px),
+    linear-gradient(135deg, #3a3a3a, #252525);
+  border: 2px solid #2a2a2a;
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 /* BOGNER ECSTASY - Dark Blue */
@@ -3892,22 +3906,86 @@ assed state - cold tubes */
   border-color: #8b7355;
 }
 
-/* PEAVEY 5150 Cabinet Grill - Black metal mesh */
+/* PEAVEY 5150 Cabinet Grill - Painel perfurado metálico */
 .amp-head.amp-peavey_5150 ~ .amp-cabinet .cabinet-speaker-grill {
   background: 
-    repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(30,30,30,0.6) 1px, rgba(30,30,30,0.6) 2px),
-    repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(30,30,30,0.6) 1px, rgba(30,30,30,0.6) 2px),
-    radial-gradient(circle at 50% 50%, #2a2a2a, #0f0f0f);
-  border-color: #cc0000;
+    repeating-radial-gradient(circle at 2px 2px, rgba(0,0,0,0.8) 0px, transparent 1px),
+    repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(255,255,255,0.03) 1px, rgba(255,255,255,0.03) 2px),
+    linear-gradient(135deg, #3a3a3a, #252525);
+  background-size: 4px 4px, 100% 100%, 100% 100%;
+  border: 2px solid #2a2a2a;
+  box-shadow: 
+    inset 0 0 20px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
-/* PEAVEY 5150 Control Panel Styling */
+/* PEAVEY 5150 Control Panel Styling - Painel perfurado metálico */
 .amp-head.amp-peavey_5150 .amp-control-panel {
-  background: linear-gradient(180deg, #0f0f0f 0%, #000000 100%);
+  background: 
+    repeating-radial-gradient(circle at 2px 2px, rgba(0,0,0,0.5) 0px, transparent 1px),
+    repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(255,255,255,0.04) 1px, rgba(255,255,255,0.04) 2px),
+    linear-gradient(135deg, #484848 0%, #333333 100%);
+  background-size: 4px 4px, 100% 100%, 100% 100%;
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .amp-head.amp-peavey_5150 .knob-label {
-  color: #ffffff;
-  text-shadow: 0 0 8px rgba(255, 32, 32, 0.4);
+  color: #ffffff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) !important;
+  font-weight: 700 !important;
+}
+
+.amp-head.amp-peavey_5150 .knob-label-value {
+  color: #ffffff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) !important;
+  font-weight: 700 !important;
+}
+
+/* PEAVEY 5150 - COMPACT LAYOUT */
+.amp-head.amp-peavey_5150 {
+  max-width: 980px;
+  padding: 5px 8px;
+  min-height: auto;
+}
+
+.amp-head.amp-peavey_5150 .amp-head-top {
+  padding: 4px 8px;
+  min-height: auto;
+}
+
+.amp-head.amp-peavey_5150 .brand-text {
+  letter-spacing: 2px;
+  font-size: 11px;
+}
+
+.amp-head.amp-peavey_5150 .model-text {
+  font-size: 14px;
+}
+
+.amp-head.amp-peavey_5150 .amp-control-panel {
+  padding: 5px 8px;
+  gap: 5px;
+}
+
+.amp-head.amp-peavey_5150 .amp-knobs-section {
+  padding: 4px 6px;
+  gap: 5px;
+}
+
+.amp-head.amp-peavey_5150 ~ .amp-cabinet {
+  padding: 8px 12px;
+  min-height: auto;
+}
+
+.amp-head.amp-peavey_5150 ~ .amp-cabinet .cabinet-config {
+  padding: 5px 8px;
+  gap: 6px;
+}
+
+.amp-head.amp-peavey_5150 ~ .amp-cabinet .cabinet-speaker-grill {
+  padding: 8px;
+  gap: 8px;
 }
 
