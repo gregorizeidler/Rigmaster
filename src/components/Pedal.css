@@ -19,18 +19,38 @@
   border: 1px solid rgba(0, 0, 0, 0.8);
 }
 
-/* Fulltone OCD - Compact size, centered layout */
+/* Ajuste de alinhamento e espaçamento do Fulltone OCD */
 .pedal-fulltoneocd {
   width: 200px;
-  padding: 20px 15px 15px 15px;
-  gap: 12px;
+  padding: 15px 10px 10px 10px; /* Reduz espaçamento interno */
+  gap: 6px; /* Reduz espaço entre seções */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
 }
 
+/* Centraliza o cabeçalho */
 .pedal-fulltoneocd .pedal-header {
   text-align: center;
+  margin: 0;
+  padding: 8px 0;
+  border-bottom: none; /* Remove linha se quiser deixar mais limpo */
 }
 
+/* Centraliza os controles e diminui o espaço */
+.pedal-fulltoneocd .pedal-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px; /* Menor espaçamento entre knobs */
+  margin: 0;
+  padding: 0;
+}
+
+/* Centraliza o footswitch e aproxima do resto */
 .pedal-fulltoneocd .pedal-footswitch {
+  margin-top: 8px; /* Menor distância do controle ao footswitch */
   align-self: center;
 }
 
