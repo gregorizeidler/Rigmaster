@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import './Knob.css';
 
-const Knob = ({ label, value, onChange, min = 0, max = 100, unit = '' }) => {
+const Knob = ({ label, value, onChange, min = 0, max = 100, unit = '', color, pointerColor }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const knobRef = useRef(null);
@@ -126,7 +126,11 @@ const Knob = ({ label, value, onChange, min = 0, max = 100, unit = '' }) => {
         onMouseDown={handleMouseDown}
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
-        style={{ '--rotation': `${rotation}deg` }}
+        style={{ 
+          '--rotation': `${rotation}deg`,
+          '--knob-color': color,
+          '--knob-pointer-color': pointerColor
+        }}
       >
         <div className="knob-indicator"></div>
         <div className="knob-label-value">{Math.round(value)}</div>

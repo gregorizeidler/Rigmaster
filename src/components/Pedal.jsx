@@ -899,19 +899,23 @@ const Pedal = ({ effect, onUpdate, onBypass, onRemove }) => {
         displayText: 'SHIMMER'
       },
       
-      // MESA V-TWIN - Black with Stripes
+      // MESA V-TWIN - Brushed Aluminum Chassis (Industrial/Vintage)
       mesavtwin: {
-        primary: '#ff6600',
-        secondary: '#cc5500',
-        bgColor: '#000000',
-        bodyGradient: 'linear-gradient(180deg, #1a1a1a 0%, #000000 50%, #000000 100%)',
-        metalColor: '#2a2a2a',
+        primary: '#000000', // Black text for contrast
+        secondary: '#1a1a1a',
+        bgColor: '#a0a0a0', // Brushed aluminum
+        bodyGradient: 'linear-gradient(180deg, #d4d4d4 0%, #c0c0c0 15%, #a8a8a8 40%, #909090 70%, #787878 100%)',
+        metalColor: '#1a1a1a', // Black knobs
+        knobPointer: '#ffffff', // White pointer
         ledColor: '#00ff00',
         label: 'V-TWIN',
         brand: 'MESA/Boogie',
         type: 'rack',
-        hasStripes: true, // Mesa characteristic stripes
-        displayType: 'led-dual'
+        hasStripes: false,
+        displayType: 'led-dual',
+        chassis: 'aluminum', // Aluminum chassis
+        style: 'industrial', // Industrial/heavy/vintage look
+        labelColor: '#000000' // Black labels for readability
       },
       
       // TECH 21 SANSAMP - Black Professional
@@ -1575,16 +1579,77 @@ const Pedal = ({ effect, onUpdate, onBypass, onRemove }) => {
         );
       case 'mesavtwin':
         return (
-          <>
-            <Knob label="Gain" value={effect.params?.gain || 50} onChange={handleKnobChange('gain')} />
-            <Knob label="Bass" value={effect.params?.bass || 50} onChange={handleKnobChange('bass')} />
-            <Knob label="Mid" value={effect.params?.mid || 50} onChange={handleKnobChange('mid')} />
-            <Knob label="Treble" value={effect.params?.treble || 50} onChange={handleKnobChange('treble')} />
-            <Knob label="Presence" value={effect.params?.presence || 50} onChange={handleKnobChange('presence')} />
-            <Knob label="Contour" value={effect.params?.contour || 0} onChange={handleKnobChange('contour')} />
-            <Knob label="Master" value={effect.params?.master || 60} onChange={handleKnobChange('master')} />
-            <Knob label="Channel" value={effect.params?.channel || 25} onChange={handleKnobChange('channel')} />
-          </>
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            width: '100%', 
+            gap: '12px',
+            alignItems: 'center'
+          }}>
+            {/* Channel Selector */}
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'center', 
+              gap: '10px',
+              padding: '10px 20px',
+              background: 'linear-gradient(180deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.25) 100%)',
+              borderRadius: '6px',
+              border: '2px solid rgba(120,120,120,0.4)',
+              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3)'
+            }}>
+              <button
+                onClick={() => onUpdate(effect.id, 'channel', 0)}
+                style={{
+                  padding: '8px 20px',
+                  fontSize: '11px',
+                  fontWeight: 'bold',
+                  borderRadius: '4px',
+                  border: (effect.params?.channel || 0) < 50 ? '2px solid #888' : '1px solid rgba(100,100,100,0.4)',
+                  background: (effect.params?.channel || 0) < 50 ? 'linear-gradient(145deg, #d0d0d0, #a0a0a0)' : 'rgba(40,40,40,0.6)',
+                  color: (effect.params?.channel || 0) < 50 ? '#000' : '#666',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  boxShadow: (effect.params?.channel || 0) < 50 ? '0 2px 6px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.3)' : 'none',
+                  textShadow: (effect.params?.channel || 0) < 50 ? '0 1px 1px rgba(255,255,255,0.5)' : 'none'
+                }}
+              >CLEAN</button>
+              <button
+                onClick={() => onUpdate(effect.id, 'channel', 100)}
+                style={{
+                  padding: '8px 20px',
+                  fontSize: '11px',
+                  fontWeight: 'bold',
+                  borderRadius: '4px',
+                  border: (effect.params?.channel || 0) >= 50 ? '2px solid #c83a3a' : '1px solid rgba(100,100,100,0.4)',
+                  background: (effect.params?.channel || 0) >= 50 ? 'linear-gradient(145deg, #e24a4a, #c83a3a)' : 'rgba(40,40,40,0.6)',
+                  color: (effect.params?.channel || 0) >= 50 ? '#ffffff' : '#666',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  boxShadow: (effect.params?.channel || 0) >= 50 ? '0 2px 6px rgba(226,74,74,0.5), inset 0 1px 0 rgba(255,100,100,0.3)' : 'none',
+                  textShadow: (effect.params?.channel || 0) >= 50 ? '0 0 4px rgba(255,255,255,0.4)' : 'none'
+                }}
+              >LEAD</button>
+            </div>
+            
+            {/* Knobs Grid - Centered */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(4, 1fr)',
+              gap: '12px',
+              width: '100%',
+              maxWidth: '420px',
+              justifyItems: 'center',
+              padding: '0 10px'
+            }}>
+              <Knob label="Gain" value={effect.params?.gain || 50} onChange={handleKnobChange('gain')} color="#1a1a1a" pointerColor="#ffffff" />
+              <Knob label="Bass" value={effect.params?.bass || 50} onChange={handleKnobChange('bass')} color="#1a1a1a" pointerColor="#ffffff" />
+              <Knob label="Mid" value={effect.params?.mid || 50} onChange={handleKnobChange('mid')} color="#1a1a1a" pointerColor="#ffffff" />
+              <Knob label="Treble" value={effect.params?.treble || 50} onChange={handleKnobChange('treble')} color="#1a1a1a" pointerColor="#ffffff" />
+              <Knob label="Presence" value={effect.params?.presence || 50} onChange={handleKnobChange('presence')} color="#1a1a1a" pointerColor="#ffffff" />
+              <Knob label="Contour" value={effect.params?.contour || 0} onChange={handleKnobChange('contour')} color="#1a1a1a" pointerColor="#ffffff" />
+              <Knob label="Master" value={effect.params?.master || 60} onChange={handleKnobChange('master')} color="#1a1a1a" pointerColor="#ffffff" />
+            </div>
+          </div>
         );
       case 'tech21sansamp':
         return (
@@ -2013,7 +2078,8 @@ const Pedal = ({ effect, onUpdate, onBypass, onRemove }) => {
         '--pedal-secondary': config.secondary,
         '--pedal-bg': config.bgColor,
         '--pedal-gradient': config.bodyGradient,
-        '--pedal-metal': config.metalColor
+        '--pedal-metal': config.metalColor,
+        '--pedal-label-color': config.labelColor || config.primary
       }}
       initial={{ scale: 0, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}

@@ -144,10 +144,10 @@
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 2px;
-  color: var(--pedal-metal);
+  color: var(--pedal-label-color, var(--pedal-metal));
   text-transform: uppercase;
   margin-bottom: 4px;
-  opacity: 0.8;
+  opacity: 0.9;
 }
 
 .pedal-name {
@@ -155,7 +155,7 @@
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 2.5px;
-  color: var(--pedal-primary);
+  color: var(--pedal-label-color, var(--pedal-primary));
   margin: 5px 0;
   text-shadow: 
     0 0 25px var(--pedal-primary),
@@ -168,7 +168,7 @@
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 1px;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--pedal-label-color, rgba(255, 255, 255, 0.6));
   margin-top: 4px;
   font-family: monospace;
 }
@@ -1207,3 +1207,45 @@
   text-transform: uppercase;
 }
 
+
+/* ============================================
+   MESA V-TWIN - Aluminum Chassis Style
+   ============================================ */
+
+.pedal-mesavtwin {
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.pedal-mesavtwin .pedal-brand {
+  color: #000000;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+.pedal-mesavtwin .pedal-name {
+  color: #000000;
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  text-shadow: 
+    0 1px 2px rgba(255, 255, 255, 0.6),
+    0 2px 4px rgba(0, 0, 0, 0.3);
+  filter: none;
+}
+
+.pedal-mesavtwin .pedal-model {
+  color: #1a1a1a;
+  font-weight: 700;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.4);
+}
+
+.pedal-mesavtwin .knob-label {
+  color: #000000 !important;
+  font-weight: 700;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+}

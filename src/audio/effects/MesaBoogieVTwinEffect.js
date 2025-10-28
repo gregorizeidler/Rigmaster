@@ -11,6 +11,31 @@ class MesaBoogieVTwinEffect extends BaseEffect {
     this.inputGain = audioContext.createGain();
     this.inputGain.gain.value = 1.5;
     
+    // Anti-aliasing: Pre-drive HPF to tighten low end
+    this.preHPF = audioContext.createBiquadFilter();
+    this.preHPF.type = 'highpass';
+    this.preHPF.frequency.value = 100;
+    
+    // Post-drive filters to "cabinetize"
+    this.postHPF = audioContext.createBiquadFilter();
+    this.postHPF.type = 'highpass';
+    this.postHPF.frequency.value = 70;
+    
+    this.postLPF = audioContext.createBiquadFilter();
+    this.postLPF.type = 'lowpass';
+    this.postLPF.frequency.value = 7500;
+    
+    // DC blocker before EQ
+    this.dcBlock = audioContext.createBiquadFilter();
+    this.dcBlock.type = 'highpass';
+    this.dcBlock.frequency.value = 20;
+    
+    // Clean channel bright cap (high-shelf for sparkle)
+    this.cleanBright = audioContext.createBiquadFilter();
+    this.cleanBright.type = 'highshelf';
+    this.cleanBright.frequency.value = 2500;
+    this.cleanBright.gain.value = 0;
+    
     // Stage 1: Input stage (12AX7 sim)
     this.stage1 = audioContext.createWaveShaper();
     this.stage1.oversample = '4x';
@@ -38,24 +63,34 @@ class MesaBoogieVTwinEffect extends BaseEffect {
     
     this.mid.type = 'peaking';
     this.mid.frequency.value = 750;
-    this.mid.Q.value = 1.0;
+    this.mid.Q.value = 1.3; // Increased Q for better "honk"
     this.mid.gain.value = 0;
     
     this.treble.type = 'highshelf';
     this.treble.frequency.value = 3000;
     this.treble.gain.value = 0;
     
-    this.presence.type = 'peaking';
+    // Presence as high-shelf (power amp NFB)
+    this.presence.type = 'highshelf';
     this.presence.frequency.value = 4500;
-    this.presence.Q.value = 2.0;
     this.presence.gain.value = 0;
     
-    // Contour (scooped mids)
+    // Contour (V-scoop: cuts mids, boosts lows and highs)
     this.contour = audioContext.createBiquadFilter();
     this.contour.type = 'peaking';
     this.contour.frequency.value = 750;
     this.contour.Q.value = 1.5;
     this.contour.gain.value = 0;
+    
+    this.contourLow = audioContext.createBiquadFilter();
+    this.contourLow.type = 'lowshelf';
+    this.contourLow.frequency.value = 120;
+    this.contourLow.gain.value = 0;
+    
+    this.contourHigh = audioContext.createBiquadFilter();
+    this.contourHigh.type = 'highshelf';
+    this.contourHigh.frequency.value = 3500;
+    this.contourHigh.gain.value = 0;
     
     // Master volume
     this.masterGain = audioContext.createGain();
@@ -65,17 +100,27 @@ class MesaBoogieVTwinEffect extends BaseEffect {
     this.channelGain = audioContext.createGain();
     this.channelGain.gain.value = 1.0;
     
-    // Chain
+    // Store params for makeup gain calculation
+    this.params = { master: 60 };
+    
+    // Signal Chain with anti-aliasing and proper filtering
     this.input.connect(this.inputGain);
     this.inputGain.connect(this.channelGain);
-    this.channelGain.connect(this.stage1);
+    this.channelGain.connect(this.cleanBright);
+    this.cleanBright.connect(this.preHPF);
+    this.preHPF.connect(this.stage1);
     this.stage1.connect(this.stage2);
-    this.stage2.connect(this.bass);
+    this.stage2.connect(this.dcBlock);
+    this.dcBlock.connect(this.bass);
     this.bass.connect(this.mid);
     this.mid.connect(this.treble);
-    this.treble.connect(this.contour);
-    this.contour.connect(this.stage3);
-    this.stage3.connect(this.presence);
+    this.treble.connect(this.contourLow);
+    this.contourLow.connect(this.contour);
+    this.contour.connect(this.contourHigh);
+    this.contourHigh.connect(this.stage3);
+    this.stage3.connect(this.postHPF);
+    this.postHPF.connect(this.postLPF);
+    this.postLPF.connect(this.presence);
     this.presence.connect(this.masterGain);
     this.masterGain.connect(this.wetGain);
     this.wetGain.connect(this.output);
@@ -116,10 +161,18 @@ class MesaBoogieVTwinEffect extends BaseEffect {
     const now = this.audioContext.currentTime;
     
     switch (parameter) {
-      case 'gain':
-        this.inputGain.gain.setTargetAtTime(1 + (value / 50), now, 0.01);
-        this.stage2.curve = this.makeTubeCurve(value);
+      case 'gain': {
+        // Auto-makeup gain: constant perceived level while saturating
+        const drive = Math.max(0, Math.min(100, value));
+        this.stage2.curve = this.makeTubeCurve(drive);
+        // Input gain 1..3
+        const inGain = 1 + (drive / 100) * 2;
+        this.inputGain.gain.setTargetAtTime(inGain, now, 0.01);
+        // Compensate at master output
+        const makeup = 0.8 - (drive / 100) * 0.25; // 0.8 -> 0.55
+        this.masterGain.gain.setTargetAtTime((this.params?.master ?? 60) / 100 * makeup, now, 0.02);
         break;
+      }
       case 'bass':
         this.bass.gain.setTargetAtTime((value - 50) / 5, now, 0.01);
         break;
@@ -130,24 +183,36 @@ class MesaBoogieVTwinEffect extends BaseEffect {
         this.treble.gain.setTargetAtTime((value - 50) / 5, now, 0.01);
         break;
       case 'presence':
-        this.presence.gain.setTargetAtTime((value - 50) / 5, now, 0.01);
+        // Presence range: ±6 dB (more controlled than ±10 dB)
+        this.presence.gain.setTargetAtTime((value - 50) / 8.33, now, 0.01);
         break;
-      case 'contour':
-        this.contour.gain.setTargetAtTime(-(value / 10), now, 0.01);
+      case 'contour': {
+        // V-scoop: cuts mids, boosts lows and highs
+        const midCut = -(value / 10);        // 0 to -10 dB
+        const shelfBoost = (value / 100) * 4; // 0 to +4 dB
+        this.contour.gain.setTargetAtTime(midCut, now, 0.01);
+        this.contourLow.gain.setTargetAtTime(shelfBoost, now, 0.01);
+        this.contourHigh.gain.setTargetAtTime(shelfBoost, now, 0.01);
         break;
+      }
       case 'master':
+        // Store for makeup gain calculation
+        this.params.master = value;
         this.masterGain.gain.setTargetAtTime(value / 100, now, 0.01);
         break;
-      case 'channel':
-        // Channel selector: 0-50 = Clean, 51-100 = Lead
-        if (value > 50) {
-          this.channelGain.gain.setTargetAtTime(2.0, now, 0.01);
-          this.stage1.curve = this.makeTubeCurve(60);
-        } else {
-          this.channelGain.gain.setTargetAtTime(1.0, now, 0.01);
-          this.stage1.curve = this.makeTubeCurve(30);
-        }
+      case 'channel': {
+        // Smooth channel morph: 0=Clean, 100=Lead
+        const t = Math.min(Math.max(value / 100, 0), 1);
+        // Channel gain: 1.0 -> 2.0
+        this.channelGain.gain.setTargetAtTime(1.0 + t * 1.0, now, 0.01);
+        // Bright cap: more present in clean, fades in lead
+        this.cleanBright.gain.setTargetAtTime((1 - t) * 4, now, 0.01);
+        // Stage 1 drive: 30 -> 60
+        this.stage1.curve = this.makeTubeCurve(30 + t * 30);
+        // Stage 2 gets a bit more drive in lead
+        this.stage2.curve = this.makeTubeCurve(60 + t * 6);
         break;
+      }
       default:
         break;
     }
@@ -157,16 +222,23 @@ class MesaBoogieVTwinEffect extends BaseEffect {
     super.disconnect();
     try {
       this.inputGain.disconnect();
+      this.channelGain.disconnect();
+      this.cleanBright.disconnect();
+      this.preHPF.disconnect();
       this.stage1.disconnect();
       this.stage2.disconnect();
-      this.stage3.disconnect();
+      this.dcBlock.disconnect();
       this.bass.disconnect();
       this.mid.disconnect();
       this.treble.disconnect();
-      this.presence.disconnect();
+      this.contourLow.disconnect();
       this.contour.disconnect();
+      this.contourHigh.disconnect();
+      this.stage3.disconnect();
+      this.postHPF.disconnect();
+      this.postLPF.disconnect();
+      this.presence.disconnect();
       this.masterGain.disconnect();
-      this.channelGain.disconnect();
     } catch (e) {}
   }
 }
