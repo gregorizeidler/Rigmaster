@@ -1855,64 +1855,24 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
         return (
           <div key="badcat_hotcat_controls" className="badcat-hotcat-full-controls" style={{
             display: 'flex',
-            flexDirection: 'row',
-            gap: '5px',
+            flexDirection: 'column',
+            gap: '4px',
             padding: '5px 6px',
             background: 'linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%)',
             borderRadius: '4px',
             border: '2px solid #d4af37',
-            flexWrap: 'wrap',
-            justifyContent: 'center',
+            maxWidth: '850px',
             alignItems: 'center'
           }}>
-            {/* CHANNEL + MODE */}
+            {/* LINHA SUPERIOR - KNOBS */}
             <div style={{
               display: 'flex',
-              flexDirection: 'column',
-              gap: '3px',
-              padding: '4px 6px',
-              background: 'rgba(0,0,0,0.5)',
-              borderRadius: '4px',
-              border: '1px solid rgba(212,175,55,0.4)',
+              flexDirection: 'row',
+              gap: '5px',
+              flexWrap: 'nowrap',
+              justifyContent: 'center',
               alignItems: 'center'
             }}>
-              <select 
-                value={amp.params?.channel || 1}
-                onChange={(e) => onUpdate(amp.id, 'channel', parseInt(e.target.value))}
-                style={{
-                  padding: '2px 4px',
-                  background: '#2a2a2a',
-                  color: '#d4af37',
-                  border: '1px solid #d4af37',
-                  borderRadius: '2px',
-                  fontWeight: 'bold',
-                  fontSize: '7px'
-                }}
-              >
-                <option value={1}>CH1</option>
-                <option value={2}>CH2</option>
-              </select>
-              
-              {amp.params?.channel === 2 && (
-                <select 
-                  value={amp.params?.ch2_mode || 'EF86'}
-                  onChange={(e) => onUpdate(amp.id, 'ch2_mode', e.target.value)}
-                  style={{
-                    padding: '2px 4px',
-                    background: '#2a2a2a',
-                    color: '#ffaa00',
-                    border: '1px solid #ffaa00',
-                    borderRadius: '2px',
-                    fontWeight: 'bold',
-                    fontSize: '6px'
-                  }}
-                >
-                  <option value="EF86">EF86</option>
-                  <option value="ECC83">ECC83</option>
-                </select>
-              )}
-            </div>
-
             {/* GAIN + VOLUME */}
             <div style={{
               display: 'flex',
@@ -1953,11 +1913,10 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
               <Knob label="CUT" value={amp.params?.cut || 50} onChange={handleKnobChange('cut')} size={26} color="#d4af37" />
             </div>
 
-            {/* FOCUS + BITE */}
+            {/* FOCUS */}
             <div style={{
               display: 'flex',
-              flexDirection: 'column',
-              gap: '3px',
+              gap: '4px',
               padding: '4px 6px',
               background: 'rgba(0,0,0,0.4)',
               borderRadius: '4px',
@@ -1965,6 +1924,132 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
               alignItems: 'center'
             }}>
               <Knob label="FOCUS" value={amp.params?.focus || 40} onChange={handleKnobChange('focus')} size={24} color="#ffaa00" />
+            </div>
+
+            {/* REVERB */}
+            <div style={{
+              display: 'flex',
+              gap: '6px',
+              padding: '4px 6px',
+              background: 'rgba(0,0,0,0.3)',
+              borderRadius: '4px',
+              border: '1px solid rgba(100,150,200,0.3)',
+              alignItems: 'center'
+            }}>
+              <Knob label="REV" value={amp.params?.reverb || 30} onChange={handleKnobChange('reverb')} size={26} color="#6496c8" />
+              <Knob label="TONE" value={amp.params?.reverb_tone || 60} onChange={handleKnobChange('reverb_tone')} size={24} color="#6496c8" />
+              <Knob label="MIX" value={amp.params?.reverb_mix || 25} onChange={handleKnobChange('reverb_mix')} size={24} color="#6496c8" />
+            </div>
+            
+            {/* MASTERS */}
+            <div style={{
+              display: 'flex',
+              gap: '6px',
+              padding: '4px 6px',
+              background: 'rgba(0,0,0,0.3)',
+              borderRadius: '4px',
+              border: '1px solid rgba(212,175,55,0.3)',
+              alignItems: 'center'
+            }}>
+              <Knob label="K-M" value={amp.params?.k_master || 70} onChange={handleKnobChange('k_master')} size={28} color="#d4af37" />
+              <Knob label="OUT" value={amp.params?.output_level || 100} onChange={handleKnobChange('output_level')} size={26} color="#d4af37" />
+              <Knob label="MSTR" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={28} color="#d4af37" />
+            </div>
+            </div>
+            
+            {/* LINHA INFERIOR - CHANNEL + MODE + BITE + CABINET */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'row',
+              gap: '5px',
+              flexWrap: 'nowrap',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}>
+            {/* CHANNEL SELECTOR */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'row',
+              gap: '3px',
+              padding: '4px 6px',
+              background: 'rgba(0,0,0,0.5)',
+              borderRadius: '4px',
+              border: '1px solid rgba(212,175,55,0.4)',
+              alignItems: 'center'
+            }}>
+              <label style={{ fontSize: '6px', color: '#d4af37', fontWeight: 'bold', marginRight: '3px' }}>CH</label>
+              <button 
+                onClick={() => onUpdate(amp.id, 'channel', 1)}
+                style={{
+                  padding: '3px 8px',
+                  background: (amp.params?.channel || 1) === 1 ? 'linear-gradient(135deg, #d4af37 0%, #b8941f 100%)' : 'rgba(0,0,0,0.7)',
+                  border: '1px solid ' + ((amp.params?.channel || 1) === 1 ? '#d4af37' : '#555'),
+                  color: (amp.params?.channel || 1) === 1 ? '#000' : '#d4af37',
+                  borderRadius: '2px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '7px'
+                }}
+              >1</button>
+              <button 
+                onClick={() => onUpdate(amp.id, 'channel', 2)}
+                style={{
+                  padding: '3px 8px',
+                  background: (amp.params?.channel || 1) === 2 ? 'linear-gradient(135deg, #d4af37 0%, #b8941f 100%)' : 'rgba(0,0,0,0.7)',
+                  border: '1px solid ' + ((amp.params?.channel || 1) === 2 ? '#d4af37' : '#555'),
+                  color: (amp.params?.channel || 1) === 2 ? '#000' : '#d4af37',
+                  borderRadius: '2px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '7px'
+                }}
+              >2</button>
+            </div>
+
+            {/* MODE (apenas para CH2) */}
+            {amp.params?.channel === 2 && (
+              <div style={{
+                display: 'flex',
+                flexDirection: 'row',
+                gap: '3px',
+                padding: '4px 6px',
+                background: 'rgba(0,0,0,0.5)',
+                borderRadius: '4px',
+                border: '1px solid rgba(255,170,0,0.3)',
+                alignItems: 'center'
+              }}>
+                <label style={{ fontSize: '6px', color: '#ffaa00', fontWeight: 'bold', marginRight: '2px' }}>MODE</label>
+                <select 
+                  value={amp.params?.ch2_mode || 'EF86'}
+                  onChange={(e) => onUpdate(amp.id, 'ch2_mode', e.target.value)}
+                  style={{
+                    padding: '1px 3px',
+                    background: '#2a2a2a',
+                    color: '#ffaa00',
+                    border: '1px solid #ffaa00',
+                    borderRadius: '2px',
+                    fontWeight: 'bold',
+                    fontSize: '7px'
+                  }}
+                >
+                  <option value="EF86">EF86</option>
+                  <option value="ECC83">ECC83</option>
+                </select>
+              </div>
+            )}
+
+            {/* BITE */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'row',
+              gap: '3px',
+              padding: '4px 6px',
+              background: 'rgba(0,0,0,0.4)',
+              borderRadius: '4px',
+              border: '1px solid rgba(255,170,0,0.3)',
+              alignItems: 'center'
+            }}>
+              <label style={{ fontSize: '6px', color: '#ffaa00', fontWeight: 'bold', marginRight: '2px' }}>BITE</label>
               <select 
                 value={amp.params?.bite !== undefined ? amp.params.bite : 1}
                 onChange={(e) => onUpdate(amp.id, 'bite', parseInt(e.target.value))}
@@ -1975,7 +2060,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                   border: '1px solid #ffaa00',
                   borderRadius: '2px',
                   fontWeight: 'bold',
-                  fontSize: '6px'
+                  fontSize: '7px'
                 }}
               >
                 <option value={0}>-</option>
@@ -1984,37 +2069,16 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
               </select>
             </div>
 
-            {/* MASTERS + REVERB + CABINET */}
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '3px',
-              padding: '4px 6px',
-              background: 'rgba(0,0,0,0.3)',
-              borderRadius: '4px',
-              border: '1px solid rgba(212,175,55,0.3)',
-              alignItems: 'center'
-            }}>
-              <div style={{ display: 'flex', gap: '6px' }}>
-                <Knob label="REV" value={amp.params?.reverb || 30} onChange={handleKnobChange('reverb')} size={26} color="#6496c8" />
-                <Knob label="TONE" value={amp.params?.reverb_tone || 60} onChange={handleKnobChange('reverb_tone')} size={24} color="#6496c8" />
-                <Knob label="MIX" value={amp.params?.reverb_mix || 25} onChange={handleKnobChange('reverb_mix')} size={24} color="#6496c8" />
-              </div>
-              
-              <div style={{ display: 'flex', gap: '6px' }}>
-                <Knob label="K-M" value={amp.params?.k_master || 70} onChange={handleKnobChange('k_master')} size={28} color="#d4af37" />
-                <Knob label="OUT" value={amp.params?.output_level || 100} onChange={handleKnobChange('output_level')} size={26} color="#d4af37" />
-                <Knob label="MSTR" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={28} color="#d4af37" />
-              </div>
-              
-              <div className="toggle-switch">
-                <label style={{ fontSize: '6px', color: '#d4af37', fontWeight: 'bold' }}>CAB</label>
-                <input 
-                  type="checkbox" 
-                  checked={amp.params?.cabinet_enabled !== false}
-                  onChange={(e) => onUpdate(amp.id, 'cabinet_enabled', e.target.checked)}
-                />
-              </div>
+            {/* CABINET TOGGLE */}
+            <div className="toggle-switch" style={{ display: 'flex', alignItems: 'center', gap: '2px', padding: '4px 6px', background: 'rgba(0,0,0,0.3)', borderRadius: '4px', border: '1px solid rgba(212,175,55,0.3)' }}>
+              <label style={{ fontSize: '6px', color: '#d4af37', fontWeight: 'bold' }}>CAB</label>
+              <input 
+                type="checkbox" 
+                checked={amp.params?.cabinet_enabled !== false}
+                onChange={(e) => onUpdate(amp.id, 'cabinet_enabled', e.target.checked)}
+                style={{ transform: 'scale(0.7)' }}
+              />
+            </div>
             </div>
           </div>
         );
