@@ -19,56 +19,17 @@
   border: 1px solid rgba(0, 0, 0, 0.8);
 }
 
-/* FULLTONE OCD — compacto, alinhado e sem espaços extras */
+/* FULLTONE OCD — knobs e footswitch alinhados no centro */
 .pedal-fulltoneocd {
-  width: 190px;
-  padding: 10px 10px 8px;
-  gap: 4px;                 /* menos espaço entre header/controles/foot */
   align-items: center;
 }
 
-/* Header bem curto (sem barra e sem fundo) */
-.pedal-fulltoneocd .pedal-header {
-  background: transparent;
-  border: 0;
-  padding: 4px 0 2px;
-  margin: 0;
-}
-
-/* Remove a altura mínima e o padding que abrem espaço */
 .pedal-fulltoneocd .pedal-controls {
-  min-height: auto !important;
-  padding: 0;
-  margin: 0;
-  gap: 8px;
-}
-
-/* Wrapper interno dos knobs em grid */
-.pedal-fulltoneocd .pedal-controls > div:first-child {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 5px;
-  width: 100%;
-  justify-items: center;
-  align-items: center;
-}
-
-/* Wrapper do tone knob centralizado */
-.pedal-fulltoneocd .pedal-controls > div:last-child {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-}
-
-/* Toggle switch sem margin extra */
-.pedal-fulltoneocd .toggle-switch {
-  margin-top: 0 !important;
+  width: fit-content;
   align-self: center;
 }
 
-/* Footswitch mais próximo dos controles e centralizado */
 .pedal-fulltoneocd .pedal-footswitch {
-  margin-top: 6px;
   align-self: center;
 }
 
