@@ -2059,147 +2059,129 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
         return (
           <div key="hiwatt_dr103_controls" className="hiwatt-dr103-full-controls" style={{
             display: 'flex',
-            flexDirection: 'column',
-            gap: '15px',
-            padding: '15px',
-            background: 'linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%)',
-            borderRadius: '8px',
-            border: '3px solid #888'
+            flexDirection: 'row',
+            gap: '10px',
+            padding: '8px 12px',
+            background: 'linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%)',
+            borderRadius: '6px',
+            border: '2px solid #c0c0c0',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            alignItems: 'center'
           }}>
-            {/* HIWATT BRANDING TOP */}
-            <div style={{
-              textAlign: 'center',
-              paddingBottom: '10px',
-              borderBottom: '2px solid #555'
-            }}>
-              <span style={{ 
-                fontSize: '16px', 
-                fontWeight: 'bold', 
-                color: '#ffffff',
-                textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
-                letterSpacing: '4px',
-                fontFamily: 'Arial, sans-serif'
-              }}>
-                CUSTOM HIWATT 100
-              </span>
-            </div>
-
-            {/* VOLUME CONTROLS - Always visible like original */}
+            {/* VOLUME CONTROLS - Compacto */}
             <div style={{
               display: 'flex',
-              justifyContent: 'space-around',
-              gap: '25px',
-              paddingBottom: '15px',
-              borderBottom: '1px solid #555'
+              gap: '10px',
+              padding: '6px 8px',
+              background: 'rgba(0,0,0,0.5)',
+              borderRadius: '6px',
+              border: '1px solid rgba(192,192,192,0.3)'
             }}>
-              <div style={{ textAlign: 'center' }}>
-                <Knob
-                  label="NORMAL VOL"
-                  value={amp.params?.volume_normal || 50}
-                  onChange={handleKnobChange('volume_normal')}
-                  size={42}
-                />
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <Knob
-                  label="BRIGHT VOL"
-                  value={amp.params?.volume_brilliant || 50}
-                  onChange={handleKnobChange('volume_brilliant')}
-                  size={42}
-                />
-              </div>
+              <Knob
+                label="NORMAL VOL"
+                value={amp.params?.volume_normal || 50}
+                onChange={handleKnobChange('volume_normal')}
+                size={34}
+                color="#ffffff"
+              />
+              <Knob
+                label="BRIGHT VOL"
+                value={amp.params?.volume_brilliant || 50}
+                onChange={handleKnobChange('volume_brilliant')}
+                size={34}
+                color="#ffffff"
+              />
             </div>
 
-            {/* TONE CONTROLS - Like original */}
+            {/* TONE CONTROLS - Horizontal compacto */}
             <div style={{
               display: 'flex',
-              justifyContent: 'space-around',
-              alignItems: 'center',
-              gap: '12px',
-              paddingBottom: '15px',
-              borderBottom: '1px solid #555'
+              gap: '10px',
+              padding: '6px 8px',
+              background: 'rgba(0,0,0,0.5)',
+              borderRadius: '6px',
+              border: '1px solid rgba(192,192,192,0.3)'
             }}>
-              <div style={{ textAlign: 'center' }}>
-                <Knob
-                  label="BASS"
-                  value={amp.params?.bass || 50}
-                  onChange={handleKnobChange('bass')}
-                  size={38}
-                />
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <Knob
-                  label="TREBLE"
-                  value={amp.params?.treble || 50}
-                  onChange={handleKnobChange('treble')}
-                  size={38}
-                />
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <Knob
-                  label="MIDDLE"
-                  value={amp.params?.middle || 50}
-                  onChange={handleKnobChange('middle')}
-                  size={38}
-                />
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <Knob
-                  label="PRESENCE"
-                  value={amp.params?.presence || 50}
-                  onChange={handleKnobChange('presence')}
-                  size={38}
-                />
-              </div>
+              <Knob
+                label="BASS"
+                value={amp.params?.bass || 50}
+                onChange={handleKnobChange('bass')}
+                size={32}
+                color="#ffffff"
+              />
+              <Knob
+                label="TREBLE"
+                value={amp.params?.treble || 50}
+                onChange={handleKnobChange('treble')}
+                size={32}
+                color="#ffffff"
+              />
+              <Knob
+                label="MIDDLE"
+                value={amp.params?.middle || 50}
+                onChange={handleKnobChange('middle')}
+                size={32}
+                color="#ffffff"
+              />
+              <Knob
+                label="PRESENCE"
+                value={amp.params?.presence || 50}
+                onChange={handleKnobChange('presence')}
+                size={32}
+                color="#ffffff"
+              />
             </div>
 
             {/* MASTER VOLUME & CONTROLS */}
             <div style={{
               display: 'flex',
-              justifyContent: 'space-around',
-              alignItems: 'center',
-              paddingTop: '10px'
+              flexDirection: 'column',
+              gap: '6px',
+              padding: '6px 8px',
+              background: 'rgba(0,0,0,0.5)',
+              borderRadius: '6px',
+              border: '1px solid rgba(192,192,192,0.3)',
+              alignItems: 'center'
             }}>
-              <div style={{ textAlign: 'center' }}>
-                <Knob
-                  label="MASTER VOL"
-                  value={amp.params?.master || 70}
-                  onChange={handleKnobChange('master')}
-                  size={48}
-                />
-              </div>
+              <Knob
+                label="MASTER VOL"
+                value={amp.params?.master || 70}
+                onChange={handleKnobChange('master')}
+                size={38}
+                color="#c0c0c0"
+              />
               
               {/* STANDBY indicator and CABINET toggle */}
               <div style={{
                 display: 'flex',
-                flexDirection: 'column',
                 gap: '10px',
                 alignItems: 'center'
               }}>
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px'
+                  gap: '4px'
                 }}>
                   <div style={{
-                    width: '12px',
-                    height: '12px',
+                    width: '8px',
+                    height: '8px',
                     borderRadius: '50%',
-                    background: amp.params?.cabinet_enabled !== false ? '#ff0000' : '#550000',
-                    boxShadow: amp.params?.cabinet_enabled !== false ? '0 0 10px #ff0000' : 'none',
-                    border: '2px solid #000'
+                    background: amp.params?.cabinet_enabled !== false ? '#ff3333' : '#330000',
+                    boxShadow: amp.params?.cabinet_enabled !== false ? '0 0 8px #ff3333' : 'none',
+                    border: '1px solid #000'
                   }}></div>
-                  <label style={{ fontSize: '8px', color: '#ccc', fontWeight: 'bold' }}>STANDBY</label>
+                  <label style={{ fontSize: '7px', color: '#ffffff', fontWeight: 'bold', textTransform: 'uppercase' }}>STBY</label>
                 </div>
                 
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px'
+                  gap: '4px'
                 }}>
-                  <label style={{ fontSize: '9px', color: '#ffffff', fontWeight: 'bold' }}>CAB</label>
+                  <label style={{ fontSize: '7px', color: '#ffffff', fontWeight: 'bold', textTransform: 'uppercase' }}>CAB</label>
                   <div className="toggle-switch">
-                    <label style={{ fontSize: '9px' }}>{amp.params?.cabinet_enabled !== false ? 'ON' : 'OFF'}</label>
+                    <label style={{ fontSize: '7px' }}>{amp.params?.cabinet_enabled !== false ? 'ON' : 'OFF'}</label>
                     <input 
                       type="checkbox" 
                       checked={amp.params?.cabinet_enabled !== false}
@@ -2208,22 +2190,6 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                   </div>
                 </div>
               </div>
-            </div>
-
-            {/* BOTTOM TEXT */}
-            <div style={{
-              textAlign: 'center',
-              marginTop: '8px',
-              paddingTop: '8px',
-              borderTop: '1px solid #555'
-            }}>
-              <span style={{ 
-                fontSize: '7px', 
-                color: '#888',
-                letterSpacing: '1px'
-              }}>
-                MADE IN THE CUSTOM WORKSHOPS, ENGLAND
-              </span>
             </div>
           </div>
         );
@@ -3440,24 +3406,8 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                 )}
               </div>
             ) : amp.ampType === 'hiwatt_dr103' ? (
-              /* HIWATT DR103 - Authentic Custom Hiwatt 100 layout */
-              <div className="hiwatt-dr103-front-panel" style={{ 
-                display: 'flex', 
-                gap: '8px', 
-                justifyContent: 'center',
-                flexWrap: 'wrap'
-              }}>
-                {/* All knobs always visible like real Hiwatt */}
-                <Knob label="NORMAL VOL" value={amp.params?.volume_normal || 50} onChange={handleKnobChange('volume_normal')} size={38} />
-                <Knob label="BRIGHT VOL" value={amp.params?.volume_brilliant || 50} onChange={handleKnobChange('volume_brilliant')} size={38} />
-                <div style={{ width: '1px', height: '60px', background: 'rgba(136,136,136,0.3)', margin: '0 8px' }}></div>
-                <Knob label="BASS" value={amp.params?.bass || 50} onChange={handleKnobChange('bass')} size={36} />
-                <Knob label="TREBLE" value={amp.params?.treble || 60} onChange={handleKnobChange('treble')} size={36} />
-                <Knob label="MIDDLE" value={amp.params?.middle || 50} onChange={handleKnobChange('middle')} size={36} />
-                <Knob label="PRESENCE" value={amp.params?.presence || 50} onChange={handleKnobChange('presence')} size={36} />
-                <div style={{ width: '1px', height: '60px', background: 'rgba(136,136,136,0.3)', margin: '0 8px' }}></div>
-                <Knob label="MASTER VOL" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={38} />
-              </div>
+              /* HIWATT DR103 - Controls handled in custom section below */
+              <div style={{ display: 'none' }}></div>
             ) : amp.ampType === 'friedman_be100' ? (
               /* FRIEDMAN BE-100 - Authentic front panel layout like VOX */
               <div className="friedman-be100-front-panel" style={{ 

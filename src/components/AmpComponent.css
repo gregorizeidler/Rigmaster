@@ -1305,40 +1305,71 @@
 }
 
 /* HIWATT DR103 - Blue/Silver */
+/* HIWATT DR103 - Industrial/Clean (Black panel with white lettering) */
 .amp-head.amp-hiwatt_dr103 {
   background: 
-    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(70,130,180,0.1) 2px, rgba(70,130,180,0.1) 4px),
-    linear-gradient(180deg, #5a9fd4 0%, #4682b4 50%, #2f4f7f 100%);
+    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(192,192,192,0.05) 2px, rgba(192,192,192,0.05) 4px),
+    linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
   border: 3px solid #c0c0c0;
   box-shadow: 
-    0 10px 40px rgba(70, 130, 180, 0.4),
-    inset 0 2px 0 rgba(255, 255, 255, 0.2);
+    0 10px 30px rgba(0, 0, 0, 0.6),
+    inset 0 2px 0 rgba(192, 192, 192, 0.15);
+  max-width: 980px;
 }
 
 .amp-head.amp-hiwatt_dr103 .amp-head-top {
-  background: linear-gradient(180deg, #2f4f7f 0%, #1a3050 100%);
-  border-bottom: 3px solid #c0c0c0;
+  background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+  border-bottom: 2px solid #c0c0c0;
 }
 
 .amp-head.amp-hiwatt_dr103 .brand-text {
   color: #ffffff;
-  letter-spacing: 5px;
+  letter-spacing: 6px;
   font-weight: 900;
+  text-transform: uppercase;
+  font-family: 'Arial Black', sans-serif;
 }
 
 .amp-head.amp-hiwatt_dr103 .model-text {
   color: #ffffff;
-  text-shadow: 0 0 15px rgba(192, 192, 192, 0.8);
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.amp-head.amp-hiwatt_dr103 .amp-control-panel {
+  background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+  border: 2px solid rgba(192, 192, 192, 0.3);
+  padding: 8px;
+  gap: 8px;
+}
+
+.amp-head.amp-hiwatt_dr103 .amp-knobs-section {
+  padding: 8px;
+  gap: 8px;
 }
 
 .amp-head.amp-hiwatt_dr103 ~ .amp-cabinet {
-  background: linear-gradient(180deg, #4682b4 0%, #2f4f7f 100%);
+  background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
   border: 3px solid #c0c0c0;
 }
 
 .amp-head.amp-hiwatt_dr103 ~ .amp-cabinet .speaker-cone {
-  background: linear-gradient(135deg, #2f4f4f, #1a2a2a);
+  background: linear-gradient(135deg, #0a0a0a, #000000);
   border: 2px solid #c0c0c0;
+}
+
+.amp-head.amp-hiwatt_dr103 ~ .amp-cabinet .cabinet-config {
+  background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+}
+
+.amp-head.amp-hiwatt_dr103 ~ .amp-cabinet .cabinet-speaker-grill {
+  background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+}
+
+.amp-head.amp-hiwatt_dr103 ~ .amp-cabinet .config-row label {
+  color: #ffffff;
+  font-weight: bold;
 }
 
 /* MARSHALL JTM45 - Black/Gold (Vintage) */
