@@ -1,8 +1,8 @@
 .pedal {
-  width: 150px;
+  width: 220px;
   background: var(--pedal-gradient);
   border-radius: 16px;
-  padding: 20px 8px 15px 8px;
+  padding: 25px 20px;
   box-shadow: 
     0 25px 50px rgba(0, 0, 0, 0.9),
     0 10px 20px rgba(0, 0, 0, 0.6),
@@ -14,7 +14,7 @@
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 18px;
   transform: perspective(1000px) rotateX(2deg);
   border: 1px solid rgba(0, 0, 0, 0.8);
 }
@@ -116,7 +116,7 @@
 }
 
 .pedal-header {
-  text-align: left;
+  text-align: center;
   border-bottom: 3px solid var(--pedal-primary);
   padding-bottom: 15px;
   margin-bottom: 8px;
@@ -175,12 +175,11 @@
 
 .pedal-controls {
   display: flex;
-  justify-content: center;
-  gap: 12px;
-  padding: 15px 10px;
+  justify-content: space-around;
+  gap: 10px;
+  padding: 10px 0;
   min-height: 100px;
   align-items: center;
-  width: 100%;
 }
 
 /* Layout 2x2 for knobs (Xotic BB Preamp, etc) */
@@ -206,8 +205,7 @@
     radial-gradient(circle at 30% 30%, #4a4a4a 0%, #2a2a2a 40%, #1a1a1a 100%);
   border: 4px solid #0a0a0a;
   cursor: pointer;
-  align-self: flex-start;
-  margin-left: 15px;
+  align-self: center;
   position: relative;
   transition: all 0.15s ease;
   box-shadow: 
