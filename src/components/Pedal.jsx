@@ -656,17 +656,21 @@ const Pedal = ({ effect, onUpdate, onBypass, onRemove }) => {
         texture: 'hand-painted'
       },
       
-      // FULLTONE OCD - Cream
+      // FULLTONE OCD - Cream/Off-white
       fulltoneocd: {
-        primary: '#0066ff',
-        secondary: '#0055cc',
-        bgColor: '#e8d4b0', // Cream/beige
-        bodyGradient: 'linear-gradient(145deg, #f5e6c8 0%, #e8d4b0 50%, #d4b894 100%)',
-        metalColor: '#2a2a2a',
-        ledColor: '#0066ff',
+        primary: '#2a2a2a', // Black text
+        secondary: '#1a1a1a',
+        bgColor: '#f5f0e8', // Cream/off-white metallic
+        bodyGradient: 'linear-gradient(145deg, #fffbf5 0%, #f5f0e8 50%, #e8dcc8 100%)',
+        metalColor: '#2a2a2a', // Black knobs
+        knobPointer: '#ffffff', // White pointer
+        ledColor: '#0066ff', // Blue LED
         label: 'OCD',
         brand: 'Fulltone',
-        subtitle: 'Obsessive Compulsive Drive'
+        labelColor: '#2a2a2a', // Black labels
+        texture: 'metallic',
+        footswitchColor: '#c0c0c0', // Chrome footswitch
+        style: 'boutique' // Vintage boutique feel
       },
       
       // XOTIC BB PREAMP - Metallic Orange
@@ -1241,12 +1245,36 @@ const Pedal = ({ effect, onUpdate, onBypass, onRemove }) => {
         );
       case 'fulltoneocd':
         return (
-          <>
-            <Knob label="Drive" value={effect.params?.drive || 50} onChange={handleKnobChange('drive')} />
-            <Knob label="Tone" value={effect.params?.tone || 50} onChange={handleKnobChange('tone')} />
-            <Knob label="Volume" value={effect.params?.volume || 70} onChange={handleKnobChange('volume')} />
-            <Knob label="Mode" value={effect.params?.mode || 50} onChange={handleKnobChange('mode')} />
-          </>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center', width: '100%' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', gap: '5px' }}>
+              <Knob label="Volume" value={effect.params?.volume || 70} onChange={handleKnobChange('volume')} />
+              <div className="toggle-switch" style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '2px',
+                padding: '4px 6px',
+                background: 'rgba(0,0,0,0.15)',
+                borderRadius: '4px',
+                border: '2px solid rgba(0,0,0,0.3)',
+                marginTop: '20px',
+                minWidth: '35px'
+              }}>
+                <span style={{ fontSize: '7px', color: '#2a2a2a', fontWeight: 'bold', opacity: 0.8 }}>HP</span>
+                <input
+                  type="checkbox"
+                  checked={effect.params?.mode > 50}
+                  onChange={(e) => onUpdate(effect.id, 'mode', e.target.checked ? 100 : 0)}
+                  style={{ transform: 'scale(0.8)', cursor: 'pointer' }}
+                />
+                <span style={{ fontSize: '7px', color: '#2a2a2a', fontWeight: 'bold', opacity: 0.8 }}>LP</span>
+              </div>
+              <Knob label="Drive" value={effect.params?.drive || 50} onChange={handleKnobChange('drive')} />
+            </div>
+            <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+              <Knob label="Tone" value={effect.params?.tone || 50} onChange={handleKnobChange('tone')} />
+            </div>
+          </div>
         );
       case 'mxrdistortionplus':
         return (

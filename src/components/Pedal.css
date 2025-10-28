@@ -1,8 +1,8 @@
 .pedal {
-  width: 220px;
+  width: 180px;
   background: var(--pedal-gradient);
   border-radius: 16px;
-  padding: 25px 20px;
+  padding: 25px 12px;
   box-shadow: 
     0 25px 50px rgba(0, 0, 0, 0.9),
     0 10px 20px rgba(0, 0, 0, 0.6),
@@ -116,7 +116,7 @@
 }
 
 .pedal-header {
-  text-align: center;
+  text-align: left;
   border-bottom: 3px solid var(--pedal-primary);
   padding-bottom: 15px;
   margin-bottom: 8px;
@@ -206,7 +206,8 @@
     radial-gradient(circle at 30% 30%, #4a4a4a 0%, #2a2a2a 40%, #1a1a1a 100%);
   border: 4px solid #0a0a0a;
   cursor: pointer;
-  align-self: center;
+  align-self: flex-start;
+  margin-left: 15px;
   position: relative;
   transition: all 0.15s ease;
   box-shadow: 
