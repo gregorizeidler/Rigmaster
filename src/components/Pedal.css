@@ -182,6 +182,21 @@
   align-items: center;
 }
 
+/* Layout 2x2 for knobs (Xotic BB Preamp, etc) */
+.knobs-2x2 {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+}
+
+.knob-row {
+  display: flex;
+  justify-content: space-around;
+  gap: 15px;
+  align-items: center;
+}
+
 .pedal-footswitch {
   width: 70px;
   height: 70px;

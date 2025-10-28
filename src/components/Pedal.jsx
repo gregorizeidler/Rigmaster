@@ -672,6 +672,39 @@ const Pedal = ({ effect, onUpdate, onBypass, onRemove }) => {
         subtitle: 'Obsessive Compulsive Drive'
       },
       
+      // XOTIC BB PREAMP - Metallic Orange
+      xoticbb: {
+        primary: '#ffffff',
+        secondary: '#e0e0e0',
+        bgColor: '#ff6b35', // Metallic orange
+        bodyGradient: 'linear-gradient(145deg, #ff8855 0%, #ff6b35 50%, #dd5522 100%)',
+        metalColor: '#2a2a2a', // Black knobs
+        knobPointer: '#ffffff', // White pointer
+        ledColor: '#ff0000', // Red LED
+        label: 'BB PREAMP',
+        brand: 'Xotic',
+        labelColor: '#000000', // Black text for knobs
+        texture: 'metallic',
+        footswitchColor: '#c0c0c0', // Chrome footswitch
+        style: 'boutique' // Vintage boutique warm feel
+      },
+      
+      // JHS SUPERBOLT - Metallic Gray
+      jhssuperbolt: {
+        primary: '#ffffff', // White text
+        secondary: '#e0e0e0',
+        bgColor: '#8c8c8c', // Metallic gray
+        bodyGradient: 'linear-gradient(145deg, #a8a8a8 0%, #8c8c8c 50%, #707070 100%)',
+        metalColor: '#2a2a2a', // Black knobs
+        knobPointer: '#ffffff', // White pointer
+        ledColor: '#ff0000', // Red LED
+        label: 'JHS SUPERBOLT',
+        labelColor: '#ffffff', // White text for knobs
+        texture: 'metallic',
+        footswitchColor: '#c0c0c0', // Chrome footswitch
+        style: 'boutique' // Vintage artisan feel
+      },
+      
       // MXR DISTORTION+ - Yellow
       mxrdistortionplus: {
         primary: '#ff0000',
@@ -1050,6 +1083,48 @@ const Pedal = ({ effect, onUpdate, onBypass, onRemove }) => {
             <Knob label="Treble" value={effect.params?.treble || 50} onChange={handleKnobChange('treble')} />
             <Knob label="Level" value={effect.params?.level || 70} onChange={handleKnobChange('level')} />
           </>
+        );
+      case 'xoticbb':
+        return (
+          <div className="knobs-2x2">
+            <div className="knob-row">
+              <Knob label="Gain" value={effect.params?.gain || 40} onChange={handleKnobChange('gain')} />
+              <Knob label="Treble" value={effect.params?.treble || 50} onChange={handleKnobChange('treble')} />
+            </div>
+            <div className="knob-row">
+              <Knob label="Volume" value={effect.params?.level || 70} onChange={handleKnobChange('level')} />
+              <Knob label="Bass" value={effect.params?.bass || 50} onChange={handleKnobChange('bass')} />
+            </div>
+          </div>
+        );
+      case 'jhssuperbolt':
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center', width: '100%' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-around', width: '100%' }}>
+              <Knob label="Volume" value={effect.params?.level || 70} onChange={handleKnobChange('level')} />
+              <Knob label="Tone" value={effect.params?.tone || 50} onChange={handleKnobChange('tone')} />
+              <Knob label="Drive" value={effect.params?.gain || 50} onChange={handleKnobChange('gain')} />
+            </div>
+            <div className="toggle-switch" style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '6px',
+              padding: '4px 8px',
+              background: 'rgba(0,0,0,0.2)',
+              borderRadius: '4px',
+              border: '1px solid rgba(255,255,255,0.3)'
+            }}>
+              <span style={{ fontSize: '8px', color: '#ffffff', fontWeight: 'bold', opacity: 0.7 }}>LO</span>
+              <label style={{ fontSize: '9px', color: '#ffffff', fontWeight: 'bold', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>GAIN</label>
+              <input 
+                type="checkbox" 
+                checked={effect.params?.more !== 0}
+                onChange={(e) => onUpdate(effect.id, 'more', e.target.checked ? 1 : 0)}
+                style={{ transform: 'scale(0.8)', cursor: 'pointer' }}
+              />
+              <span style={{ fontSize: '8px', color: '#ffffff', fontWeight: 'bold', opacity: 0.7 }}>HI</span>
+            </div>
+          </div>
         );
       case 'procorat':
         return (
