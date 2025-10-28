@@ -590,6 +590,7 @@ const Pedal = ({ effect, onUpdate, onBypass, onRemove }) => {
         ledColor: '#e0f7ff', // White-blue LED
         label: 'CENTAUR',
         brand: 'KLON',
+        labelColor: '#3d2b1f', // Dark brown for legibility on gold
         texture: 'sparkle'
       },
       
