@@ -154,7 +154,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       },
       badcat_hotcat: {
         color: '#1a1a1a',
-        accent: '#ff6347',
+        accent: '#d4af37',
         grill: '#2a2a2a',
         logo: 'Hot Cat 30',
         brand: 'BAD CAT'
@@ -1232,86 +1232,103 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
         return (
           <div key="marshall_jtm45_controls" className="marshall-jtm45-full-controls" style={{
             display: 'flex',
-            flexDirection: 'column',
-            gap: '15px',
-            padding: '15px',
-            background: 'linear-gradient(135deg, rgba(0,0,0,0.6), rgba(212,175,55,0.2))',
-            borderRadius: '10px',
-            border: '2px solid rgba(212,175,55,0.4)',
-            width: '100%',
-            maxWidth: '850px'
+            flexDirection: 'row',
+            gap: '10px',
+            padding: '8px 12px',
+            background: 'linear-gradient(135deg, #d4af37 0%, #b8941f 100%)',
+            borderRadius: '6px',
+            border: '2px solid #8b6914',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            alignItems: 'center'
           }}>
-            {/* INPUT SELECTOR (High/Low) */}
-            <div style={{ display: 'flex', gap: '15px', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: 'rgba(0,0,0,0.4)', borderRadius: '8px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                <label style={{ fontSize: '10px', fontWeight: 'bold', color: '#d4af37', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                  INPUT JACKS
-                </label>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <button 
-                    onClick={() => onUpdate(amp.id, 'input', 1)}
-                    style={{
-                      padding: '10px 20px',
-                      background: amp.params?.input === 1 ? '#d4af37' : 'rgba(0,0,0,0.6)',
-                      border: amp.params?.input === 1 ? '2px solid #d4af37' : '2px solid #555',
-                      color: amp.params?.input === 1 ? '#000' : '#d4af37',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      fontWeight: 'bold',
-                      fontSize: '12px',
-                      textTransform: 'uppercase'
-                    }}
-                  >HIGH</button>
-                  <button 
-                    onClick={() => onUpdate(amp.id, 'input', 0)}
-                    style={{
-                      padding: '10px 20px',
-                      background: amp.params?.input === 0 ? '#d4af37' : 'rgba(0,0,0,0.6)',
-                      border: amp.params?.input === 0 ? '2px solid #d4af37' : '2px solid #555',
-                      color: amp.params?.input === 0 ? '#000' : '#d4af37',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      fontWeight: 'bold',
-                      fontSize: '12px',
-                      textTransform: 'uppercase'
-                    }}
-                  >LOW</button>
-                </div>
-              </div>
-            </div>
-            
-            {/* CHANNEL VOLUMES (Normal/Bright - Jumper Setup) */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '12px', background: 'rgba(0,0,0,0.3)', borderRadius: '8px' }}>
-              <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#d4af37', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                Dual Channels
+            {/* INPUT SELECTOR (High/Low) - Compacto */}
+            <div style={{
+              display: 'flex',
+              gap: '4px',
+              padding: '4px 6px',
+              background: 'rgba(0,0,0,0.3)',
+              borderRadius: '4px',
+              border: '1px solid rgba(0,0,0,0.5)',
+              alignItems: 'center'
+            }}>
+              <label style={{ fontSize: '7px', fontWeight: 'bold', color: '#000', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                INPUT
               </label>
-              
-              <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
-                <Knob label="Normal" value={amp.params?.ch_normal || 60} onChange={handleKnobChange('ch_normal')} size={46} color="#d4af37" />
-                <Knob label="Bright" value={amp.params?.ch_bright || 40} onChange={handleKnobChange('ch_bright')} size={46} color="#d4af37" />
-              </div>
+              <button 
+                onClick={() => onUpdate(amp.id, 'input', 1)}
+                style={{
+                  padding: '4px 8px',
+                  background: amp.params?.input === 1 ? '#000' : 'rgba(0,0,0,0.4)',
+                  border: '1px solid #000',
+                  color: amp.params?.input === 1 ? '#d4af37' : '#000',
+                  borderRadius: '3px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '8px',
+                  textTransform: 'uppercase'
+                }}
+              >HI</button>
+              <button 
+                onClick={() => onUpdate(amp.id, 'input', 0)}
+                style={{
+                  padding: '4px 8px',
+                  background: amp.params?.input === 0 ? '#000' : 'rgba(0,0,0,0.4)',
+                  border: '1px solid #000',
+                  color: amp.params?.input === 0 ? '#d4af37' : '#000',
+                  borderRadius: '3px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '8px',
+                  textTransform: 'uppercase'
+                }}
+              >LO</button>
             </div>
             
-            {/* FRONT PANEL KNOBS */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '12px', background: 'rgba(0,0,0,0.3)', borderRadius: '8px' }}>
-              <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#d4af37', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                Front Panel Controls
-              </label>
-              
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                <Knob label="Volume" value={amp.params?.volume || 60} onChange={handleKnobChange('volume')} size={46} color="#d4af37" />
-                <Knob label="Bass" value={amp.params?.bass || 55} onChange={handleKnobChange('bass')} size={44} color="#d4af37" />
-                <Knob label="Middle" value={amp.params?.middle || 50} onChange={handleKnobChange('middle')} size={44} color="#d4af37" />
-                <Knob label="Treble" value={amp.params?.treble || 65} onChange={handleKnobChange('treble')} size={44} color="#d4af37" />
-                <Knob label="Presence" value={amp.params?.presence || 55} onChange={handleKnobChange('presence')} size={44} color="#d4af37" />
-                <Knob label="Master" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={48} color="#ffd700" />
-              </div>
+            {/* CHANNEL VOLUMES (Normal/Bright) */}
+            <div style={{
+              display: 'flex',
+              gap: '10px',
+              padding: '6px 8px',
+              background: 'rgba(0,0,0,0.2)',
+              borderRadius: '6px',
+              border: '1px solid rgba(0,0,0,0.3)'
+            }}>
+              <Knob label="NORM" value={amp.params?.ch_normal || 60} onChange={handleKnobChange('ch_normal')} size={34} color="#000000" />
+              <Knob label="BRITE" value={amp.params?.ch_bright || 40} onChange={handleKnobChange('ch_bright')} size={34} color="#000000" />
             </div>
             
-            {/* CABINET */}
-            <div style={{ display: 'flex', gap: '15px', alignItems: 'center', justifyContent: 'center', padding: '10px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
+            {/* TONE CONTROLS - Horizontal compacto */}
+            <div style={{
+              display: 'flex',
+              gap: '10px',
+              padding: '6px 8px',
+              background: 'rgba(0,0,0,0.2)',
+              borderRadius: '6px',
+              border: '1px solid rgba(0,0,0,0.3)'
+            }}>
+              <Knob label="VOL" value={amp.params?.volume || 60} onChange={handleKnobChange('volume')} size={36} color="#000000" />
+              <Knob label="BASS" value={amp.params?.bass || 55} onChange={handleKnobChange('bass')} size={32} color="#000000" />
+              <Knob label="MID" value={amp.params?.middle || 50} onChange={handleKnobChange('middle')} size={32} color="#000000" />
+              <Knob label="TREB" value={amp.params?.treble || 65} onChange={handleKnobChange('treble')} size={32} color="#000000" />
+              <Knob label="PRES" value={amp.params?.presence || 55} onChange={handleKnobChange('presence')} size={32} color="#000000" />
+            </div>
+            
+            {/* MASTER & CABINET */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '6px',
+              padding: '6px 8px',
+              background: 'rgba(0,0,0,0.2)',
+              borderRadius: '6px',
+              border: '1px solid rgba(0,0,0,0.3)',
+              alignItems: 'center'
+            }}>
+              <Knob label="MASTER" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={38} color="#000000" />
+              
               <div className="toggle-switch">
-                <label style={{ fontSize: '9px', color: '#d4af37' }}>Cabinet</label>
+                <label style={{ fontSize: '7px', color: '#000', fontWeight: 'bold' }}>CAB</label>
                 <input 
                   type="checkbox" 
                   checked={amp.params?.cabinet_enabled !== false}
@@ -1774,279 +1791,165 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
         return (
           <div key="badcat_hotcat_controls" className="badcat-hotcat-full-controls" style={{
             display: 'flex',
-            flexDirection: 'column',
-            gap: '15px',
-            padding: '15px',
+            flexDirection: 'row',
+            gap: '5px',
+            padding: '5px 6px',
             background: 'linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%)',
-            borderRadius: '8px',
-            border: '3px solid #ff6347'
+            borderRadius: '4px',
+            border: '2px solid #d4af37',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            alignItems: 'center'
           }}>
-            {/* BAD CAT BRANDING TOP */}
-            <div style={{
-              textAlign: 'center',
-              paddingBottom: '10px',
-              borderBottom: '2px solid #444'
-            }}>
-              <span style={{ 
-                fontSize: '18px', 
-                fontWeight: 'bold', 
-                color: '#ff6347',
-                textShadow: '2px 2px 4px rgba(255,99,71,0.6)',
-                letterSpacing: '6px',
-                fontFamily: 'Arial Black, sans-serif'
-              }}>
-                HOT CAT 30R
-              </span>
-            </div>
-
-            {/* CHANNEL SELECTOR */}
+            {/* CHANNEL + MODE */}
             <div style={{
               display: 'flex',
-              justifyContent: 'center',
-              gap: '10px',
-              paddingBottom: '15px',
-              borderBottom: '1px solid #444'
+              flexDirection: 'column',
+              gap: '3px',
+              padding: '4px 6px',
+              background: 'rgba(0,0,0,0.5)',
+              borderRadius: '4px',
+              border: '1px solid rgba(212,175,55,0.4)',
+              alignItems: 'center'
             }}>
-              <div className="toggle-switch" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <label style={{ fontSize: '11px', color: '#ff6347', fontWeight: 'bold' }}>CHANNEL</label>
+              <select 
+                value={amp.params?.channel || 1}
+                onChange={(e) => onUpdate(amp.id, 'channel', parseInt(e.target.value))}
+                style={{
+                  padding: '2px 4px',
+                  background: '#2a2a2a',
+                  color: '#d4af37',
+                  border: '1px solid #d4af37',
+                  borderRadius: '2px',
+                  fontWeight: 'bold',
+                  fontSize: '7px'
+                }}
+              >
+                <option value={1}>CH1</option>
+                <option value={2}>CH2</option>
+              </select>
+              
+              {amp.params?.channel === 2 && (
                 <select 
-                  value={amp.params?.channel || 1}
-                  onChange={(e) => onUpdate(amp.id, 'channel', parseInt(e.target.value))}
+                  value={amp.params?.ch2_mode || 'EF86'}
+                  onChange={(e) => onUpdate(amp.id, 'ch2_mode', e.target.value)}
                   style={{
-                    padding: '4px 8px',
+                    padding: '2px 4px',
                     background: '#2a2a2a',
-                    color: '#ff6347',
-                    border: '1px solid #ff6347',
-                    borderRadius: '4px',
-                    fontWeight: 'bold'
+                    color: '#ffaa00',
+                    border: '1px solid #ffaa00',
+                    borderRadius: '2px',
+                    fontWeight: 'bold',
+                    fontSize: '6px'
                   }}
                 >
-                  <option value={1}>1 (Clean)</option>
-                  <option value={2}>2 (Lead)</option>
+                  <option value="EF86">EF86</option>
+                  <option value="ECC83">ECC83</option>
                 </select>
-              </div>
-
-              {/* CH2 MODE (EF86 / ECC83) - Only visible on Channel 2 */}
-              {amp.params?.channel === 2 && (
-                <div className="toggle-switch" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <label style={{ fontSize: '11px', color: '#ffaa00', fontWeight: 'bold' }}>MODE</label>
-                  <select 
-                    value={amp.params?.ch2_mode || 'EF86'}
-                    onChange={(e) => onUpdate(amp.id, 'ch2_mode', e.target.value)}
-                    style={{
-                      padding: '4px 8px',
-                      background: '#2a2a2a',
-                      color: '#ffaa00',
-                      border: '1px solid #ffaa00',
-                      borderRadius: '4px',
-                      fontWeight: 'bold'
-                    }}
-                  >
-                    <option value="EF86">EF86</option>
-                    <option value="ECC83">ECC83</option>
-                  </select>
-                </div>
               )}
             </div>
 
-            {/* PREAMP SECTION */}
+            {/* GAIN + VOLUME */}
             <div style={{
               display: 'flex',
-              justifyContent: 'space-around',
-              alignItems: 'center',
-              gap: '15px',
-              paddingBottom: '15px',
-              borderBottom: '1px solid #444'
+              gap: '6px',
+              padding: '4px 6px',
+              background: 'rgba(0,0,0,0.3)',
+              borderRadius: '4px',
+              border: '1px solid rgba(212,175,55,0.3)'
             }}>
-              <div style={{ textAlign: 'center' }}>
-                <Knob
-                  label="GAIN"
-                  value={amp.params?.gain || 55}
-                  onChange={handleKnobChange('gain')}
-                  size={42}
-                />
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <Knob
-                  label={amp.params?.channel === 1 ? "CH1 VOL" : "CH2 VOL"}
-                  value={amp.params?.channel === 1 ? (amp.params?.ch1_volume || 60) : (amp.params?.ch2_volume || 60)}
-                  onChange={handleKnobChange(amp.params?.channel === 1 ? 'ch1_volume' : 'ch2_volume')}
-                  size={42}
-                />
-              </div>
+              <Knob
+                label="GAIN"
+                value={amp.params?.gain || 55}
+                onChange={handleKnobChange('gain')}
+                size={28}
+                color="#d4af37"
+              />
+              <Knob
+                label={amp.params?.channel === 1 ? "CH1" : "CH2"}
+                value={amp.params?.channel === 1 ? (amp.params?.ch1_volume || 60) : (amp.params?.ch2_volume || 60)}
+                onChange={handleKnobChange(amp.params?.channel === 1 ? 'ch1_volume' : 'ch2_volume')}
+                size={28}
+                color="#d4af37"
+              />
             </div>
 
             {/* TONE STACK */}
             <div style={{
               display: 'flex',
-              justifyContent: 'space-around',
-              alignItems: 'center',
-              gap: '12px',
-              paddingBottom: '15px',
-              borderBottom: '1px solid #444'
+              gap: '6px',
+              padding: '4px 6px',
+              background: 'rgba(0,0,0,0.3)',
+              borderRadius: '4px',
+              border: '1px solid rgba(212,175,55,0.3)'
             }}>
-              <div style={{ textAlign: 'center' }}>
-                <Knob
-                  label="BASS"
-                  value={amp.params?.bass || 50}
-                  onChange={handleKnobChange('bass')}
-                  size={38}
-                />
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <Knob
-                  label="MIDDLE"
-                  value={amp.params?.middle || 55}
-                  onChange={handleKnobChange('middle')}
-                  size={38}
-                />
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <Knob
-                  label="TREBLE"
-                  value={amp.params?.treble || 60}
-                  onChange={handleKnobChange('treble')}
-                  size={38}
-                />
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <Knob
-                  label="CUT"
-                  value={amp.params?.cut || 50}
-                  onChange={handleKnobChange('cut')}
-                  size={38}
-                />
-              </div>
+              <Knob label="BASS" value={amp.params?.bass || 50} onChange={handleKnobChange('bass')} size={26} color="#d4af37" />
+              <Knob label="MID" value={amp.params?.middle || 55} onChange={handleKnobChange('middle')} size={26} color="#d4af37" />
+              <Knob label="TREB" value={amp.params?.treble || 60} onChange={handleKnobChange('treble')} size={26} color="#d4af37" />
+              <Knob label="CUT" value={amp.params?.cut || 50} onChange={handleKnobChange('cut')} size={26} color="#d4af37" />
             </div>
 
-            {/* INPUT STAGE - FOCUS & BITE */}
+            {/* FOCUS + BITE */}
             <div style={{
               display: 'flex',
-              justifyContent: 'space-around',
-              alignItems: 'center',
-              gap: '15px',
-              paddingBottom: '15px',
-              borderBottom: '1px solid #444'
+              flexDirection: 'column',
+              gap: '3px',
+              padding: '4px 6px',
+              background: 'rgba(0,0,0,0.4)',
+              borderRadius: '4px',
+              border: '1px solid rgba(255,170,0,0.3)',
+              alignItems: 'center'
             }}>
-              <div style={{ textAlign: 'center' }}>
-                <Knob
-                  label="FOCUS"
-                  value={amp.params?.focus || 40}
-                  onChange={handleKnobChange('focus')}
-                  size={35}
-                />
-                <div style={{ fontSize: '9px', color: '#aaa', marginTop: '2px' }}>HPF</div>
-              </div>
-              <div className="toggle-switch" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}>
-                <label style={{ fontSize: '10px', color: '#ffaa00', fontWeight: 'bold' }}>BITE</label>
-                <select 
-                  value={amp.params?.bite !== undefined ? amp.params.bite : 1}
-                  onChange={(e) => onUpdate(amp.id, 'bite', parseInt(e.target.value))}
-                  style={{
-                    padding: '4px 8px',
-                    background: '#2a2a2a',
-                    color: '#ffaa00',
-                    border: '1px solid #ffaa00',
-                    borderRadius: '4px',
-                    fontWeight: 'bold'
-                  }}
-                >
-                  <option value={0}>OFF</option>
-                  <option value={1}>+3dB</option>
-                  <option value={2}>+6dB</option>
-                </select>
-              </div>
+              <Knob label="FOCUS" value={amp.params?.focus || 40} onChange={handleKnobChange('focus')} size={24} color="#ffaa00" />
+              <select 
+                value={amp.params?.bite !== undefined ? amp.params.bite : 1}
+                onChange={(e) => onUpdate(amp.id, 'bite', parseInt(e.target.value))}
+                style={{
+                  padding: '1px 3px',
+                  background: '#2a2a2a',
+                  color: '#ffaa00',
+                  border: '1px solid #ffaa00',
+                  borderRadius: '2px',
+                  fontWeight: 'bold',
+                  fontSize: '6px'
+                }}
+              >
+                <option value={0}>-</option>
+                <option value={1}>+</option>
+                <option value={2}>++</option>
+              </select>
             </div>
 
-            {/* REVERB SECTION */}
+            {/* MASTERS + REVERB + CABINET */}
             <div style={{
               display: 'flex',
-              justifyContent: 'space-around',
-              alignItems: 'center',
-              gap: '12px',
-              paddingBottom: '15px',
-              borderBottom: '1px solid #444'
+              flexDirection: 'column',
+              gap: '3px',
+              padding: '4px 6px',
+              background: 'rgba(0,0,0,0.3)',
+              borderRadius: '4px',
+              border: '1px solid rgba(212,175,55,0.3)',
+              alignItems: 'center'
             }}>
-              <div style={{ textAlign: 'center' }}>
-                <Knob
-                  label="REVERB"
-                  value={amp.params?.reverb || 30}
-                  onChange={handleKnobChange('reverb')}
-                  size={36}
-                />
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <Knob label="REV" value={amp.params?.reverb || 30} onChange={handleKnobChange('reverb')} size={26} color="#6496c8" />
+                <Knob label="TONE" value={amp.params?.reverb_tone || 60} onChange={handleKnobChange('reverb_tone')} size={24} color="#6496c8" />
+                <Knob label="MIX" value={amp.params?.reverb_mix || 25} onChange={handleKnobChange('reverb_mix')} size={24} color="#6496c8" />
               </div>
-              <div style={{ textAlign: 'center' }}>
-                <Knob
-                  label="RV TONE"
-                  value={amp.params?.reverb_tone || 60}
-                  onChange={handleKnobChange('reverb_tone')}
-                  size={32}
-                />
+              
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <Knob label="K-M" value={amp.params?.k_master || 70} onChange={handleKnobChange('k_master')} size={28} color="#d4af37" />
+                <Knob label="OUT" value={amp.params?.output_level || 100} onChange={handleKnobChange('output_level')} size={26} color="#d4af37" />
+                <Knob label="MSTR" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={28} color="#d4af37" />
               </div>
-              <div style={{ textAlign: 'center' }}>
-                <Knob
-                  label="RV MIX"
-                  value={amp.params?.reverb_mix || 25}
-                  onChange={handleKnobChange('reverb_mix')}
-                  size={32}
+              
+              <div className="toggle-switch">
+                <label style={{ fontSize: '6px', color: '#d4af37', fontWeight: 'bold' }}>CAB</label>
+                <input 
+                  type="checkbox" 
+                  checked={amp.params?.cabinet_enabled !== false}
+                  onChange={(e) => onUpdate(amp.id, 'cabinet_enabled', e.target.checked)}
                 />
-              </div>
-            </div>
-
-            {/* MASTER SECTION - K-MASTER (PPIMV) */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-around',
-              alignItems: 'center',
-              gap: '15px',
-              paddingBottom: '15px',
-              borderBottom: '1px solid #444'
-            }}>
-              <div style={{ textAlign: 'center' }}>
-                <Knob
-                  label="K-MASTER"
-                  value={amp.params?.k_master || 70}
-                  onChange={handleKnobChange('k_master')}
-                  size={42}
-                />
-                <div style={{ fontSize: '9px', color: '#aaa', marginTop: '2px' }}>PPIMV</div>
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <Knob
-                  label="OUTPUT"
-                  value={amp.params?.output_level || 100}
-                  onChange={handleKnobChange('output_level')}
-                  size={38}
-                />
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <Knob
-                  label="MASTER"
-                  value={amp.params?.master || 70}
-                  onChange={handleKnobChange('master')}
-                  size={42}
-                />
-              </div>
-            </div>
-
-            {/* CABINET TOGGLE */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              gap: '10px'
-            }}>
-              <div className="toggle-switch" style={{ display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'center' }}>
-                <label style={{ fontSize: '10px', color: '#ff6347', fontWeight: 'bold' }}>CABINET</label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <label style={{ fontSize: '10px', color: '#aaa' }}>{amp.params?.cabinet_enabled !== false ? 'ON' : 'OFF'}</label>
-                  <input 
-                    type="checkbox" 
-                    checked={amp.params?.cabinet_enabled !== false}
-                    onChange={(e) => onUpdate(amp.id, 'cabinet_enabled', e.target.checked)}
-                  />
-                </div>
-                <div style={{ fontSize: '8px', color: '#888', marginTop: '2px' }}>2x12 Closed</div>
               </div>
             </div>
           </div>
@@ -3684,6 +3587,12 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
             ) : amp.ampType === 'mesa_mark_v' ? (
               /* MESA MARK V - Custom layout only (no standard knobs) */
               <></>
+            ) : amp.ampType === 'marshall_jtm45' ? (
+              /* MARSHALL JTM45 - Controls handled in custom section below */
+              <div style={{ display: 'none' }}></div>
+            ) : amp.ampType === 'badcat_hotcat' ? (
+              /* BAD CAT HOT CAT - Controls handled in custom section below */
+              <div style={{ display: 'none' }}></div>
             ) : (
               /* Standard amp layout */
               <>

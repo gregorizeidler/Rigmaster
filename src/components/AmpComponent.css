@@ -1372,79 +1372,163 @@
   font-weight: bold;
 }
 
-/* MARSHALL JTM45 - Black/Gold (Vintage) */
+/* MARSHALL JTM45 - Black Chassis with Gold Panel (Classic Vintage) - COMPACT */
 .amp-head.amp-marshall_jtm45 {
   background: 
-    repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(255,215,0,0.05) 3px, rgba(255,215,0,0.05) 6px),
+    repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(0,0,0,0.1) 3px, rgba(0,0,0,0.1) 6px),
     linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
-  border: 3px solid #ffd700;
+  border: 3px solid #8b6914;
   box-shadow: 
-    0 10px 40px rgba(255, 215, 0, 0.3),
+    0 10px 35px rgba(0, 0, 0, 0.8),
     inset 0 2px 0 rgba(255, 215, 0, 0.1);
+  max-width: 980px;
+  padding: 8px 12px;
+  min-height: auto;
 }
 
 .amp-head.amp-marshall_jtm45 .amp-head-top {
-  background: linear-gradient(180deg, #ffd700 0%, #d4af37 100%);
-  border-bottom: 3px solid #8b6914;
+  background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+  border-bottom: 2px solid #8b6914;
+  padding: 6px 12px;
+  min-height: auto;
 }
 
 .amp-head.amp-marshall_jtm45 .brand-text {
-  color: #000000;
+  color: #ffd700;
   font-weight: 900;
-  letter-spacing: 5px;
+  letter-spacing: 4px;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+  font-size: 12px;
 }
 
 .amp-head.amp-marshall_jtm45 .model-text {
-  color: #000000;
+  color: #ffd700;
   font-weight: 800;
-  text-shadow: 0 0 8px rgba(255, 235, 180, 0.6);
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+  font-size: 16px;
+}
+
+.amp-head.amp-marshall_jtm45 .amp-control-panel {
+  background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
+  border: 2px solid #8b6914;
+  padding: 4px 6px;
+  gap: 6px;
+  min-height: auto;
+}
+
+.amp-head.amp-marshall_jtm45 .amp-knobs-section {
+  padding: 4px 6px;
+  gap: 6px;
+  min-height: auto;
 }
 
 .amp-head.amp-marshall_jtm45 ~ .amp-cabinet {
   background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
-  border: 3px solid #ffd700;
+  border: 3px solid #8b6914;
 }
 
 .amp-head.amp-marshall_jtm45 ~ .amp-cabinet .speaker-cone {
   background: linear-gradient(135deg, #654321, #3a2512);
-  border: 2px solid #ffd700;
+  border: 2px solid #8b6914;
 }
 
-/* BAD CAT HOT CAT - Black/Red */
+.amp-head.amp-marshall_jtm45 ~ .amp-cabinet .cabinet-config {
+  background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+}
+
+.amp-head.amp-marshall_jtm45 ~ .amp-cabinet .cabinet-speaker-grill {
+  background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+}
+
+.amp-head.amp-marshall_jtm45 ~ .amp-cabinet .config-row label {
+  color: #d4af37;
+  font-weight: bold;
+}
+
+/* Marshall JTM45 - Labels dos knobs pretas para contraste com painel dourado */
+.marshall-jtm45-full-controls .knob-label,
+.marshall-jtm45-full-controls .knob-container .knob-label,
+.amp-head.amp-marshall_jtm45 .knob-label {
+  color: #000000 !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3) !important;
+}
+
+.marshall-jtm45-full-controls .knob-label-value,
+.marshall-jtm45-full-controls .knob-container .knob-label-value,
+.amp-head.amp-marshall_jtm45 .knob-label-value {
+  color: #000000 !important;
+  font-weight: 700 !important;
+}
+
+/* BAD CAT HOT CAT - Black Metallic with Gold Lettering (Classic) - SUPER COMPACT */
 .amp-head.amp-badcat_hotcat {
   background: 
-    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,99,71,0.1) 2px, rgba(255,99,71,0.1) 4px),
+    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(192,192,192,0.05) 2px, rgba(192,192,192,0.05) 4px),
     linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 50%, #0a0a0a 100%);
-  border: 3px solid #ff6347;
+  border: 2px solid #d4af37;
   box-shadow: 
-    0 10px 40px rgba(255, 99, 71, 0.4),
-    inset 0 2px 0 rgba(255, 99, 71, 0.15);
+    0 8px 30px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(212, 175, 55, 0.15);
+  max-width: 980px;
+  padding: 5px 8px;
+  min-height: auto;
 }
 
 .amp-head.amp-badcat_hotcat .amp-head-top {
   background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
-  border-bottom: 3px solid #ff6347;
+  border-bottom: 2px solid #d4af37;
+  padding: 4px 8px;
+  min-height: auto;
 }
 
 .amp-head.amp-badcat_hotcat .brand-text {
-  color: #ff6347;
+  color: #ffffff;
   font-weight: 900;
-  letter-spacing: 3px;
+  letter-spacing: 2px;
+  font-size: 11px;
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
 }
 
 .amp-head.amp-badcat_hotcat .model-text {
-  color: #ffffff;
-  text-shadow: 0 0 15px rgba(255, 99, 71, 0.8);
+  color: #d4af37;
+  text-shadow: 0 0 12px rgba(212, 175, 55, 0.7);
+  font-size: 14px;
+}
+
+.amp-head.amp-badcat_hotcat .amp-control-panel {
+  padding: 3px 4px;
+  gap: 3px;
+  min-height: auto;
+}
+
+.amp-head.amp-badcat_hotcat .amp-knobs-section {
+  padding: 3px 4px;
+  gap: 3px;
+  min-height: auto;
 }
 
 .amp-head.amp-badcat_hotcat ~ .amp-cabinet {
   background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
-  border: 3px solid #ff6347;
+  border: 3px solid #d4af37;
 }
 
 .amp-head.amp-badcat_hotcat ~ .amp-cabinet .speaker-cone {
   background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
-  border: 2px solid #ff6347;
+  border: 2px solid #d4af37;
+}
+
+.amp-head.amp-badcat_hotcat ~ .amp-cabinet .cabinet-config {
+  background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+}
+
+.amp-head.amp-badcat_hotcat ~ .amp-cabinet .cabinet-speaker-grill {
+  background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+}
+
+.amp-head.amp-badcat_hotcat ~ .amp-cabinet .config-row label {
+  color: #d4af37;
+  font-weight: bold;
 }
 
 /* ========================================
