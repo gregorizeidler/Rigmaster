@@ -415,8 +415,8 @@ class Peavey5150Amp extends BaseAmp {
       this.powerAmp.disconnect();
       this.powerSaturation.disconnect();
       this.cabDCBlock.disconnect();
-      this.cabIR.disconnect();
-      this.cabBypass.disconnect();
+      this.preCabinet.disconnect();
+      this.postCabinet.disconnect();
       this.resonance.disconnect();
       this.presence.disconnect();
       this.impedanceShelf.disconnect();
@@ -843,95 +843,6 @@ class Peavey5150Amp extends BaseAmp {
     this.params[parameter] = value;
   }
   
-  /**
-   * Load a default synthetic cabinet IR (4×12 with V30 speakers)
-   * This ensures the cabinet simulation works out of the box and prevents fizzy direct tone
-   */
-  loadDefaultCabinetIR() {
-    const sampleRate = this.audioContext.sampleRate;
-    const duration = 0.040; // 40ms - typical close-mic 4×12 IR
-    const length = Math.floor(duration * sampleRate);
-    
-    // Create mono buffer
-    const buffer = this.audioContext.createBuffer(1, length, sampleRate);
-    const channelData = buffer.getChannelData(0);
-    
-    // Generate 4×12 V30 style IR (tighter, more aggressive than Vox)
-    for (let i = 0; i < length; i++) {
-      const t = i / sampleRate;
-      
-      // Faster decay for tighter response (metal tone)
-      const decay = Math.exp(-t / 0.008); // 8ms decay (tighter than Vox)
-      
-      // Early reflections (larger 4×12 cabinet)
-      const early = i < sampleRate * 0.002 ? Math.random() * 0.3 : 0;
-      
-      // Main impulse with natural rolloff
-      let sample = (Math.random() * 2 - 1) * decay;
-      
-      // Add early reflection
-      sample += early * decay;
-      
-      // V30 speaker response (aggressive mids, controlled highs)
-      if (i > 0) {
-        // Slightly more high-freq rolloff for V30 character (~6kHz)
-        const alpha = 0.7;
-        sample = alpha * sample + (1 - alpha) * channelData[i - 1];
-      }
-      
-      // Emphasize 2-4kHz region (V30 character)
-      if (i > sampleRate * 0.001 && i < sampleRate * 0.005) {
-        sample *= 1.15;
-      }
-      
-      // Normalize and store
-      channelData[i] = sample * 0.85;
-    }
-    
-    // Normalize the IR
-    let maxVal = 0;
-    for (let i = 0; i < length; i++) {
-      maxVal = Math.max(maxVal, Math.abs(channelData[i]));
-    }
-    if (maxVal > 0) {
-      for (let i = 0; i < length; i++) {
-        channelData[i] /= maxVal;
-      }
-    }
-    
-    this.cabIR.buffer = buffer;
-    console.log('✅ Peavey 5150: Default 4×12 V30 cabinet IR loaded (40ms)');
-  }
-  
-  /**
-   * Load an Impulse Response file for the cabinet simulation
-   * @param {string|ArrayBuffer} irData - URL to IR file or ArrayBuffer containing IR data
-   * Recommended: 4×12 cabinet with V30 speakers, SM57 mic (mono, 20-50ms)
-   */
-  async loadIR(irData) {
-    try {
-      let audioData;
-      
-      if (typeof irData === 'string') {
-        // Load from URL
-        const response = await fetch(irData);
-        audioData = await response.arrayBuffer();
-      } else {
-        // Use provided ArrayBuffer
-        audioData = irData;
-      }
-      
-      const audioBuffer = await this.audioContext.decodeAudioData(audioData);
-      this.cabIR.buffer = audioBuffer;
-      
-      console.log(`✅ Peavey 5150: Custom cabinet IR loaded (${audioBuffer.duration.toFixed(3)}s)`);
-      return true;
-    } catch (error) {
-      console.error('Error loading cabinet IR:', error);
-      return false;
-    }
-  }
-  
   disconnect() {
     super.disconnect();
     this.noiseGate.disconnect();
@@ -964,8 +875,14 @@ class Peavey5150Amp extends BaseAmp {
     this.powerAmp.disconnect();
     this.powerSaturation.disconnect();
     this.cabDCBlock.disconnect();
-    this.cabIR.disconnect();
-    this.cabBypass.disconnect();
+    this.preCabinet.disconnect();
+    this.postCabinet.disconnect();
+    if (this.cabinet && this.cabinet.input) {
+      this.cabinet.input.disconnect();
+    }
+    if (this.cabinet && this.cabinet.output) {
+      this.cabinet.output.disconnect();
+    }
     this.impedanceShelf.disconnect();
     this.impedanceCompressor.disconnect();
     this.impedanceGain.disconnect();

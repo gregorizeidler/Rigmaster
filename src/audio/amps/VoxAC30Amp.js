@@ -681,7 +681,13 @@ class VoxAC30Amp extends BaseAmp {
        this.sagDetector, this.sagLP, this.sagAnalyser, this.sagVCA,
        this.powerAmp, this.powerDrive, this.powerSaturation, this.aaPower,
        this.chime, this.dcBlock, this.spkrResLo, this.spkrIndHi,
-       this.cabIR, this.cabIIR1, this.cabIIR2, this.amTremGain, this.softLimiter, this.master].forEach(n => n.disconnect());
+       this.preCabinet, this.postCabinet, this.amTremGain, this.softLimiter, this.master].forEach(n => n.disconnect());
+      if (this.cabinet && this.cabinet.input) {
+        this.cabinet.input.disconnect();
+      }
+      if (this.cabinet && this.cabinet.output) {
+        this.cabinet.output.disconnect();
+      }
     } catch(e) { console.warn('Vox AC30 disconnect warn', e); }
   }
 }

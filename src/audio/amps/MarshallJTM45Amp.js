@@ -310,7 +310,8 @@ class MarshallJTM45Amp extends BaseAmp {
       this.postHPF.disconnect();
       this.postLPF.disconnect();
       this.cabPresence.disconnect();
-      this.cabBypass.disconnect();
+      this.preCabinet.disconnect();
+      this.postCabinet.disconnect();
       this.volume2.disconnect();
     } catch (e) {}
   }
@@ -614,7 +615,14 @@ class MarshallJTM45Amp extends BaseAmp {
     this.postHPF.disconnect();
     this.postLPF.disconnect();
     this.cabPresence.disconnect();
-    this.cabBypass.disconnect();
+    this.preCabinet.disconnect();
+    this.postCabinet.disconnect();
+    if (this.cabinet && this.cabinet.input) {
+      this.cabinet.input.disconnect();
+    }
+    if (this.cabinet && this.cabinet.output) {
+      this.cabinet.output.disconnect();
+    }
     this.volume2.disconnect();
   }
 }

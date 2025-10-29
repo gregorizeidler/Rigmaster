@@ -299,44 +299,6 @@ class VictoryDuchessAmp extends BaseAmp {
     return curve;
   }
 
-  async _loadDefaultIR() {
-    // 30ms synthetic mono cab IR so it "just works"
-    const sr = this.audioContext.sampleRate;
-    const dur = 0.03;
-    const len = Math.floor(sr * dur);
-    const buf = this.audioContext.createBuffer(1, len, sr);
-    const d = buf.getChannelData(0);
-    for (let i = 0; i < len; i++) {
-      const t = i / sr;
-      const decay = Math.exp(-t / 0.010);
-      let s = (Math.random() * 2 - 1) * decay;
-      if (i > 0) s = 0.6 * s + 0.4 * d[i - 1]; // HF rolloff like a speaker
-      d[i] = s * 0.8;
-    }
-    // normalize
-    let m = 0; for (let i = 0; i < len; i++) m = Math.max(m, Math.abs(d[i]));
-    if (m > 0) for (let i = 0; i < len; i++) d[i] /= m;
-    this.cabIR.buffer = buf;
-  }
-
-  async loadIR(irData) {
-    try {
-      let arr;
-      if (typeof irData === 'string') {
-        const res = await fetch(irData);
-        arr = await res.arrayBuffer();
-      } else {
-        arr = irData;
-      }
-      const audioBuf = await this.audioContext.decodeAudioData(arr);
-      this.cabIR.buffer = audioBuf;
-      return true;
-    } catch (e) {
-      console.warn('IR load failed:', e);
-      return false;
-    }
-  }
-
   // ==========================================
   // CONTROLS
   // ==========================================
@@ -603,9 +565,15 @@ class VictoryDuchessAmp extends BaseAmp {
         this.mixer, this.brightCap, this.voicingFilter,
         this.bass, this.middle, this.treble, this.channelVolume,
         this.sagEnv, this.powerComp, this.powerGain, this.powerSat,
-        this.dcBlock, this.cabIR, this.cabBypass, this.presence,
+        this.dcBlock, this.preCabinet, this.postCabinet, this.presence,
         this.resonance, this.outLimiter, this.master
       ].forEach(n => { try { n.disconnect(); } catch(e){} });
+      if (this.cabinet && this.cabinet.input) {
+        this.cabinet.input.disconnect();
+      }
+      if (this.cabinet && this.cabinet.output) {
+        this.cabinet.output.disconnect();
+      }
     } catch(e) {
       console.warn('Victory Duchess disconnect err:', e);
     }

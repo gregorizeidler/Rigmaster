@@ -318,8 +318,8 @@ class OrangeRockerverbAmp extends BaseAmp {
       this.powerAmp.disconnect();
       this.powerSaturation.disconnect();
       this.dcBlock.disconnect();
-      this.cabIR.disconnect();
-      this.cabBypass.disconnect();
+      this.preCabinet.disconnect();
+      this.postCabinet.disconnect();
       this.master.disconnect();
     } catch (e) {}
   }
@@ -333,7 +333,6 @@ class OrangeRockerverbAmp extends BaseAmp {
     this.channelVolume.gain.value = 0.7;
     this.powerAmp.gain.value = 1.15;
     this.master.gain.value = 0.7;
-    this.cabBypass.gain.value = 1.0;
     
     // Reverb fixed send/return (control via mix)
     this.reverbSend.gain.value = 0.25;
@@ -502,70 +501,6 @@ class OrangeRockerverbAmp extends BaseAmp {
     this.params[parameter] = value;
   }
   
-  /**
-   * Load default Orange 2×12 closed-back cabinet IR
-   */
-  loadDefaultCabinetIR() {
-    const sampleRate = this.audioContext.sampleRate;
-    const duration = 0.040; // 40ms - Orange 2×12 characteristic response
-    const length = Math.floor(duration * sampleRate);
-    
-    const buffer = this.audioContext.createBuffer(1, length, sampleRate);
-    const channelData = buffer.getChannelData(0);
-    
-    // Orange Rockerverb signature 2×12 closed cabinet with Voice of the World speakers
-    for (let i = 0; i < length; i++) {
-      const t = i / sampleRate;
-      
-      // Medium-fast decay for punchy mids
-      const decay = Math.exp(-t / 0.009); // 9ms decay
-      
-      // Early reflections (closed-back cabinet)
-      const early = i < sampleRate * 0.003 ? Math.random() * 0.4 : 0;
-      
-      // Main impulse
-      let sample = (Math.random() * 2 - 1) * decay;
-      sample += early * decay;
-      
-      // Orange "Voice of the World" speaker response (thick mids, smooth highs)
-      if (i > 0) {
-        const alpha = 0.75; // Smooth but articulate
-        sample = alpha * sample + (1 - alpha) * channelData[i - 1];
-      }
-      
-      // Emphasize 800-1.5kHz region (Orange mid character)
-      if (i > sampleRate * 0.002 && i < sampleRate * 0.008) {
-        sample *= 1.18;
-      }
-      
-      // Smooth highs (no harshness)
-      if (i > sampleRate * 0.006 && i < sampleRate * 0.015) {
-        sample *= 0.88;
-      }
-      
-      // Warm low-end presence
-      if (i > sampleRate * 0.001 && i < sampleRate * 0.004) {
-        sample *= 1.08;
-      }
-      
-      channelData[i] = sample * 0.90;
-    }
-    
-    // Normalize
-    let maxVal = 0;
-    for (let i = 0; i < length; i++) {
-      maxVal = Math.max(maxVal, Math.abs(channelData[i]));
-    }
-    if (maxVal > 0) {
-      for (let i = 0; i < length; i++) {
-        channelData[i] /= maxVal;
-      }
-    }
-    
-    this.cabIR.buffer = buffer;
-    console.log('✅ Orange Rockerverb: Default 2×12 closed cabinet IR loaded (40ms)');
-  }
-  
   disconnect() {
     super.disconnect();
     this.noiseGate.disconnect();
@@ -600,8 +535,14 @@ class OrangeRockerverbAmp extends BaseAmp {
     this.powerAmp.disconnect();
     this.powerSaturation.disconnect();
     this.dcBlock.disconnect();
-    this.cabIR.disconnect();
-    this.cabBypass.disconnect();
+    this.preCabinet.disconnect();
+    this.postCabinet.disconnect();
+    if (this.cabinet && this.cabinet.input) {
+      this.cabinet.input.disconnect();
+    }
+    if (this.cabinet && this.cabinet.output) {
+      this.cabinet.output.disconnect();
+    }
     this.master.disconnect();
   }
 }

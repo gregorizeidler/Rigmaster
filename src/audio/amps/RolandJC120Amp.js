@@ -661,70 +661,6 @@ class RolandJC120Amp extends BaseAmp {
     this.params[parameter] = value;
   }
   
-  /**
-   * Load a default synthetic cabinet IR (2x12 open-back with JC speakers)
-   * This ensures the cabinet simulation works out of the box
-   */
-  loadDefaultCabinetIR() {
-    // Create a synthetic JC-120 cabinet IR
-    // 2x12" open-back with custom Roland speakers
-    // Characteristics: bright, clear, extended highs, loose lows
-    const sampleRate = this.audioContext.sampleRate;
-    const length = Math.floor(0.15 * sampleRate); // 150ms IR
-    const bufferL = this.audioContext.createBuffer(1, length, sampleRate);
-    const bufferR = this.audioContext.createBuffer(1, length, sampleRate);
-    const dataL = bufferL.getChannelData(0);
-    const dataR = bufferR.getChannelData(0);
-    
-    // Initial impulse (transient)
-    for (let i = 0; i < length; i++) {
-      const t = i / sampleRate;
-      
-      // Bright attack with extended highs
-      const attack = Math.exp(-30 * t) * (Math.random() * 0.5 + 0.5);
-      
-      // Open-back cabinet reflections (less resonance than closed-back)
-      const earlyReflections = 
-        Math.exp(-8 * t) * Math.sin(2 * Math.PI * 180 * t) * 0.3 +
-        Math.exp(-12 * t) * Math.sin(2 * Math.PI * 420 * t) * 0.25 +
-        Math.exp(-15 * t) * Math.sin(2 * Math.PI * 850 * t) * 0.2;
-      
-      // Late reflections (room ambience)
-      const late = Math.exp(-5 * t) * (Math.random() - 0.5) * 0.15;
-      
-      // Combine
-      let sample = attack * 0.6 + earlyReflections + late;
-      
-      // Slight stereo difference (open-back has natural stereo width)
-      dataL[i] = sample;
-      dataR[i] = sample * 0.95 + (Math.random() - 0.5) * 0.05;
-    }
-    
-    // High-pass to remove DC offset and mud
-    this.applyHighPass(dataL, sampleRate, 80);
-    this.applyHighPass(dataR, sampleRate, 80);
-    
-    // Apply cabinet curves
-    this.cabIRL.buffer = bufferL;
-    this.cabIRR.buffer = bufferR;
-  }
-  
-  applyHighPass(data, sampleRate, frequency) {
-    const RC = 1.0 / (2 * Math.PI * frequency);
-    const dt = 1.0 / sampleRate;
-    const alpha = RC / (RC + dt);
-    
-    let y = 0;
-    let x_prev = 0;
-    
-    for (let i = 0; i < data.length; i++) {
-      const x = data[i];
-      y = alpha * (y + x - x_prev);
-      x_prev = x;
-      data[i] = y;
-    }
-  }
-  
   disconnect() {
     super.disconnect();
     
@@ -765,8 +701,14 @@ class RolandJC120Amp extends BaseAmp {
     this.masterR.disconnect();
     this.ssLimiterL.disconnect();
     this.ssLimiterR.disconnect();
-    this.cabIRL.disconnect();
-    this.cabIRR.disconnect();
+    this.preCabinet.disconnect();
+    this.postCabinet.disconnect();
+    if (this.cabinet && this.cabinet.input) {
+      this.cabinet.input.disconnect();
+    }
+    if (this.cabinet && this.cabinet.output) {
+      this.cabinet.output.disconnect();
+    }
     this.stereoMerger.disconnect();
   }
 }

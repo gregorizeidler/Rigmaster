@@ -125,15 +125,7 @@ class SoldanoSLO100Amp extends BaseAmp {
     this.dcBlock.Q.value = 0.707;
     
     // ============================================
-    // CABINET IR (4×12 with V30 speakers)
-    // ============================================
-    this.cabIR = audioContext.createConvolver();
-    this.cabBypass = audioContext.createGain();
-    this.cabEnabled = true;
-    this.loadDefaultCabinetIR();
-    
-    // ============================================
-    // PRESENCE & DEPTH (POST-IR for realism)
+    // PRESENCE & DEPTH (POST-cabinet for realism)
     // ============================================
     this.presence = audioContext.createBiquadFilter();
     this.presence.type = 'highshelf';
@@ -277,21 +269,15 @@ class SoldanoSLO100Amp extends BaseAmp {
     this.powerAmp.connect(this.powerSaturation);
     this.powerSaturation.connect(this.dcBlock);
     
-    // Cabinet (can be bypassed)
-    if (this.cabEnabled) {
-      this.dcBlock.connect(this.cabIR);
-      this.cabIR.connect(this.presence);
-    } else {
-      this.dcBlock.connect(this.cabBypass);
-      this.cabBypass.connect(this.presence);
-    }
+    // Cabinet (configured in recreateCabinet())
+    this.dcBlock.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
     
-    // Presence/Depth POST-IR (authentic SLO behavior)
+    // Presence/Depth POST-cabinet (authentic SLO behavior)
+    this.postCabinet.connect(this.presence);
     this.presence.connect(this.depth);
     this.depth.connect(this.master);
-    this.master.connect(this.preCabinet);
-    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
-    this.postCabinet.connect(this.output);
+    this.master.connect(this.output);
   }
   
   /**
@@ -347,8 +333,8 @@ class SoldanoSLO100Amp extends BaseAmp {
       this.powerAmp.disconnect();
       this.powerSaturation.disconnect();
       this.dcBlock.disconnect();
-      this.cabIR.disconnect();
-      this.cabBypass.disconnect();
+      this.preCabinet.disconnect();
+      this.postCabinet.disconnect();
       this.presence.disconnect();
       this.depth.disconnect();
       this.master.disconnect();
@@ -365,7 +351,6 @@ class SoldanoSLO100Amp extends BaseAmp {
     this.preampMaster.gain.value = 0.75;
     this.powerAmp.gain.value = 1.0;
     this.master.gain.value = 0.7;
-    this.cabBypass.gain.value = 1.0;
   }
   
   /**
@@ -540,90 +525,6 @@ class SoldanoSLO100Amp extends BaseAmp {
     this.params[parameter] = value;
   }
   
-  /**
-   * Load default 4×12 V30 cabinet IR
-   */
-  loadDefaultCabinetIR() {
-    const sampleRate = this.audioContext.sampleRate;
-    const duration = 0.045; // 45ms - SLO characteristic cabinet response
-    const length = Math.floor(duration * sampleRate);
-    
-    const buffer = this.audioContext.createBuffer(1, length, sampleRate);
-    const channelData = buffer.getChannelData(0);
-    
-    // SLO-100 signature 4×12 V30 cabinet
-    for (let i = 0; i < length; i++) {
-      const t = i / sampleRate;
-      
-      // Medium decay for powerful low-end
-      const decay = Math.exp(-t / 0.010); // 10ms decay
-      
-      // Early reflections (large closed-back cabinet)
-      const early = i < sampleRate * 0.003 ? Math.random() * 0.35 : 0;
-      
-      // Main impulse
-      let sample = (Math.random() * 2 - 1) * decay;
-      sample += early * decay;
-      
-      // V30 speaker response (aggressive mids, controlled highs)
-      if (i > 0) {
-        const alpha = 0.72; // Smoother than typical metal cab
-        sample = alpha * sample + (1 - alpha) * channelData[i - 1];
-      }
-      
-      // Emphasize 2-4kHz region (V30 character) but not harsh
-      if (i > sampleRate * 0.002 && i < sampleRate * 0.006) {
-        sample *= 1.12;
-      }
-      
-      // SLO "smooth" character - slight dip at 5-7kHz
-      if (i > sampleRate * 0.005 && i < sampleRate * 0.012) {
-        sample *= 0.92;
-      }
-      
-      channelData[i] = sample * 0.88;
-    }
-    
-    // Normalize
-    let maxVal = 0;
-    for (let i = 0; i < length; i++) {
-      maxVal = Math.max(maxVal, Math.abs(channelData[i]));
-    }
-    if (maxVal > 0) {
-      for (let i = 0; i < length; i++) {
-        channelData[i] /= maxVal;
-      }
-    }
-    
-    this.cabIR.buffer = buffer;
-    console.log('✅ Soldano SLO-100: Default 4×12 V30 cabinet IR loaded (45ms)');
-  }
-  
-  /**
-   * Load custom IR file
-   */
-  async loadIR(irData) {
-    try {
-      let audioData;
-      
-      if (typeof irData === 'string') {
-        const response = await fetch(irData);
-        audioData = await response.arrayBuffer();
-      } else {
-        audioData = irData;
-      }
-      
-      const audioBuffer = await this.audioContext.decodeAudioData(audioData);
-      this.cabIR.buffer = audioBuffer;
-      
-      console.log(`✅ Soldano SLO-100: Custom cabinet IR loaded (${audioBuffer.duration.toFixed(3)}s)`);
-      return true;
-    } catch (error) {
-      console.error('Error loading cabinet IR:', error);
-      return false;
-    }
-  }
-  
   disconnect() {
     super.disconnect();
     this.noiseGate.disconnect();
@@ -652,8 +553,14 @@ class SoldanoSLO100Amp extends BaseAmp {
     this.powerAmp.disconnect();
     this.powerSaturation.disconnect();
     this.dcBlock.disconnect();
-    this.cabIR.disconnect();
-    this.cabBypass.disconnect();
+    this.preCabinet.disconnect();
+    this.postCabinet.disconnect();
+    if (this.cabinet && this.cabinet.input) {
+      this.cabinet.input.disconnect();
+    }
+    if (this.cabinet && this.cabinet.output) {
+      this.cabinet.output.disconnect();
+    }
     this.presence.disconnect();
     this.depth.disconnect();
     this.master.disconnect();
