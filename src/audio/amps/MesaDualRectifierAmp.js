@@ -136,8 +136,30 @@ class MesaDualRectifierAmp extends BaseAmp {
     this.nfbLo.gain.value = 0;
     
     // ============================================
-    // SATURATION & DISTORTION
+    // SATURATION & DISTORTION (with pre-emphasis/de-emphasis)
     // ============================================
+    
+    // Pre-emphasis filters (tilt +6dB/oct before clipping to reduce aliasing)
+    this.ch1PreEmph = audioContext.createBiquadFilter();
+    this.ch2PreEmph = audioContext.createBiquadFilter();
+    this.ch3PreEmph = audioContext.createBiquadFilter();
+    this.powerPreEmph = audioContext.createBiquadFilter();
+    
+    this.ch1PreEmph.type = 'highshelf';
+    this.ch1PreEmph.frequency.value = 1000;
+    this.ch1PreEmph.gain.value = 6; // +6dB above 1kHz
+    
+    this.ch2PreEmph.type = 'highshelf';
+    this.ch2PreEmph.frequency.value = 1000;
+    this.ch2PreEmph.gain.value = 6;
+    
+    this.ch3PreEmph.type = 'highshelf';
+    this.ch3PreEmph.frequency.value = 1000;
+    this.ch3PreEmph.gain.value = 6;
+    
+    this.powerPreEmph.type = 'highshelf';
+    this.powerPreEmph.frequency.value = 1000;
+    this.powerPreEmph.gain.value = 4; // Gentler for power amp
     
     // Channel-specific saturation
     this.ch1Saturation = audioContext.createWaveShaper();
@@ -146,6 +168,28 @@ class MesaDualRectifierAmp extends BaseAmp {
     
     // Power amp saturation
     this.powerSaturation = audioContext.createWaveShaper();
+    
+    // De-emphasis filters (tilt -6dB/oct after clipping)
+    this.ch1DeEmph = audioContext.createBiquadFilter();
+    this.ch2DeEmph = audioContext.createBiquadFilter();
+    this.ch3DeEmph = audioContext.createBiquadFilter();
+    this.powerDeEmph = audioContext.createBiquadFilter();
+    
+    this.ch1DeEmph.type = 'highshelf';
+    this.ch1DeEmph.frequency.value = 1000;
+    this.ch1DeEmph.gain.value = -6; // -6dB to compensate
+    
+    this.ch2DeEmph.type = 'highshelf';
+    this.ch2DeEmph.frequency.value = 1000;
+    this.ch2DeEmph.gain.value = -6;
+    
+    this.ch3DeEmph.type = 'highshelf';
+    this.ch3DeEmph.frequency.value = 1000;
+    this.ch3DeEmph.gain.value = -6;
+    
+    this.powerDeEmph.type = 'highshelf';
+    this.powerDeEmph.frequency.value = 1000;
+    this.powerDeEmph.gain.value = -4;
     
     // Set curves
     this.ch1Saturation.curve = this.makeCleanCurve();
@@ -175,15 +219,30 @@ class MesaDualRectifierAmp extends BaseAmp {
     this.ch2NoiseGate = audioContext.createDynamicsCompressor();
     this.ch3NoiseGate = audioContext.createDynamicsCompressor();
     
-    this.ch2NoiseGate.threshold.value = -52;
-    this.ch2NoiseGate.ratio.value = 20;
-    this.ch2NoiseGate.attack.value = 0.001;
-    this.ch2NoiseGate.release.value = 0.08;
+    // Improved gate parameters with better envelope tracking
+    // Threshold: -52dB for noise floor
+    // Ratio: 20:1 for hard gating
+    // Attack: Fast to preserve transients
+    // Release: Smooth decay to avoid chattering
+    this.ch2NoiseGate.threshold.value = -48; // Slightly higher for better performance
+    this.ch2NoiseGate.ratio.value = 30; // Harder gating
+    this.ch2NoiseGate.attack.value = 0.0005; // Ultra-fast attack to preserve pick attack
+    this.ch2NoiseGate.release.value = 0.15; // Longer release for smooth decay
+    this.ch2NoiseGate.knee.value = 6; // Soft knee for natural transition
     
-    this.ch3NoiseGate.threshold.value = -52;
-    this.ch3NoiseGate.ratio.value = 20;
-    this.ch3NoiseGate.attack.value = 0.001;
-    this.ch3NoiseGate.release.value = 0.08;
+    this.ch3NoiseGate.threshold.value = -48;
+    this.ch3NoiseGate.ratio.value = 30;
+    this.ch3NoiseGate.attack.value = 0.0005;
+    this.ch3NoiseGate.release.value = 0.15;
+    this.ch3NoiseGate.knee.value = 6;
+    
+    // Envelope tracking for gate (RMS detector)
+    this.gateEnvelope = audioContext.createAnalyser();
+    this.gateEnvelope.fftSize = 256;
+    this.gateEnvelope.smoothingTimeConstant = 0.6; // Smooth RMS
+    this._gateEnvelopeData = new Uint8Array(this.gateEnvelope.frequencyBinCount);
+    this._gateThreshold = 0.02; // Hysteresis threshold
+    this._gateIsOpen = false;
     
     // ============================================
     // MODERN CHANNEL TIGHTENING & SCOOP
@@ -309,6 +368,11 @@ class MesaDualRectifierAmp extends BaseAmp {
     this.channelMixer = audioContext.createGain();
     this.activeChannel = 3; // 1, 2, or 3
     
+    // Tone stack values (for interactive calculation)
+    this.ch3BassValue = 50;
+    this.ch3MidValue = 50;
+    this.ch3TrebleValue = 50;
+    
     // ============================================
     // COMPLETE ROUTING - ALL CHANNELS
     // ============================================
@@ -390,8 +454,10 @@ class MesaDualRectifierAmp extends BaseAmp {
     // CHANNEL 1 (CLEAN) - COMPLETE CHAIN
     // ============================================
     this.input.connect(this.ch1Gain);
-    this.ch1Gain.connect(this.ch1Saturation);
-    this.ch1Saturation.connect(this.ch1Bass);
+    this.ch1Gain.connect(this.ch1PreEmph); // Pre-emphasis (+6dB/oct)
+    this.ch1PreEmph.connect(this.ch1Saturation);
+    this.ch1Saturation.connect(this.ch1DeEmph); // De-emphasis (-6dB/oct)
+    this.ch1DeEmph.connect(this.ch1Bass);
     this.ch1Bass.connect(this.ch1Mid);
     this.ch1Mid.connect(this.ch1Treble);
     this.ch1Treble.connect(this.ch1Presence);
@@ -405,9 +471,11 @@ class MesaDualRectifierAmp extends BaseAmp {
     this.input.connect(this.ch2Gain);
     // BYPASSED: Noise gate blocks audio file playback
     // this.ch2Gain.connect(this.ch2NoiseGate); // Noise gate for drive channel
-    // this.ch2NoiseGate.connect(this.ch2Saturation);
-    this.ch2Gain.connect(this.ch2Saturation); // Direct connection, bypassing noise gate
-    this.ch2Saturation.connect(this.ch2Bass);
+    // this.ch2NoiseGate.connect(this.ch2PreEmph);
+    this.ch2Gain.connect(this.ch2PreEmph); // Pre-emphasis (+6dB/oct)
+    this.ch2PreEmph.connect(this.ch2Saturation);
+    this.ch2Saturation.connect(this.ch2DeEmph); // De-emphasis (-6dB/oct)
+    this.ch2DeEmph.connect(this.ch2Bass);
     this.ch2Bass.connect(this.ch2Mid);
     this.ch2Mid.connect(this.ch2Treble);
     this.ch2Treble.connect(this.ch2Presence);
@@ -432,12 +500,14 @@ class MesaDualRectifierAmp extends BaseAmp {
     this.ch3Mid.connect(this.ch3Treble);
     this.ch3Treble.connect(this.ch3ToneStackMakeup); // Makeup gain after passive loss
     
-    // Anti-alias before saturation
+    // Pre-emphasis + Anti-alias before saturation
     this.ch3ToneStackMakeup.connect(this.ch3AntiAlias1);
-    this.ch3AntiAlias1.connect(this.ch3Saturation);
+    this.ch3AntiAlias1.connect(this.ch3PreEmph); // Pre-emphasis (+6dB/oct)
+    this.ch3PreEmph.connect(this.ch3Saturation);
     
-    // POST-CLIP: Mid scoop + Low damping + Anti-alias
-    this.ch3Saturation.connect(this.ch3MidScoop);
+    // POST-CLIP: De-emphasis + Mid scoop + Low damping + Anti-alias
+    this.ch3Saturation.connect(this.ch3DeEmph); // De-emphasis (-6dB/oct)
+    this.ch3DeEmph.connect(this.ch3MidScoop);
     this.ch3MidScoop.connect(this.ch3LowDamping);
     this.ch3LowDamping.connect(this.ch3AntiAlias2);
     this.ch3AntiAlias2.connect(this.ch3Master);
@@ -481,10 +551,12 @@ class MesaDualRectifierAmp extends BaseAmp {
     this.rectifierFilter.connect(this.variacGain);
     this.variacGain.connect(this.powerAmp);
     this.powerAmp.connect(this.supplyGain); // Sag affects headroom here
-    this.supplyGain.connect(this.powerSaturation);
+    this.supplyGain.connect(this.powerPreEmph); // Pre-emphasis (+4dB/oct)
+    this.powerPreEmph.connect(this.powerSaturation);
     
     // NFB (Negative Feedback): Presence + Resonance after power saturation
-    this.powerSaturation.connect(this.nfbHi); // Presence (high shelf)
+    this.powerSaturation.connect(this.powerDeEmph); // De-emphasis (-4dB/oct)
+    this.powerDeEmph.connect(this.nfbHi); // Presence (high shelf)
     this.nfbHi.connect(this.nfbLo); // Resonance (low shelf)
     this.nfbLo.connect(this.biasFilter);
     
@@ -512,36 +584,62 @@ class MesaDualRectifierAmp extends BaseAmp {
   
   _startSagLoop() {
     // Real-time sag envelope (updates ~60 Hz)
+    // Improved with peak/RMS hybrid detector for better transient response
     this._sagInterval = setInterval(() => {
       if (!this.levelProbe || !this.supplyGain) return;
       
       const now = this.audioContext.currentTime;
-      const rms = this._estimateRMS(this.levelProbe);
+      const { rms, peak } = this._estimateEnvelope(this.levelProbe);
       
-      // Calculate target gain reduction based on RMS
-      const sagAmount = rms * this._sagDepth * (this.variacMode ? 1.2 : 1.0);
-      const target = Math.max(0.3, 1.0 - sagAmount); // Don't collapse completely
+      // Hybrid RMS + peak detector (peak influences attack, RMS influences sustain)
+      const peakWeight = 0.3; // 30% peak, 70% RMS
+      const envelope = (peak * peakWeight) + (rms * (1 - peakWeight));
       
-      // Smooth envelope with attack/release
-      const tau = (target < this._lastRMS) ? this._sagAttack : this._sagRelease;
+      // Calculate target gain reduction based on envelope
+      // Tube rectifier: more sag, slower recovery
+      // Silicon: less sag, faster recovery
+      const sagFactor = this._sagDepth * (this.variacMode ? 1.3 : 1.0);
+      const sagAmount = envelope * sagFactor;
+      const target = Math.max(0.25, 1.0 - sagAmount); // Don't collapse below 25%
+      
+      // Dynamic time constants based on signal behavior
+      // Fast attack when signal increases (supply droops quickly)
+      // Slow release when signal decreases (supply recovers slowly)
+      const isAttacking = target < this._lastRMS;
+      const tau = isAttacking ? this._sagAttack : this._sagRelease;
+      
+      // Apply smooth envelope
+      try {
+        this.supplyGain.gain.cancelAndHoldAtTime(now);
+      } catch (e) {
+        // Not supported in older browsers
+      }
       this.supplyGain.gain.setTargetAtTime(target, now, tau);
       
       this._lastRMS = target;
     }, 16); // ~60 Hz
   }
   
-  _estimateRMS(analyser) {
-    if (!analyser) return 0;
+  _estimateEnvelope(analyser) {
+    if (!analyser) return { rms: 0, peak: 0 };
+    
     const buffer = new Uint8Array(analyser.fftSize);
     analyser.getByteTimeDomainData(buffer);
     
     let sum = 0;
+    let peak = 0;
+    
     for (let i = 0; i < buffer.length; i++) {
       const normalized = (buffer[i] - 128) / 128;
+      const abs = Math.abs(normalized);
+      
       sum += normalized * normalized;
+      if (abs > peak) peak = abs;
     }
     
-    return Math.sqrt(sum / buffer.length);
+    const rms = Math.sqrt(sum / buffer.length);
+    
+    return { rms, peak };
   }
   
   recreateCabinet() {
@@ -672,6 +770,9 @@ class MesaDualRectifierAmp extends BaseAmp {
     // Makeup gain after passive tone stack (compensates for loss)
     this.ch3ToneStackMakeup.gain.value = 1.8; // ~+5 dB makeup
     
+    // Initialize interactive tone stack
+    this._updateInteractiveToneStack();
+    
     // ============================================
     // POWER SECTION
     // ============================================
@@ -776,42 +877,163 @@ class MesaDualRectifierAmp extends BaseAmp {
   // ============================================
   
   makeCleanCurve() {
-    return this._makeCurve('mesa_clean', (x) => {
-      // Clean channel - minimal distortion
-      return Math.tanh(x * 1.5);
+    return this._makeCurve('mesa_clean_v2', (x) => {
+      // Clean channel - minimal distortion with slight triode character
+      // Triode grid conduction at extremes
+      let y = Math.tanh(x * 1.5);
+      
+      // Grid conduction (harder clipping at extremes)
+      if (Math.abs(x) > 0.7) {
+        const excess = Math.abs(x) - 0.7;
+        y += Math.sign(x) * excess * 0.1;
+      }
+      
+      return Math.tanh(y * 1.1);
     });
   }
   
   makeVintageCurve() {
-    return this._makeCurve('mesa_vintage', (x) => {
-      // Vintage channel - classic rock gain
-      let y = Math.tanh(x * 6);
+    return this._makeCurve('mesa_vintage_v2', (x) => {
+      // Vintage channel - classic rock gain with bias shift
+      // Bias shift: as input increases, operating point shifts
+      const biasShift = x * 0.08; // Simulates cathode resistor voltage rise
+      const xShifted = x - biasShift;
+      
+      let y = Math.tanh(xShifted * 6);
       y = Math.tanh(y * 1.3);
+      
+      // Asymmetric clipping (triode cutoff vs grid conduction)
+      y = y > 0 ? y * 1.08 : y * 0.95;
+      
       return y * 0.8;
     });
   }
   
   makeModernCurve() {
-    return this._makeCurve('mesa_modern_v2', (x) => {
-      // MODERN CHANNEL - High gain, smooth, asymmetric
-      // 3 cascaded tanh stages (like real 12AX7 triode stages)
-      let y = Math.tanh(x * 14);
+    return this._makeCurve('mesa_modern_v3', (x) => {
+      // MODERN CHANNEL - High gain with dynamic bias shift
+      // Simulates 3 cascaded 12AX7 stages with cathode bias shift
+      
+      // Stage 1: Early asymmetry + bias shift
+      const biasShift1 = x * 0.12;
+      let y = Math.tanh((x - biasShift1) * 14);
+      
+      // Stage 2: Interstage coupling
       y = Math.tanh(y * 1.5);
       
+      // Stage 3: Final gain stage with compression
+      const biasShift2 = y * 0.08;
+      y = Math.tanh((y - biasShift2) * 1.3);
+      
       // 6L6 power tube asymmetry (stronger positive peaks)
-      y = y > 0 ? Math.tanh(y * 1.2) * 1.15 : Math.tanh(y * 1.1) * 1.05;
+      // Plate current saturation vs cutoff
+      if (y > 0) {
+        y = Math.tanh(y * 1.2) * 1.15;
+      } else {
+        y = Math.tanh(y * 1.1) * 1.05;
+      }
+      
+      // Dynamic compression (load line bending at high drive)
+      if (Math.abs(y) > 0.6) {
+        const excess = Math.abs(y) - 0.6;
+        y = Math.sign(y) * (0.6 + excess * 0.7);
+      }
       
       return y * 0.7;
     });
   }
   
   makePowerAmpCurve() {
-    return this._makeCurve('mesa_power', (x) => {
-      // 6L6 power tubes
-      let y = Math.tanh(x * 1.5);
-      if (x > 0) y *= 1.1; // 6L6 asymmetry
+    return this._makeCurve('mesa_power_v2', (x) => {
+      // 6L6 power tubes with realistic grid conduction and cutoff
+      
+      // Bias shift under drive (cathode resistor voltage rises)
+      const biasShift = x * 0.06;
+      let y = Math.tanh((x - biasShift) * 1.5);
+      
+      // 6L6 asymmetry: grid conduction (positive) vs cutoff (negative)
+      // Positive: grid conducts, harder clipping
+      // Negative: smooth cutoff
+      if (x > 0) {
+        y *= 1.1;
+        // Grid conduction at high positive input
+        if (x > 0.8) {
+          y += (x - 0.8) * 0.15;
+        }
+      } else {
+        y *= 0.98;
+      }
+      
+      // Output transformer saturation (soft limiting)
+      if (Math.abs(y) > 0.75) {
+        const excess = Math.abs(y) - 0.75;
+        y = Math.sign(y) * (0.75 + excess * 0.6);
+      }
+      
       return y;
     });
+  }
+  
+  // ============================================
+  // INTERACTIVE TONE STACK (Mesa/Boogie FMV-style)
+  // ============================================
+  _updateInteractiveToneStack() {
+    const now = this.audioContext.currentTime;
+    
+    // Normalize values to -1..+1
+    const bassNorm = (this.ch3BassValue - 50) / 50;
+    const midNorm = (this.ch3MidValue - 50) / 50;
+    const trebleNorm = (this.ch3TrebleValue - 50) / 50;
+    
+    // INTERACTIVE TONE STACK MODEL
+    // In a real FMV stack, controls interact:
+    // - Bass affects mid response
+    // - Treble affects bass and mid
+    // - Mid is most independent but still coupled
+    
+    // BASS: Low shelf with interaction
+    // When treble is high, bass shelf center shifts up
+    const bassFreq = 120 + (trebleNorm * 30); // 90-150 Hz
+    const bassGain = bassNorm * 8; // ±8dB
+    // Bass affects mid frequency
+    const bassMidShift = bassNorm * 80; // Pushes mid center
+    
+    this.ch3Bass.type = 'lowshelf';
+    this.ch3Bass.frequency.setTargetAtTime(bassFreq, now, 0.01);
+    this.ch3Bass.gain.setTargetAtTime(bassGain, now, 0.01);
+    
+    // MID: Peaking filter with interaction
+    // Center frequency affected by bass and treble
+    const midFreq = 650 + bassMidShift + (trebleNorm * 100); // 570-830 Hz
+    const midGain = midNorm * 10; // ±10dB
+    // Q narrows when boosting, widens when cutting (like passive stack)
+    const midQ = midNorm > 0 ? (1.2 + midNorm * 0.5) : (1.2 + midNorm * 0.3);
+    
+    this.ch3Mid.type = 'peaking';
+    this.ch3Mid.frequency.setTargetAtTime(midFreq, now, 0.01);
+    this.ch3Mid.gain.setTargetAtTime(midGain, now, 0.01);
+    this.ch3Mid.Q.setTargetAtTime(midQ, now, 0.01);
+    
+    // TREBLE: High shelf with interaction
+    // When bass is high, treble shelf shifts down (impedance interaction)
+    const trebleFreq = 2800 - (bassNorm * 300); // 2500-3100 Hz
+    const trebleGain = trebleNorm * 9; // ±9dB
+    
+    this.ch3Treble.type = 'highshelf';
+    this.ch3Treble.frequency.setTargetAtTime(trebleFreq, now, 0.01);
+    this.ch3Treble.gain.setTargetAtTime(trebleGain, now, 0.01);
+    
+    // MAKEUP GAIN: Passive tone stack has insertion loss
+    // Compensate based on control positions
+    // More loss when all controls are low
+    const avgControl = (Math.abs(bassNorm) + Math.abs(midNorm) + Math.abs(trebleNorm)) / 3;
+    const minControl = Math.min(bassNorm, midNorm, trebleNorm);
+    const insertionLoss = 1.0 - (minControl < 0 ? -minControl * 0.15 : 0); // Up to 15% loss
+    const makeupGain = (1.5 / insertionLoss) * (0.85 + avgControl * 0.15);
+    
+    this.ch3ToneStackMakeup.gain.setTargetAtTime(makeupGain, now, 0.01);
+    
+    console.log(`Mesa Interactive Tone Stack: B=${bassFreq.toFixed(0)}Hz/${bassGain.toFixed(1)}dB, M=${midFreq.toFixed(0)}Hz/${midGain.toFixed(1)}dB Q=${midQ.toFixed(2)}, T=${trebleFreq.toFixed(0)}Hz/${trebleGain.toFixed(1)}dB, makeup=${makeupGain.toFixed(2)}`);
   }
   
   // ============================================
@@ -881,7 +1103,8 @@ class MesaDualRectifierAmp extends BaseAmp {
   
   setChannel(channel) {
     const now = this.audioContext.currentTime;
-    const t = 0.035; // 35ms equal-power crossfade
+    const fadeTime = 0.035; // 35ms true equal-power crossfade
+    const steps = 8; // Number of automation steps for smooth curve
     
     this.activeChannel = channel;
     
@@ -896,20 +1119,29 @@ class MesaDualRectifierAmp extends BaseAmp {
         fader.setValueAtTime(fader.value, now);
       }
       
-      // True equal-power crossfade: cos/sin curves with overlap
       const isTarget = (i + 1) === channel;
-      const start = fader.value;
-      const end = isTarget ? 1.0 : 0.0;
       
-      // Use sqrt for equal-power (maintains constant perceived loudness)
-      const startPower = Math.sqrt(start);
-      const endPower = Math.sqrt(end);
-      
-      fader.setValueAtTime(startPower, now);
-      fader.linearRampToValueAtTime(endPower, now + t);
+      // TRUE equal-power crossfade using cos/sin curves
+      // Target channel: x goes 0→1, gain = sin(πx/2)
+      // Other channels: x goes 0→1, gain = cos(πx/2)
+      for (let step = 0; step <= steps; step++) {
+        const x = step / steps; // 0.0 to 1.0
+        const time = now + (x * fadeTime);
+        let gain;
+        
+        if (isTarget) {
+          // Fade in: sin curve (0 → 1)
+          gain = Math.sin(x * Math.PI / 2);
+        } else {
+          // Fade out: cos curve (1 → 0)
+          gain = Math.cos(x * Math.PI / 2);
+        }
+        
+        fader.setValueAtTime(gain, time);
+      }
     });
     
-    console.log(`Mesa Dual Rectifier: Channel ${channel} (equal-power x-fade)`);
+    console.log(`Mesa Dual Rectifier: Channel ${channel} (true equal-power cos/sin x-fade)`);
   }
   
   // ============================================
@@ -1051,15 +1283,18 @@ class MesaDualRectifierAmp extends BaseAmp {
         break;
       case 'ch3_bass':
       case 'bass': // Alias
-        this.ch3Bass.gain.setTargetAtTime((value - 50) / 5, now, 0.01);
+        this.ch3BassValue = value;
+        this._updateInteractiveToneStack();
         break;
       case 'ch3_mid':
       case 'mid': // Alias
-        this.ch3Mid.gain.setTargetAtTime((value - 50) / 5, now, 0.01);
+        this.ch3MidValue = value;
+        this._updateInteractiveToneStack();
         break;
       case 'ch3_treble':
       case 'treble': // Alias
-        this.ch3Treble.gain.setTargetAtTime((value - 50) / 5, now, 0.01);
+        this.ch3TrebleValue = value;
+        this._updateInteractiveToneStack();
         break;
       case 'ch3_presence':
       case 'presence': // Alias (NFB high shelf)
@@ -1084,7 +1319,14 @@ class MesaDualRectifierAmp extends BaseAmp {
         // Simplified linear volume control (logarithmic was too complex)
         const linValue = value / 100; // Simple 0-1 range
         this.outputMaster.gain.setTargetAtTime(linValue, now, 0.01);
-        console.log(`Mesa Master Volume: ${value} → ${linValue.toFixed(3)}`);
+        
+        // Dynamic Presence/Resonance Q: higher Q at lower volumes for more definition
+        // At low master (<30%), Q increases to compensate for hearing curve
+        const qMul = linValue < 0.3 ? (1 + (0.3 - linValue) * 2) : 1.0;
+        this.nfbHi.Q.setTargetAtTime(0.707 * qMul, now, 0.01);
+        this.nfbLo.Q.setTargetAtTime(0.707 * qMul, now, 0.01);
+        
+        console.log(`Mesa Master Volume: ${value} → ${linValue.toFixed(3)}, Q multiplier: ${qMul.toFixed(2)}`);
         break;
       
       case 'solo':
@@ -1132,8 +1374,10 @@ class MesaDualRectifierAmp extends BaseAmp {
       // ============================================
       case 'fx_loop_mix':
         // 0 = all dry (parallel), 100 = all wet (series)
-        const dryAmount = 1.0 - (value / 100);
-        const wetAmount = value / 100;
+        // Use equal-power mix to avoid +3dB bump at 50/50
+        const mix = value / 100;
+        const dryAmount = Math.cos(mix * Math.PI / 2); // cos curve: 1 → 0
+        const wetAmount = Math.sin(mix * Math.PI / 2); // sin curve: 0 → 1
         this.fxLoopDry.gain.setTargetAtTime(dryAmount, now, 0.01);
         this.fxLoopWet.gain.setTargetAtTime(wetAmount, now, 0.01);
         break;
