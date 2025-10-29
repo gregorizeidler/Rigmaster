@@ -50,6 +50,9 @@ class IRLoader {
     this.irBufferB = null;
     this.currentIR = null;
     
+    // Latency compensation (in seconds)
+    this.latencySec = 0;
+    
     // Routing mode: 'single', 'dual'
     this.mode = 'single';
     
@@ -96,6 +99,31 @@ class IRLoader {
   }
   
   /**
+   * Calculate IR latency (finds peak position for phase alignment)
+   */
+  calculateIRLatency(audioBuffer) {
+    if (!audioBuffer) return 0;
+    
+    const channelData = audioBuffer.getChannelData(0);
+    let peakIndex = 0;
+    let peakValue = 0;
+    
+    // Find the main peak (first 20ms is typically where the direct sound is)
+    const searchLength = Math.min(channelData.length, Math.floor(audioBuffer.sampleRate * 0.02));
+    
+    for (let i = 0; i < searchLength; i++) {
+      const absValue = Math.abs(channelData[i]);
+      if (absValue > peakValue) {
+        peakValue = absValue;
+        peakIndex = i;
+      }
+    }
+    
+    // Convert to seconds
+    return peakIndex / audioBuffer.sampleRate;
+  }
+  
+  /**
    * Load IR from URL
    */
   async loadIR(url, channel = 'A') {
@@ -109,12 +137,13 @@ class IRLoader {
         this.convolver.buffer = audioBuffer;
         this.convolverA.buffer = audioBuffer;
         this.currentIR = audioBuffer;
+        this.latencySec = this.calculateIRLatency(audioBuffer);
       } else {
         this.irBufferB = audioBuffer;
         this.convolverB.buffer = audioBuffer;
       }
       
-      console.log(`✅ IR loaded (${channel}): ${audioBuffer.duration.toFixed(2)}s, ${audioBuffer.numberOfChannels} channel(s)`);
+      console.log(`✅ IR loaded (${channel}): ${audioBuffer.duration.toFixed(2)}s, ${audioBuffer.numberOfChannels} channel(s), latency: ${(this.latencySec * 1000).toFixed(2)}ms`);
       return audioBuffer;
     } catch (error) {
       console.error('Failed to load IR:', error);
@@ -135,12 +164,13 @@ class IRLoader {
         this.convolver.buffer = audioBuffer;
         this.convolverA.buffer = audioBuffer;
         this.currentIR = audioBuffer;
+        this.latencySec = this.calculateIRLatency(audioBuffer);
       } else {
         this.irBufferB = audioBuffer;
         this.convolverB.buffer = audioBuffer;
       }
       
-      console.log(`✅ IR loaded from file (${channel}): ${audioBuffer.duration.toFixed(2)}s, ${audioBuffer.numberOfChannels} channel(s)`);
+      console.log(`✅ IR loaded from file (${channel}): ${audioBuffer.duration.toFixed(2)}s, ${audioBuffer.numberOfChannels} channel(s), latency: ${(this.latencySec * 1000).toFixed(2)}ms`);
       return audioBuffer;
     } catch (error) {
       console.error('Failed to load IR from file:', error);

@@ -1,4 +1,5 @@
 import BaseAmp from './BaseAmp.js';
+import CabinetSimulator from './CabinetSimulator.js';
 
 class FriedmanBE100Amp extends BaseAmp {
   constructor(audioContext, id) {
@@ -143,18 +144,16 @@ class FriedmanBE100Amp extends BaseAmp {
     this.presence.gain.value = 0;
     
     // ============================================
-    // CABINET SIMULATION (HPF/LPF post-power)
+    // CABINET SIMULATOR
     // ============================================
+    this.cabinetSimulator = new CabinetSimulator(audioContext);
+    this.cabinet = null;
     this.cabinetEnabled = true;
-    this.postHPF = audioContext.createBiquadFilter();
-    this.postHPF.type = 'highpass';
-    this.postHPF.frequency.value = 80;
-    this.postHPF.Q.value = 0.707;
-    
-    this.postLPF = audioContext.createBiquadFilter();
-    this.postLPF.type = 'lowpass';
-    this.postLPF.frequency.value = 9000;
-    this.postLPF.Q.value = 0.707;
+    this.cabinetType = '4x12_v30';
+    this.micType = 'sm57';
+    this.micPosition = 'edge';
+    this.preCabinet = audioContext.createGain();
+    this.postCabinet = audioContext.createGain();
     
     // ============================================
     // MASTER VOLUME
@@ -165,6 +164,7 @@ class FriedmanBE100Amp extends BaseAmp {
     // ROUTING - BE CHANNEL (DEFAULT)
     // ============================================
     this.setupBEChannel();
+    this.recreateCabinet();
     
     this.params = {
       channel: 1, // 0=clean, 1=be
@@ -220,14 +220,9 @@ class FriedmanBE100Amp extends BaseAmp {
     this.presence.connect(this.powerSaturation);
     
     // Cabinet simulation (can be bypassed)
-    if (this.cabinetEnabled) {
-      this.powerSaturation.connect(this.postHPF);
-      this.postHPF.connect(this.postLPF);
-      this.postLPF.connect(this.master);
-    } else {
-      this.powerSaturation.connect(this.master);
-    }
-    
+    this.powerSaturation.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.master);
     this.master.connect(this.output);
     
     this.activeChannel = 'clean';
@@ -269,14 +264,9 @@ class FriedmanBE100Amp extends BaseAmp {
     this.presence.connect(this.powerSaturation);
     
     // Cabinet simulation (can be bypassed)
-    if (this.cabinetEnabled) {
-      this.powerSaturation.connect(this.postHPF);
-      this.postHPF.connect(this.postLPF);
-      this.postLPF.connect(this.master);
-    } else {
-      this.powerSaturation.connect(this.master);
-    }
-    
+    this.powerSaturation.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.master);
     this.master.connect(this.output);
     
     this.activeChannel = 'be';
@@ -397,6 +387,33 @@ class FriedmanBE100Amp extends BaseAmp {
     return curve;
   }
   
+  recreateCabinet() {
+    if (this.cabinet) {
+      try {
+        if (this.cabinet.dispose) this.cabinet.dispose();
+        if (this.cabinet.input) this.cabinet.input.disconnect();
+        if (this.cabinet.output) this.cabinet.output.disconnect();
+      } catch (e) {}
+    }
+    try { this.preCabinet.disconnect(); } catch (e) {}
+    
+    if (this.cabinetEnabled) {
+      this.cabinet = this.cabinetSimulator.createCabinet(
+        this.cabinetType,
+        this.micType,
+        this.micPosition
+      );
+      if (this.cabinet) {
+        this.preCabinet.connect(this.cabinet.input);
+        this.cabinet.output.connect(this.postCabinet);
+      } else {
+        this.preCabinet.connect(this.postCabinet);
+      }
+    } else {
+      this.preCabinet.connect(this.postCabinet);
+    }
+  }
+  
   updateParameter(parameter, value) {
     const now = this.audioContext.currentTime;
     
@@ -486,12 +503,20 @@ class FriedmanBE100Amp extends BaseAmp {
       
       case 'cabinet_enabled':
         this.cabinetEnabled = !!value;
-        // Reconnect signal chain with/without cabinet
-        if (this.activeChannel === 'clean') {
-          this.setupCleanChannel();
-        } else {
-          this.setupBEChannel();
-        }
+        this.recreateCabinet();
+        break;
+      case 'cabinet':
+        this.cabinetType = value;
+        this.recreateCabinet();
+        break;
+      case 'microphone':
+      case 'micType':
+        this.micType = value;
+        this.recreateCabinet();
+        break;
+      case 'micPosition':
+        this.micPosition = value;
+        this.recreateCabinet();
         break;
     }
     

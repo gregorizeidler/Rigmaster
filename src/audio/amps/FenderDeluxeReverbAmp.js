@@ -1,4 +1,5 @@
 import BaseAmp from './BaseAmp.js';
+import CabinetSimulator from './CabinetSimulator.js';
 
 class FenderDeluxeReverbAmp extends BaseAmp {
   constructor(audioContext, id) {
@@ -131,18 +132,18 @@ class FenderDeluxeReverbAmp extends BaseAmp {
     this.powerSaturation.oversample = '4x';
     
     // ============================================
-    // CABINET SIMULATION (HPF/LPF for FRFR)
+    // CABINET SIMULATOR
     // ============================================
+    this.cabinetSimulator = new CabinetSimulator(audioContext);
+    this.cabinet = null;
     this.cabinetEnabled = true;
-    this.postHPF = audioContext.createBiquadFilter();
-    this.postHPF.type = 'highpass';
-    this.postHPF.frequency.value = 60;
-    this.postHPF.Q.value = 0.707;
+    this.cabinetType = '1x12_open'; // Fender Deluxe standard
+    this.micType = 'sm57';
+    this.micPosition = 'edge';
     
-    this.postLPF = audioContext.createBiquadFilter();
-    this.postLPF.type = 'lowpass';
-    this.postLPF.frequency.value = 8000;
-    this.postLPF.Q.value = 0.707;
+    // Cabinet bypass routing
+    this.preCabinet = audioContext.createGain();
+    this.postCabinet = audioContext.createGain();
     
     // MASTER
     this.master = audioContext.createGain();
@@ -151,6 +152,7 @@ class FenderDeluxeReverbAmp extends BaseAmp {
     // ROUTING - VIBRATO CHANNEL (DEFAULT)
     // ============================================
     this.setupVibratoChannel();
+    this.recreateCabinet();
     
     this.params = {
       channel: 1, // 0=normal, 1=vibrato
@@ -214,15 +216,10 @@ class FenderDeluxeReverbAmp extends BaseAmp {
     this.rectifierSag.connect(this.powerAmp);
     this.powerAmp.connect(this.powerSaturation);
     
-    // Cabinet simulation (optional)
-    if (this.cabinetEnabled) {
-      this.powerSaturation.connect(this.postHPF);
-      this.postHPF.connect(this.postLPF);
-      this.postLPF.connect(this.master);
-    } else {
-      this.powerSaturation.connect(this.master);
-    }
-    
+    // Cabinet routing with CabinetSimulator
+    this.powerSaturation.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.master);
     this.master.connect(this.output);
     
     this.activeChannel = 'normal';
@@ -265,15 +262,10 @@ class FenderDeluxeReverbAmp extends BaseAmp {
     this.rectifierSag.connect(this.powerAmp);
     this.powerAmp.connect(this.powerSaturation);
     
-    // Cabinet simulation (optional)
-    if (this.cabinetEnabled) {
-      this.powerSaturation.connect(this.postHPF);
-      this.postHPF.connect(this.postLPF);
-      this.postLPF.connect(this.master);
-    } else {
-      this.powerSaturation.connect(this.master);
-    }
-    
+    // Cabinet routing with CabinetSimulator
+    this.powerSaturation.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.master);
     this.master.connect(this.output);
     
     this.activeChannel = 'vibrato';
@@ -303,8 +295,8 @@ class FenderDeluxeReverbAmp extends BaseAmp {
       this.rectifierSag.disconnect();
       this.powerAmp.disconnect();
       this.powerSaturation.disconnect();
-      this.postHPF.disconnect();
-      this.postLPF.disconnect();
+      this.preCabinet.disconnect();
+      this.postCabinet.disconnect();
       this.master.disconnect();
     } catch (e) {
       // Some nodes may not be connected yet
@@ -375,6 +367,49 @@ class FenderDeluxeReverbAmp extends BaseAmp {
       curve[i] = y * 0.94;
     }
     return curve;
+  }
+  
+  // ============================================
+  // CABINET SIMULATOR
+  // ============================================
+  recreateCabinet() {
+    // Cleanup old cabinet properly
+    if (this.cabinet) {
+      try {
+        if (this.cabinet.dispose) this.cabinet.dispose();
+        if (this.cabinet.input) this.cabinet.input.disconnect();
+        if (this.cabinet.output) this.cabinet.output.disconnect();
+      } catch (e) {
+        // Already disconnected
+      }
+    }
+    
+    // Disconnect preCabinet
+    try {
+      this.preCabinet.disconnect();
+    } catch (e) {
+      // Already disconnected
+    }
+    
+    if (this.cabinetEnabled) {
+      // Create new cabinet with current settings
+      this.cabinet = this.cabinetSimulator.createCabinet(
+        this.cabinetType,
+        this.micType,
+        this.micPosition
+      );
+      
+      if (this.cabinet) {
+        this.preCabinet.connect(this.cabinet.input);
+        this.cabinet.output.connect(this.postCabinet);
+      } else {
+        // Fallback if cabinet creation fails
+        this.preCabinet.connect(this.postCabinet);
+      }
+    } else {
+      // Bypass cabinet
+      this.preCabinet.connect(this.postCabinet);
+    }
   }
   
   updateParameter(parameter, value) {
@@ -481,12 +516,20 @@ class FenderDeluxeReverbAmp extends BaseAmp {
       // ============================================
       case 'cabinet_enabled':
         this.cabinetEnabled = !!value;
-        // Reconnect signal chain with/without cabinet
-        if (this.activeChannel === 'normal') {
-          this.setupNormalChannel();
-        } else {
-          this.setupVibratoChannel();
-        }
+        this.recreateCabinet();
+        break;
+      case 'cabinet':
+        this.cabinetType = value;
+        this.recreateCabinet();
+        break;
+      case 'microphone':
+      case 'micType':
+        this.micType = value;
+        this.recreateCabinet();
+        break;
+      case 'micPosition':
+        this.micPosition = value;
+        this.recreateCabinet();
         break;
     }
     

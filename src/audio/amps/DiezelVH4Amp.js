@@ -1,4 +1,5 @@
 import BaseAmp from './BaseAmp.js';
+import CabinetSimulator from './CabinetSimulator.js';
 
 class DiezelVH4Amp extends BaseAmp {
   constructor(audioContext, id) {
@@ -150,6 +151,18 @@ class DiezelVH4Amp extends BaseAmp {
     this.powerComp.release.value = 0.08;
     
     // ============================================
+    // CABINET SIMULATOR
+    // ============================================
+    this.cabinetSimulator = new CabinetSimulator(audioContext);
+    this.cabinet = null;
+    this.cabinetEnabled = true;
+    this.cabinetType = '4x12_v30';
+    this.micType = 'sm57';
+    this.micPosition = 'edge';
+    this.preCabinet = audioContext.createGain();
+    this.postCabinet = audioContext.createGain();
+    
+    // ============================================
     // MASTER SECTION
     // ============================================
     this.channelVolume = audioContext.createGain();
@@ -175,6 +188,7 @@ class DiezelVH4Amp extends BaseAmp {
     // ROUTING - CHANNEL 3 (DEFAULT)
     // ============================================
     this.setupChannel3();
+    this.recreateCabinet();
     
     this.params = {
       channel: 3, // 1=clean, 2=crunch, 3=mega, 4=ultra
@@ -265,7 +279,9 @@ class DiezelVH4Amp extends BaseAmp {
     this.powerComp.connect(this.powerAmp);
     this.powerAmp.connect(this.powerSaturation);
     this.powerSaturation.connect(this.master);
-    this.master.connect(this.output);
+    this.master.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.output);
     
     // Channel-specific voicing: Bright cap (lighter treble shelf, +2dB if gain<40)
     this.treble.frequency.value = 3200;
@@ -329,7 +345,9 @@ class DiezelVH4Amp extends BaseAmp {
     this.powerComp.connect(this.powerAmp);
     this.powerAmp.connect(this.powerSaturation);
     this.powerSaturation.connect(this.master);
-    this.master.connect(this.output);
+    this.master.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.output);
     
     // Channel-specific voicing: Upper-mid push
     this.treble.frequency.value = 3000;
@@ -393,7 +411,9 @@ class DiezelVH4Amp extends BaseAmp {
     this.powerComp.connect(this.powerAmp);
     this.powerAmp.connect(this.powerSaturation);
     this.powerSaturation.connect(this.master);
-    this.master.connect(this.output);
+    this.master.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.output);
     
     // Channel-specific voicing: Tight HPF (90Hz)
     this.treble.frequency.value = 3000;
@@ -460,7 +480,9 @@ class DiezelVH4Amp extends BaseAmp {
     this.powerComp.connect(this.powerAmp);
     this.powerAmp.connect(this.powerSaturation);
     this.powerSaturation.connect(this.master);
-    this.master.connect(this.output);
+    this.master.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.output);
     
     // Channel-specific voicing: Extra tight HPF (110Hz), reduced deep
     this.treble.frequency.value = 3000;
@@ -626,6 +648,33 @@ class DiezelVH4Amp extends BaseAmp {
     return curve;
   }
   
+  recreateCabinet() {
+    if (this.cabinet) {
+      try {
+        if (this.cabinet.dispose) this.cabinet.dispose();
+        if (this.cabinet.input) this.cabinet.input.disconnect();
+        if (this.cabinet.output) this.cabinet.output.disconnect();
+      } catch (e) {}
+    }
+    try { this.preCabinet.disconnect(); } catch (e) {}
+    
+    if (this.cabinetEnabled) {
+      this.cabinet = this.cabinetSimulator.createCabinet(
+        this.cabinetType,
+        this.micType,
+        this.micPosition
+      );
+      if (this.cabinet) {
+        this.preCabinet.connect(this.cabinet.input);
+        this.cabinet.output.connect(this.postCabinet);
+      } else {
+        this.preCabinet.connect(this.postCabinet);
+      }
+    } else {
+      this.preCabinet.connect(this.postCabinet);
+    }
+  }
+  
   updateParameter(parameter, value) {
     const now = this.audioContext.currentTime;
     
@@ -748,7 +797,21 @@ class DiezelVH4Amp extends BaseAmp {
       }
       
       case 'cabinet_enabled':
-        // This will be handled by the AudioEngine
+        this.cabinetEnabled = !!value;
+        this.recreateCabinet();
+        break;
+      case 'cabinet':
+        this.cabinetType = value;
+        this.recreateCabinet();
+        break;
+      case 'microphone':
+      case 'micType':
+        this.micType = value;
+        this.recreateCabinet();
+        break;
+      case 'micPosition':
+        this.micPosition = value;
+        this.recreateCabinet();
         break;
     }
     

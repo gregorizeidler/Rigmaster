@@ -1,4 +1,5 @@
 import BaseAmp from './BaseAmp.js';
+import CabinetSimulator from './CabinetSimulator.js';
 
 class BadCatHotCatAmp extends BaseAmp {
   constructor(audioContext, id) {
@@ -172,6 +173,18 @@ class BadCatHotCatAmp extends BaseAmp {
     this.classAComp.release.value = 0.12;
     
     // ============================================
+    // CABINET SIMULATOR
+    // ============================================
+    this.cabinetSimulator = new CabinetSimulator(audioContext);
+    this.cabinet = null;
+    this.cabinetEnabled = true;
+    this.cabinetType = '2x12_closed';
+    this.micType = 'sm57';
+    this.micPosition = 'edge';
+    this.preCabinet = audioContext.createGain();
+    this.postCabinet = audioContext.createGain();
+    
+    // ============================================
     // MASTER VOLUME
     // ============================================
     this.master = audioContext.createGain();
@@ -180,6 +193,7 @@ class BadCatHotCatAmp extends BaseAmp {
     // ROUTING - CHANNEL 1 (DEFAULT)
     // ============================================
     this.setupChannel1();
+    this.recreateCabinet();
     
     this.params = {
       channel: 1, // 1 or 2
@@ -252,7 +266,9 @@ class BadCatHotCatAmp extends BaseAmp {
     this.powerAmp.connect(this.powerSaturation);
     this.powerSaturation.connect(this.outputLevel);
     this.outputLevel.connect(this.master);
-    this.master.connect(this.output);
+    this.master.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.output);
     
     this.activeChannel = 1;
   }
@@ -301,7 +317,9 @@ class BadCatHotCatAmp extends BaseAmp {
     this.powerAmp.connect(this.powerSaturation);
     this.powerSaturation.connect(this.outputLevel);
     this.outputLevel.connect(this.master);
-    this.master.connect(this.output);
+    this.master.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.output);
     
     this.activeChannel = 2;
   }
@@ -409,6 +427,33 @@ class BadCatHotCatAmp extends BaseAmp {
     return curve;
   }
   
+  recreateCabinet() {
+    if (this.cabinet) {
+      try {
+        if (this.cabinet.dispose) this.cabinet.dispose();
+        if (this.cabinet.input) this.cabinet.input.disconnect();
+        if (this.cabinet.output) this.cabinet.output.disconnect();
+      } catch (e) {}
+    }
+    try { this.preCabinet.disconnect(); } catch (e) {}
+    
+    if (this.cabinetEnabled) {
+      this.cabinet = this.cabinetSimulator.createCabinet(
+        this.cabinetType,
+        this.micType,
+        this.micPosition
+      );
+      if (this.cabinet) {
+        this.preCabinet.connect(this.cabinet.input);
+        this.cabinet.output.connect(this.postCabinet);
+      } else {
+        this.preCabinet.connect(this.postCabinet);
+      }
+    } else {
+      this.preCabinet.connect(this.postCabinet);
+    }
+  }
+  
   updateParameter(parameter, value) {
     const now = this.audioContext.currentTime;
     
@@ -514,7 +559,21 @@ class BadCatHotCatAmp extends BaseAmp {
       
       // CABINET
       case 'cabinet_enabled':
-        // Handled by parent (BaseAmp)
+        this.cabinetEnabled = !!value;
+        this.recreateCabinet();
+        break;
+      case 'cabinet':
+        this.cabinetType = value;
+        this.recreateCabinet();
+        break;
+      case 'microphone':
+      case 'micType':
+        this.micType = value;
+        this.recreateCabinet();
+        break;
+      case 'micPosition':
+        this.micPosition = value;
+        this.recreateCabinet();
         break;
     }
     

@@ -1,4 +1,5 @@
 import BaseAmp from './BaseAmp.js';
+import CabinetSimulator from './CabinetSimulator.js';
 
 class SoldanoSLO100Amp extends BaseAmp {
   constructor(audioContext, id) {
@@ -154,6 +155,18 @@ class SoldanoSLO100Amp extends BaseAmp {
     this.brightEnabled = false;
     
     // ============================================
+    // CABINET SIMULATOR
+    // ============================================
+    this.cabinetSimulator = new CabinetSimulator(audioContext);
+    this.cabinet = null;
+    this.cabinetEnabled = true;
+    this.cabinetType = '4x12_v30';
+    this.micType = 'sm57';
+    this.micPosition = 'edge';
+    this.preCabinet = audioContext.createGain();
+    this.postCabinet = audioContext.createGain();
+    
+    // ============================================
     // MASTER VOLUMES (Preamp & Master)
     // ============================================
     this.preampMaster = audioContext.createGain();
@@ -196,6 +209,7 @@ class SoldanoSLO100Amp extends BaseAmp {
     this.setupChannels();
     this.setActiveChannel('overdrive');
     this.applyInitialSettings();
+    this.recreateCabinet();
   }
   
   /**
@@ -275,7 +289,9 @@ class SoldanoSLO100Amp extends BaseAmp {
     // Presence/Depth POST-IR (authentic SLO behavior)
     this.presence.connect(this.depth);
     this.depth.connect(this.master);
-    this.master.connect(this.output);
+    this.master.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.output);
   }
   
   /**
@@ -418,6 +434,33 @@ class SoldanoSLO100Amp extends BaseAmp {
     return 0.001 * Math.pow(1000, value01); // ~-60dB to 0dB
   }
   
+  recreateCabinet() {
+    if (this.cabinet) {
+      try {
+        if (this.cabinet.dispose) this.cabinet.dispose();
+        if (this.cabinet.input) this.cabinet.input.disconnect();
+        if (this.cabinet.output) this.cabinet.output.disconnect();
+      } catch (e) {}
+    }
+    try { this.preCabinet.disconnect(); } catch (e) {}
+    
+    if (this.cabinetEnabled) {
+      this.cabinet = this.cabinetSimulator.createCabinet(
+        this.cabinetType,
+        this.micType,
+        this.micPosition
+      );
+      if (this.cabinet) {
+        this.preCabinet.connect(this.cabinet.input);
+        this.cabinet.output.connect(this.postCabinet);
+      } else {
+        this.preCabinet.connect(this.postCabinet);
+      }
+    } else {
+      this.preCabinet.connect(this.postCabinet);
+    }
+  }
+  
   updateParameter(parameter, value) {
     const now = this.audioContext.currentTime;
     
@@ -476,8 +519,21 @@ class SoldanoSLO100Amp extends BaseAmp {
         break;
       
       case 'cabinet_enabled':
-        this.cabEnabled = value;
-        this.reconnectChannels();
+        this.cabinetEnabled = !!value;
+        this.recreateCabinet();
+        break;
+      case 'cabinet':
+        this.cabinetType = value;
+        this.recreateCabinet();
+        break;
+      case 'microphone':
+      case 'micType':
+        this.micType = value;
+        this.recreateCabinet();
+        break;
+      case 'micPosition':
+        this.micPosition = value;
+        this.recreateCabinet();
         break;
     }
     

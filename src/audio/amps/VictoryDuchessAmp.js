@@ -1,4 +1,5 @@
 import BaseAmp from './BaseAmp.js';
+import CabinetSimulator from './CabinetSimulator.js';
 
 /**
  * Victory Duchess Amp — WebAudio boutique amp sim V2
@@ -130,10 +131,17 @@ class VictoryDuchessAmp extends BaseAmp {
     this.dcBlock.type = 'highpass';
     this.dcBlock.frequency.value = 20;
 
-    this.cabIR = audioContext.createConvolver();
-    this.cabBypass = audioContext.createGain();
-    this.cabEnabled = true;
-    this._loadDefaultIR();
+    // ============================================
+    // CABINET SIMULATOR
+    // ============================================
+    this.cabinetSimulator = new CabinetSimulator(audioContext);
+    this.cabinet = null;
+    this.cabinetEnabled = true;
+    this.cabinetType = '2x12_closed';
+    this.micType = 'sm57';
+    this.micPosition = 'edge';
+    this.preCabinet = audioContext.createGain();
+    this.postCabinet = audioContext.createGain();
 
     this.presence = audioContext.createBiquadFilter();
     this.presence.type = 'highshelf';
@@ -179,6 +187,7 @@ class VictoryDuchessAmp extends BaseAmp {
     };
 
     this._applyInitials();
+    this.recreateCabinet();
   }
 
   // ==========================================
@@ -233,13 +242,9 @@ class VictoryDuchessAmp extends BaseAmp {
 
     // DC block → cabinet → post-EQ → limiter → master
     this.powerSat.connect(this.dcBlock);
-    if (this.cabEnabled) {
-      this.dcBlock.connect(this.cabIR);
-      this.cabIR.connect(this.presence);
-    } else {
-      this.dcBlock.connect(this.cabBypass);
-      this.cabBypass.connect(this.presence);
-    }
+    this.dcBlock.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.presence);
     this.presence.connect(this.resonance);
     this.resonance.connect(this.outLimiter);
     this.outLimiter.connect(this.master);
@@ -378,6 +383,33 @@ class VictoryDuchessAmp extends BaseAmp {
     this.sagEnv.gain.setTargetAtTime(1.0, now + 0.05, r);
   }
 
+  recreateCabinet() {
+    if (this.cabinet) {
+      try {
+        if (this.cabinet.dispose) this.cabinet.dispose();
+        if (this.cabinet.input) this.cabinet.input.disconnect();
+        if (this.cabinet.output) this.cabinet.output.disconnect();
+      } catch (e) {}
+    }
+    try { this.preCabinet.disconnect(); } catch (e) {}
+    
+    if (this.cabinetEnabled) {
+      this.cabinet = this.cabinetSimulator.createCabinet(
+        this.cabinetType,
+        this.micType,
+        this.micPosition
+      );
+      if (this.cabinet) {
+        this.preCabinet.connect(this.cabinet.input);
+        this.cabinet.output.connect(this.postCabinet);
+      } else {
+        this.preCabinet.connect(this.postCabinet);
+      }
+    } else {
+      this.preCabinet.connect(this.postCabinet);
+    }
+  }
+
   updateParameter(parameter, value) {
     const now = this.audioContext.currentTime;
     const lin2log = v => 0.001 * Math.pow(1000, v);
@@ -458,20 +490,21 @@ class VictoryDuchessAmp extends BaseAmp {
       }
 
       case 'cabinet_enabled':
-        this.cabEnabled = !!value;
-        // rewire cab path
-        this.presence.disconnect();
-        if (this.cabEnabled) {
-          this.dcBlock.disconnect();
-          this.powerSat.connect(this.dcBlock);
-          this.dcBlock.connect(this.cabIR);
-          this.cabIR.connect(this.presence);
-        } else {
-          this.dcBlock.disconnect();
-          this.powerSat.connect(this.dcBlock);
-          this.dcBlock.connect(this.cabBypass);
-          this.cabBypass.connect(this.presence);
-        }
+        this.cabinetEnabled = !!value;
+        this.recreateCabinet();
+        break;
+      case 'cabinet':
+        this.cabinetType = value;
+        this.recreateCabinet();
+        break;
+      case 'microphone':
+      case 'micType':
+        this.micType = value;
+        this.recreateCabinet();
+        break;
+      case 'micPosition':
+        this.micPosition = value;
+        this.recreateCabinet();
         break;
 
       case 'gate': {

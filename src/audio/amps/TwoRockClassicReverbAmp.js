@@ -1,4 +1,5 @@
 import BaseAmp from './BaseAmp.js';
+import CabinetSimulator from './CabinetSimulator.js';
 
 class TwoRockClassicReverbAmp extends BaseAmp {
   constructor(audioContext, id) {
@@ -136,22 +137,16 @@ class TwoRockClassicReverbAmp extends BaseAmp {
     this.powerComp.release.value = 0.15;
     
     // ============================================
-    // CABINET IR + DC-BLOCK (Essential for realism)
+    // CABINET SIMULATOR
     // ============================================
-    this.dcBlock = audioContext.createBiquadFilter();
-    this.dcBlock.type = 'highpass';
-    this.dcBlock.frequency.value = 20;
-    this.dcBlock.Q.value = 0.707;
-    
-    this.cabIR = audioContext.createConvolver();
-    this.cabIRBypass = audioContext.createGain(); // Bypass path
-    this.cabIRMix = audioContext.createGain(); // Mix (wet path)
-    
-    // Cabinet state
+    this.cabinetSimulator = new CabinetSimulator(audioContext);
+    this.cabinet = null;
     this.cabinetEnabled = true;
-    
-    // Load default Two-Rock 2×12 IR (Jensen/EV style)
-    this.loadDefaultCabinetIR();
+    this.cabinetType = '1x12_open';
+    this.micType = 'condenser';
+    this.micPosition = 'center';
+    this.preCabinet = audioContext.createGain();
+    this.postCabinet = audioContext.createGain();
     
     // ============================================
     // PRESENCE & DEPTH (Post-IR for realistic power shaping)
@@ -215,6 +210,7 @@ class TwoRockClassicReverbAmp extends BaseAmp {
     // ============================================
     this.setupCleanChannel();
     this.applyInitialSettings();
+    this.recreateCabinet();
   }
   
   setupCleanChannel() {
@@ -238,20 +234,13 @@ class TwoRockClassicReverbAmp extends BaseAmp {
     this.channelVolume.connect(this.outputMixer);
     this.reverbReturn.connect(this.outputMixer);
     
-    // Power amp → DC block → Cabinet IR → Presence/Depth → Master
+    // Power amp → Cabinet → Presence/Depth → Master
     this.outputMixer.connect(this.powerComp);
     this.powerComp.connect(this.powerAmp);
     this.powerAmp.connect(this.powerSaturation);
-    this.powerSaturation.connect(this.dcBlock);
-    
-    // Cabinet IR routing (with bypass path)
-    if (this.cabinetEnabled) {
-      this.dcBlock.connect(this.cabIR);
-      this.cabIR.connect(this.presence);
-    } else {
-      this.dcBlock.connect(this.presence);
-    }
-    
+    this.powerSaturation.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.presence);
     this.presence.connect(this.depth);
     this.depth.connect(this.master);
     this.master.connect(this.output);
@@ -282,20 +271,13 @@ class TwoRockClassicReverbAmp extends BaseAmp {
     this.channelVolume.connect(this.outputMixer);
     this.reverbReturn.connect(this.outputMixer);
     
-    // Power amp → DC block → Cabinet IR → Presence/Depth → Master
+    // Power amp → Cabinet → Presence/Depth → Master
     this.outputMixer.connect(this.powerComp);
     this.powerComp.connect(this.powerAmp);
     this.powerAmp.connect(this.powerSaturation);
-    this.powerSaturation.connect(this.dcBlock);
-    
-    // Cabinet IR routing (with bypass path)
-    if (this.cabinetEnabled) {
-      this.dcBlock.connect(this.cabIR);
-      this.cabIR.connect(this.presence);
-    } else {
-      this.dcBlock.connect(this.presence);
-    }
-    
+    this.powerSaturation.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.presence);
     this.presence.connect(this.depth);
     this.depth.connect(this.master);
     this.master.connect(this.output);
@@ -419,6 +401,33 @@ class TwoRockClassicReverbAmp extends BaseAmp {
     return curve;
   }
   
+  recreateCabinet() {
+    if (this.cabinet) {
+      try {
+        if (this.cabinet.dispose) this.cabinet.dispose();
+        if (this.cabinet.input) this.cabinet.input.disconnect();
+        if (this.cabinet.output) this.cabinet.output.disconnect();
+      } catch (e) {}
+    }
+    try { this.preCabinet.disconnect(); } catch (e) {}
+    
+    if (this.cabinetEnabled) {
+      this.cabinet = this.cabinetSimulator.createCabinet(
+        this.cabinetType,
+        this.micType,
+        this.micPosition
+      );
+      if (this.cabinet) {
+        this.preCabinet.connect(this.cabinet.input);
+        this.cabinet.output.connect(this.postCabinet);
+      } else {
+        this.preCabinet.connect(this.postCabinet);
+      }
+    } else {
+      this.preCabinet.connect(this.postCabinet);
+    }
+  }
+  
   updateParameter(parameter, value) {
     const now = this.audioContext.currentTime;
     
@@ -494,16 +503,23 @@ class TwoRockClassicReverbAmp extends BaseAmp {
         break;
       }
       
-      case 'cabinet_enabled': {
-        this.cabinetEnabled = value;
-        // Re-route to apply/bypass cabinet
-        if (this.activeChannel === 'clean') {
-          this.setupCleanChannel();
-        } else {
-          this.setupLeadChannel();
-        }
+      case 'cabinet_enabled':
+        this.cabinetEnabled = !!value;
+        this.recreateCabinet();
         break;
-      }
+      case 'cabinet':
+        this.cabinetType = value;
+        this.recreateCabinet();
+        break;
+      case 'microphone':
+      case 'micType':
+        this.micType = value;
+        this.recreateCabinet();
+        break;
+      case 'micPosition':
+        this.micPosition = value;
+        this.recreateCabinet();
+        break;
       
       case 'master': {
         this.master.gain.setTargetAtTime(this.lin2log(value / 100), now, 0.01);

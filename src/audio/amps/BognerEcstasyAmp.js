@@ -1,4 +1,5 @@
 import BaseAmp from './BaseAmp.js';
+import CabinetSimulator from './CabinetSimulator.js';
 
 class BognerEcstasyAmp extends BaseAmp {
   constructor(audioContext, id) {
@@ -189,11 +190,16 @@ class BognerEcstasyAmp extends BaseAmp {
     this.master = audioContext.createGain();
     
     // ============================================
-    // CABINET & MICROFONE
+    // CABINET SIMULATOR
     // ============================================
+    this.cabinetSimulator = new CabinetSimulator(audioContext);
+    this.cabinet = null;
     this.cabinetEnabled = true;
-    this.cabinetType = '4x12_vintage'; // Bogner original cabinet
-    this.micPosition = 50; // 0-100: edge to center
+    this.cabinetType = '4x12_v30';
+    this.micType = 'sm57';
+    this.micPosition = 'edge';
+    this.preCabinet = audioContext.createGain();
+    this.postCabinet = audioContext.createGain();
     
     // ============================================
     // SNAP/RECALL PER CHANNEL
@@ -208,6 +214,7 @@ class BognerEcstasyAmp extends BaseAmp {
     // ROUTING - CHANNEL 2 (DEFAULT)
     // ============================================
     this.setupChannel2();
+    this.recreateCabinet();
     
     this.params = {
       channel: 2, // 1=clean, 2=lead, 3=ultra
@@ -289,7 +296,9 @@ class BognerEcstasyAmp extends BaseAmp {
     this.routeFXLoop(this.nfbTilt);
     
     this.channelMaster[1].connect(this.master);
-    this.master.connect(this.output);
+    this.master.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.output);
     
     this.activeChannel = 1;
     this._applySnap(1);
@@ -324,7 +333,9 @@ class BognerEcstasyAmp extends BaseAmp {
     this.routeFXLoop(this.nfbTilt);
     
     this.channelMaster[2].connect(this.master);
-    this.master.connect(this.output);
+    this.master.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.output);
     
     this.activeChannel = 2;
     this._applySnap(2);
@@ -360,7 +371,9 @@ class BognerEcstasyAmp extends BaseAmp {
     this.routeFXLoop(this.nfbTilt);
     
     this.channelMaster[3].connect(this.master);
-    this.master.connect(this.output);
+    this.master.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.output);
     
     this.activeChannel = 3;
     this._applySnap(3);
@@ -596,6 +609,33 @@ class BognerEcstasyAmp extends BaseAmp {
     return curve;
   }
   
+  recreateCabinet() {
+    if (this.cabinet) {
+      try {
+        if (this.cabinet.dispose) this.cabinet.dispose();
+        if (this.cabinet.input) this.cabinet.input.disconnect();
+        if (this.cabinet.output) this.cabinet.output.disconnect();
+      } catch (e) {}
+    }
+    try { this.preCabinet.disconnect(); } catch (e) {}
+    
+    if (this.cabinetEnabled) {
+      this.cabinet = this.cabinetSimulator.createCabinet(
+        this.cabinetType,
+        this.micType,
+        this.micPosition
+      );
+      if (this.cabinet) {
+        this.preCabinet.connect(this.cabinet.input);
+        this.cabinet.output.connect(this.postCabinet);
+      } else {
+        this.preCabinet.connect(this.postCabinet);
+      }
+    } else {
+      this.preCabinet.connect(this.postCabinet);
+    }
+  }
+  
   updateParameter(parameter, value) {
     const now = this.audioContext.currentTime;
     
@@ -756,12 +796,22 @@ class BognerEcstasyAmp extends BaseAmp {
       // ============================================
       case 'cabinet_enabled':
         this.cabinetEnabled = !!value;
+        this.recreateCabinet();
         break;
+      case 'cabinet':
       case 'cabinet_type':
         this.cabinetType = value;
+        this.recreateCabinet();
         break;
+      case 'microphone':
+      case 'micType':
+        this.micType = value;
+        this.recreateCabinet();
+        break;
+      case 'micPosition':
       case 'mic_position':
         this.micPosition = value;
+        this.recreateCabinet();
         break;
         
       // ============================================

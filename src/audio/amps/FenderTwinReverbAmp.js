@@ -1,4 +1,5 @@
 import BaseAmp from './BaseAmp.js';
+import CabinetSimulator from './CabinetSimulator.js';
 
 class FenderTwinReverbAmp extends BaseAmp {
   constructor(audioContext, id) {
@@ -145,16 +146,25 @@ class FenderTwinReverbAmp extends BaseAmp {
     this.powerComp.release.value = 0.15;
     
     // ============================================
-    // CABINET & OUTPUT
+    // CABINET SIMULATOR
+    // ============================================
+    this.cabinetSimulator = new CabinetSimulator(audioContext);
+    this.cabinet = null; // Will be created on demand
+    this.cabinetEnabled = true;
+    this.cabinetType = '2x12_open'; // Fender Twin standard
+    this.micType = 'sm57';
+    this.micPosition = 'edge';
+    
+    // Cabinet bypass routing
+    this.preCabinet = audioContext.createGain();
+    this.postCabinet = audioContext.createGain();
+    
+    // ============================================
+    // DC BLOCK & OUTPUT
     // ============================================
     this.dcBlock = audioContext.createBiquadFilter();
     this.dcBlock.type = 'highpass';
     this.dcBlock.frequency.value = 20;
-    
-    this.cabinetSim = audioContext.createBiquadFilter();
-    this.cabinetSim.type = 'lowpass';
-    this.cabinetSim.frequency.value = 5500; // Twin 2x12" bright
-    this.cabinetSim.Q.value = 1.2;
     
     // ============================================
     // MASTER SECTION
@@ -298,13 +308,10 @@ class FenderTwinReverbAmp extends BaseAmp {
     this.powerAmp.connect(this.powerSaturation);
     this.powerSaturation.connect(this.dcBlock);
     
-    // ✅ Cabinet connection (será controlado no updateParameter)
-    if (this.params.cabinet_enabled) {
-      this.dcBlock.connect(this.cabinetSim);
-      this.cabinetSim.connect(this.master);
-    } else {
-      this.dcBlock.connect(this.master);
-    }
+    // Cabinet routing with CabinetSimulator
+    this.dcBlock.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.master);
     
     this.master.connect(this.output);
   }
@@ -327,6 +334,9 @@ class FenderTwinReverbAmp extends BaseAmp {
     
     // ✅ Bright switch com frequency otimizada
     this.inputBright.gain.value = this.params.bright ? 3 : 0;
+    
+    // Initialize cabinet
+    this.recreateCabinet();
   }
   
   makeFenderCleanCurve() {
@@ -373,6 +383,46 @@ class FenderTwinReverbAmp extends BaseAmp {
       curve[i] = y * 0.90;
     }
     return curve;
+  }
+  
+  recreateCabinet() {
+    // Cleanup old cabinet properly
+    if (this.cabinet) {
+      try {
+        if (this.cabinet.dispose) this.cabinet.dispose();
+        if (this.cabinet.input) this.cabinet.input.disconnect();
+        if (this.cabinet.output) this.cabinet.output.disconnect();
+      } catch (e) {
+        // Already disconnected
+      }
+    }
+    
+    // Disconnect preCabinet
+    try {
+      this.preCabinet.disconnect();
+    } catch (e) {
+      // Already disconnected
+    }
+    
+    if (this.cabinetEnabled) {
+      // Create new cabinet with current settings
+      this.cabinet = this.cabinetSimulator.createCabinet(
+        this.cabinetType,
+        this.micType,
+        this.micPosition
+      );
+      
+      if (this.cabinet) {
+        this.preCabinet.connect(this.cabinet.input);
+        this.cabinet.output.connect(this.postCabinet);
+      } else {
+        // Fallback if cabinet creation fails
+        this.preCabinet.connect(this.postCabinet);
+      }
+    } else {
+      // Bypass cabinet
+      this.preCabinet.connect(this.postCabinet);
+    }
   }
   
   updateParameter(parameter, value) {
@@ -446,18 +496,26 @@ class FenderTwinReverbAmp extends BaseAmp {
         this.master.gain.setTargetAtTime(lin2log(value / 100), now, 0.01);
         break;
       
-      // ✅ Cabinet on/off com bypass lógico (menos fase)
+      // Cabinet controls
       case 'cabinet_enabled':
-        if (value) {
-          this.dcBlock.disconnect();
-          this.dcBlock.connect(this.cabinetSim);
-          this.cabinetSim.disconnect();
-          this.cabinetSim.connect(this.master);
-        } else {
-          this.dcBlock.disconnect();
-          this.cabinetSim.disconnect();
-          this.dcBlock.connect(this.master); // pula cabinetSim
-        }
+        this.cabinetEnabled = !!value;
+        this.recreateCabinet();
+        break;
+      
+      case 'cabinet':
+        this.cabinetType = value;
+        this.recreateCabinet();
+        break;
+      
+      case 'microphone':
+      case 'micType':
+        this.micType = value;
+        this.recreateCabinet();
+        break;
+      
+      case 'micPosition':
+        this.micPosition = value;
+        this.recreateCabinet();
         break;
     }
     

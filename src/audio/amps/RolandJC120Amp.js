@@ -1,4 +1,5 @@
 import BaseAmp from './BaseAmp.js';
+import CabinetSimulator from './CabinetSimulator.js';
 
 class RolandJC120Amp extends BaseAmp {
   constructor(audioContext, id) {
@@ -144,14 +145,18 @@ class RolandJC120Amp extends BaseAmp {
     this.ssLimiterR.release.value = 0.05;
     
     // ============================================
-    // CABINET SIMULATION (2x12 open-back)
+    // CABINET SIMULATOR
     // ============================================
-    this.cabIRL = audioContext.createConvolver();
-    this.cabIRR = audioContext.createConvolver();
-    this.cabEnabled = true;
+    this.cabinetSimulator = new CabinetSimulator(audioContext);
+    this.cabinet = null;
+    this.cabinetEnabled = true;
+    this.cabinetType = '2x12_open'; // Roland JC-120 standard
+    this.micType = 'sm57';
+    this.micPosition = 'edge';
     
-    // Load default JC-120 cabinet (2x12 open-back with JC speakers)
-    this.loadDefaultCabinetIR();
+    // Cabinet bypass routing
+    this.preCabinet = audioContext.createGain();
+    this.postCabinet = audioContext.createGain();
     
     // ============================================
     // STEREO MERGER (for output routing)
@@ -193,6 +198,7 @@ class RolandJC120Amp extends BaseAmp {
     // ROUTING - CHANNEL 1 (DEFAULT)
     // ============================================
     this.setupChannel1();
+    this.recreateCabinet();
     this.applyInitialSettings();
   }
   
@@ -249,17 +255,17 @@ class RolandJC120Amp extends BaseAmp {
     this.masterL.connect(this.ssLimiterL);
     this.masterR.connect(this.ssLimiterR);
     
-    // CABINET (if enabled)
-    if (this.cabEnabled) {
-      this.ssLimiterL.connect(this.cabIRL);
-      this.ssLimiterR.connect(this.cabIRR);
-      this.cabIRL.connect(this.stereoMerger, 0, 0);
-      this.cabIRR.connect(this.stereoMerger, 0, 1);
-    } else {
-      // Direct to output (no cabinet)
-      this.ssLimiterL.connect(this.stereoMerger, 0, 0);
-      this.ssLimiterR.connect(this.stereoMerger, 0, 1);
-    }
+    // CABINET ROUTING - Sum stereo to mono for cabinet, then split back
+    const cabSum = this.audioContext.createGain();
+    this.ssLimiterL.connect(cabSum);
+    this.ssLimiterR.connect(cabSum);
+    
+    cabSum.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    
+    // Split back to stereo for output
+    this.postCabinet.connect(this.stereoMerger, 0, 0);
+    this.postCabinet.connect(this.stereoMerger, 0, 1);
     
     // Final stereo output
     this.stereoMerger.connect(this.output);
@@ -320,17 +326,17 @@ class RolandJC120Amp extends BaseAmp {
     this.masterL.connect(this.ssLimiterL);
     this.masterR.connect(this.ssLimiterR);
     
-    // CABINET (if enabled)
-    if (this.cabEnabled) {
-      this.ssLimiterL.connect(this.cabIRL);
-      this.ssLimiterR.connect(this.cabIRR);
-      this.cabIRL.connect(this.stereoMerger, 0, 0);
-      this.cabIRR.connect(this.stereoMerger, 0, 1);
-    } else {
-      // Direct to output (no cabinet)
-      this.ssLimiterL.connect(this.stereoMerger, 0, 0);
-      this.ssLimiterR.connect(this.stereoMerger, 0, 1);
-    }
+    // CABINET ROUTING - Sum stereo to mono for cabinet, then split back
+    const cabSum = this.audioContext.createGain();
+    this.ssLimiterL.connect(cabSum);
+    this.ssLimiterR.connect(cabSum);
+    
+    cabSum.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    
+    // Split back to stereo for output
+    this.postCabinet.connect(this.stereoMerger, 0, 0);
+    this.postCabinet.connect(this.stereoMerger, 0, 1);
     
     // Final stereo output
     this.stereoMerger.connect(this.output);
@@ -367,8 +373,8 @@ class RolandJC120Amp extends BaseAmp {
       this.masterR.disconnect();
       this.ssLimiterL.disconnect();
       this.ssLimiterR.disconnect();
-      this.cabIRL.disconnect();
-      this.cabIRR.disconnect();
+      this.preCabinet.disconnect();
+      this.postCabinet.disconnect();
       this.stereoMerger.disconnect();
     } catch (e) {
       // Some nodes may not be connected yet
@@ -471,6 +477,49 @@ class RolandJC120Amp extends BaseAmp {
       curve[i] = y * 0.8;
     }
     return curve;
+  }
+  
+  // ============================================
+  // CABINET SIMULATOR
+  // ============================================
+  recreateCabinet() {
+    // Cleanup old cabinet properly
+    if (this.cabinet) {
+      try {
+        if (this.cabinet.dispose) this.cabinet.dispose();
+        if (this.cabinet.input) this.cabinet.input.disconnect();
+        if (this.cabinet.output) this.cabinet.output.disconnect();
+      } catch (e) {
+        // Already disconnected
+      }
+    }
+    
+    // Disconnect preCabinet
+    try {
+      this.preCabinet.disconnect();
+    } catch (e) {
+      // Already disconnected
+    }
+    
+    if (this.cabinetEnabled) {
+      // Create new cabinet with current settings
+      this.cabinet = this.cabinetSimulator.createCabinet(
+        this.cabinetType,
+        this.micType,
+        this.micPosition
+      );
+      
+      if (this.cabinet) {
+        this.preCabinet.connect(this.cabinet.input);
+        this.cabinet.output.connect(this.postCabinet);
+      } else {
+        // Fallback if cabinet creation fails
+        this.preCabinet.connect(this.postCabinet);
+      }
+    } else {
+      // Bypass cabinet
+      this.preCabinet.connect(this.postCabinet);
+    }
   }
   
   updateParameter(parameter, value) {
@@ -581,13 +630,21 @@ class RolandJC120Amp extends BaseAmp {
       // CABINET CONTROL
       // ============================================
       case 'cabinet_enabled':
-        this.cabEnabled = value;
-        // Re-route to enable/disable cabinet
-        if (this.activeChannel === 1) {
-          this.setupChannel1();
-        } else {
-          this.setupChannel2();
-        }
+        this.cabinetEnabled = !!value;
+        this.recreateCabinet();
+        break;
+      case 'cabinet':
+        this.cabinetType = value;
+        this.recreateCabinet();
+        break;
+      case 'microphone':
+      case 'micType':
+        this.micType = value;
+        this.recreateCabinet();
+        break;
+      case 'micPosition':
+        this.micPosition = value;
+        this.recreateCabinet();
         break;
       
       // ============================================

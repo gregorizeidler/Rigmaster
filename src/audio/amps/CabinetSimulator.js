@@ -265,6 +265,10 @@ class CabinetSimulator {
     this.input = audioContext.createGain();
     this.output = audioContext.createGain();
     
+    // Dry delay (aligns dry path with wet path to avoid comb filtering)
+    this.dryDelay = audioContext.createDelay(0.05);
+    this.dryDelay.delayTime.value = 0;
+    
     // Cabinet gains (for dual mode)
     this.cabAGain = audioContext.createGain();
     this.cabBGain = audioContext.createGain();
@@ -434,8 +438,14 @@ class CabinetSimulator {
     });
     
     // ====== STAGE 4: CABINET LOWPASS ======
+    // Frequency decreases slightly with distance (less bite far away)
+    const cabLPFreq = cabinet.lowpassFreq * (1 - 0.1 * Math.min(distanceM * 2, 1));
     f.cabinetLP.type = 'lowpass';
-    f.cabinetLP.frequency.setTargetAtTime(cabinet.lowpassFreq, now, this.SMOOTH_TIME);
+    f.cabinetLP.frequency.setTargetAtTime(
+      this.clamp(cabLPFreq, cabinet.lowpassFreq * 0.9, cabinet.lowpassFreq), 
+      now, 
+      this.SMOOTH_TIME
+    );
     f.cabinetLP.Q.setTargetAtTime(cabinet.lowpassQ, now, this.SMOOTH_TIME);
     
     // ====== STAGE 5: MIC HIGHPASS ======
@@ -448,8 +458,14 @@ class CabinetSimulator {
       0,
       mic.proximityBoost * Math.exp(-distanceM / mic.proximityDecay)
     );
+    // Proximity frequency decreases slightly with distance (less focus)
+    const proxFreq = mic.proximityFreq * (1 - 0.2 * distanceM);
     f.proximity.type = 'lowshelf';
-    f.proximity.frequency.setTargetAtTime(mic.proximityFreq, now, this.SMOOTH_TIME);
+    f.proximity.frequency.setTargetAtTime(
+      this.clamp(proxFreq, 80, mic.proximityFreq), 
+      now, 
+      this.SMOOTH_TIME
+    );
     f.proximity.gain.setTargetAtTime(
       this.clamp(proxDb, 0, mic.proximityBoost), 
       now, 
@@ -461,6 +477,8 @@ class CabinetSimulator {
     // Height affects presence frequency: higher = more cone, lower = more cabinet edge
     const heightMul = 1 + 0.12 * heightNorm;  // ±12% frequency shift
     const presenceFreqAdjusted = mic.presenceFreq * heightMul;
+    // Q increases slightly with angle (more focused off-axis resonance)
+    const presenceQAdjusted = mic.presenceQ * (1 + 0.3 * (angleDeg / 90));
     
     f.presence.type = 'peaking';
     f.presence.frequency.setTargetAtTime(
@@ -468,28 +486,31 @@ class CabinetSimulator {
       now, 
       this.SMOOTH_TIME
     );
-    f.presence.Q.setTargetAtTime(mic.presenceQ, now, this.SMOOTH_TIME);
+    f.presence.Q.setTargetAtTime(presenceQAdjusted, now, this.SMOOTH_TIME);
     f.presence.gain.setTargetAtTime(
       this.clamp(presenceGainDb, -6, 6), 
       now, 
       this.SMOOTH_TIME
     );
     
-    // ====== STAGE 8: OFF-AXIS NOTCH (comb filtering + height influence) ======
-    if (angleDeg > 10) {  // only apply if angled
-      f.offAxisNotch = this.audioContext.createBiquadFilter();
-      f.offAxisNotch.type = 'notch';
-      const notchHz = 3500 + 1500 * (angleDeg / 90);  // 3.5-5 kHz
-      const notchQ = 1.0 + 0.6 * (angleDeg / 90);
-      // Height shifts notch (different comb patterns)
-      const notchShift = 1 + 0.15 * heightNorm;  // ±15% shift
-      f.offAxisNotch.frequency.setTargetAtTime(
-        this.clamp(notchHz * notchShift, 2000, 9000), 
-        now, 
-        this.SMOOTH_TIME
-      );
-      f.offAxisNotch.Q.setTargetAtTime(notchQ, now, this.SMOOTH_TIME);
-    }
+    // ====== STAGE 8: OFF-AXIS NOTCH (always present, bypassed via params) ======
+    f.offAxisNotch = this.audioContext.createBiquadFilter();
+    f.offAxisNotch.type = 'notch';
+    const notchBase = 3500 + 1500 * (angleDeg / 90);  // 3.5-5 kHz
+    const notchShift = 1 + 0.15 * heightNorm;  // ±15% shift
+    const notchHz = this.clamp(notchBase * notchShift, 2000, 9000);
+    const notchQ = 1.0 + 0.6 * (angleDeg / 90);
+    const enabled = angleDeg > 10;
+    f.offAxisNotch.frequency.setTargetAtTime(
+      enabled ? notchHz : 20000, 
+      now, 
+      this.SMOOTH_TIME
+    );
+    f.offAxisNotch.Q.setTargetAtTime(
+      enabled ? notchQ : 0.1, 
+      now, 
+      this.SMOOTH_TIME
+    );
     
     // ====== STAGE 9: MIC LOWPASS ======
     f.micLP.type = 'lowpass';
@@ -553,11 +574,9 @@ class CabinetSimulator {
     currentNode.connect(f.presence);
     currentNode = f.presence;
     
-    // Optional off-axis notch
-    if (f.offAxisNotch) {
-      currentNode.connect(f.offAxisNotch);
-      currentNode = f.offAxisNotch;
-    }
+    // Off-axis notch (always present)
+    currentNode.connect(f.offAxisNotch);
+    currentNode = f.offAxisNotch;
     
     currentNode.connect(f.micLP);
     currentNode = f.micLP;
@@ -577,7 +596,7 @@ class CabinetSimulator {
   // =========================================================
   // UPDATE CABINET PARAMETERS (without rebuild - efficient!)
   // =========================================================
-  updateCabinetParameters(cabinet, cabinetLetter) {
+  updateCabinetParameters(cabinetLetter) {
     const cab = cabinetLetter === 'A' ? this.cabinetA : this.cabinetB;
     const cabData = this.cabinets[cab.type];
     const mic = this.microphones[cab.mic];
@@ -593,6 +612,12 @@ class CabinetSimulator {
     
     // Update proximity effect (exponential decay)
     const proxDb = Math.max(0, mic.proximityBoost * Math.exp(-distanceM / mic.proximityDecay));
+    const proxFreq = mic.proximityFreq * (1 - 0.2 * distanceM);
+    f.proximity.frequency.setTargetAtTime(
+      this.clamp(proxFreq, 80, mic.proximityFreq),
+      now,
+      this.SMOOTH_TIME
+    );
     f.proximity.gain.setTargetAtTime(
       this.clamp(proxDb, 0, mic.proximityBoost),
       now,
@@ -603,23 +628,33 @@ class CabinetSimulator {
     const presenceGainDb = mic.presenceBoost * Math.cos(angleRad);
     const heightMul = 1 + 0.12 * heightNorm;
     const presenceFreqAdjusted = mic.presenceFreq * heightMul;
+    const presenceQAdjusted = mic.presenceQ * (1 + 0.3 * (angleDeg / 90));
     f.presence.frequency.setTargetAtTime(
       this.clamp(presenceFreqAdjusted, 1500, 12000),
       now,
       this.SMOOTH_TIME
     );
+    f.presence.Q.setTargetAtTime(presenceQAdjusted, now, this.SMOOTH_TIME);
     f.presence.gain.setTargetAtTime(
       this.clamp(presenceGainDb, -6, 6),
       now,
       this.SMOOTH_TIME
     );
     
-    // Update off-axis notch (if exists)
-    if (f.offAxisNotch && angleDeg > 10) {
-      const notchHz = 3500 + 1500 * (angleDeg / 90);
+    // Update off-axis notch (always present, bypassed via params)
+    if (f.offAxisNotch) {
+      const notchBase = 3500 + 1500 * (angleDeg / 90);
       const notchShift = 1 + 0.15 * heightNorm;
+      const targetF = this.clamp(notchBase * notchShift, 2000, 9000);
+      const targetQ = 1.0 + 0.6 * (angleDeg / 90);
+      const enabled = angleDeg > 10;
       f.offAxisNotch.frequency.setTargetAtTime(
-        this.clamp(notchHz * notchShift, 2000, 9000),
+        enabled ? targetF : 20000,
+        now,
+        this.SMOOTH_TIME
+      );
+      f.offAxisNotch.Q.setTargetAtTime(
+        enabled ? targetQ : 0.1,
         now,
         this.SMOOTH_TIME
       );
@@ -660,8 +695,9 @@ class CabinetSimulator {
     );
     
     // Routing: Input → [Dry] + [Cabinet A → Comp → Limiter → Trim → Wet] → Output
-    // Dry path
-    this.input.connect(this.mixDry);
+    // Dry path (with alignment delay)
+    this.input.connect(this.dryDelay);
+    this.dryDelay.connect(this.mixDry);
     this.mixDry.connect(this.output);
     
     // Wet path
@@ -678,6 +714,9 @@ class CabinetSimulator {
       this.roomDelay.connect(this.roomGain);
       this.roomGain.connect(this.mixWet);
     }
+    
+    // Align dry delay to wet path
+    this.alignDryToWet();
   }
   
   initializeDualMode() {
@@ -704,8 +743,9 @@ class CabinetSimulator {
     // Routing:
     // Input → [Dry] + [Cabinet A+B → Comp → Limiter → Trim → Wet] → Output
     
-    // Dry path
-    this.input.connect(this.mixDry);
+    // Dry path (with alignment delay)
+    this.input.connect(this.dryDelay);
+    this.dryDelay.connect(this.mixDry);
     this.mixDry.connect(this.output);
     
     // Cabinet A path
@@ -734,6 +774,9 @@ class CabinetSimulator {
       this.roomDelay.connect(this.roomGain);
       this.roomGain.connect(this.mixWet);
     }
+    
+    // Align dry delay to wet path
+    this.alignDryToWet();
   }
   
   initializeIRMode() {
@@ -741,8 +784,9 @@ class CabinetSimulator {
     this.disconnectAll();
     
     // Routing: Input → [Dry] + [IR → Comp → Limiter → Trim → Wet] → Output
-    // Dry path
-    this.input.connect(this.mixDry);
+    // Dry path (with alignment delay)
+    this.input.connect(this.dryDelay);
+    this.dryDelay.connect(this.mixDry);
     this.mixDry.connect(this.output);
     
     // Wet path
@@ -759,6 +803,9 @@ class CabinetSimulator {
       this.roomDelay.connect(this.roomGain);
       this.roomGain.connect(this.mixWet);
     }
+    
+    // Align dry delay to wet path
+    this.alignDryToWet();
   }
   
   // =========================================================
@@ -777,7 +824,8 @@ class CabinetSimulator {
     
     // If filters exist and no type change, just update parameters (efficient!)
     if (!forceRebuild && this.cabinetA.filters) {
-      this.updateCabinetParameters(this.cabinetA, 'A');
+      this.updateCabinetParameters('A');
+      this.alignDryToWet();
       return;
     }
     
@@ -805,6 +853,8 @@ class CabinetSimulator {
       this.input.connect(this.cabinetA.filters.input);
       this.cabinetA.filters.output.connect(this.panA);
     }
+    
+    this.alignDryToWet();
   }
   
   updateCabinetB(forceRebuild = false) {
@@ -819,7 +869,8 @@ class CabinetSimulator {
     
     // If filters exist and no type change, just update parameters
     if (!forceRebuild && this.cabinetB.filters) {
-      this.updateCabinetParameters(this.cabinetB, 'B');
+      this.updateCabinetParameters('B');
+      this.alignDryToWet();
       return;
     }
     
@@ -841,6 +892,8 @@ class CabinetSimulator {
     this.cabinetB.filters = newFilters;
     this.input.connect(this.cabinetB.filters.input);
     this.cabinetB.filters.output.connect(this.dualSkew);
+    
+    this.alignDryToWet();
   }
   
   // =========================================================
@@ -959,6 +1012,15 @@ class CabinetSimulator {
     this.mixDry.gain.setTargetAtTime(Math.sqrt(1 - w), now, this.SMOOTH_TIME);
   }
   
+  setOutputGainDb(db) {
+    const g = Math.pow(10, db / 20);
+    this.outputTrim.gain.setTargetAtTime(
+      g,
+      this.audioContext.currentTime,
+      this.SMOOTH_TIME
+    );
+  }
+  
   setRoom(enabled, roomSize = 0.023, feedback = 0.25, tone = 4000, mix = 0.15) {
     this.roomEnabled = enabled;
     
@@ -993,20 +1055,43 @@ class CabinetSimulator {
         this.SMOOTH_TIME
       );
       
-      // Reconnect room if needed
-      if (this.mode !== 'ir') {
-        try { this.outputTrim.disconnect(this.roomDelay); } catch(e) {}
-        this.outputTrim.connect(this.roomDelay);
-        this.roomDelay.connect(this.roomGain);
-        this.roomGain.connect(this.mixWet);
-      }
+      // Reconnect room in any mode
+      try { this.outputTrim.disconnect(this.roomDelay); } catch(e) {}
+      this.outputTrim.connect(this.roomDelay);
+      this.roomDelay.connect(this.roomGain);
+      this.roomGain.connect(this.mixWet);
     } else {
-      // Disconnect room
+      // Disconnect room (break all loop connections)
       try { 
         this.outputTrim.disconnect(this.roomDelay);
-        this.roomGain.disconnect();
+        this.roomDelay.disconnect(this.roomGain);
+        this.roomGain.disconnect(this.mixWet);
       } catch(e) {}
     }
+  }
+  
+  // =========================================================
+  // DRY/WET ALIGNMENT (avoids comb filtering in parallel mode)
+  // =========================================================
+  
+  alignDryToWet() {
+    let tof = 0;
+    
+    if (this.mode === 'single' && this.cabinetA.filters) {
+      tof = this.cabinetA.filters.timeOfFlight.delayTime.value || 0;
+    } else if (this.mode === 'dual' && this.cabinetA.filters && this.cabinetB.filters) {
+      const a = this.cabinetA.filters.timeOfFlight.delayTime.value || 0;
+      const b = this.cabinetB.filters.timeOfFlight.delayTime.value || 0;
+      tof = Math.max(a, b);
+    } else if (this.mode === 'ir' && this.irLoader?.latencySec) {
+      tof = this.irLoader.latencySec;
+    }
+    
+    this.dryDelay.delayTime.setTargetAtTime(
+      Math.min(0.05, tof),
+      this.audioContext.currentTime,
+      this.SMOOTH_TIME
+    );
   }
   
   // =========================================================

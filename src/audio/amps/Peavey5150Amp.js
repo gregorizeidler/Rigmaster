@@ -1,4 +1,5 @@
 import BaseAmp from './BaseAmp.js';
+import CabinetSimulator from './CabinetSimulator.js';
 
 class Peavey5150Amp extends BaseAmp {
   constructor(audioContext, id) {
@@ -111,19 +112,16 @@ class Peavey5150Amp extends BaseAmp {
     this.powerSaturation.oversample = '4x';
     
     // ============================================
-    // CABINET IR (4×12 with V30 speakers - ESSENTIAL FOR REALISTIC TONE)
+    // CABINET SIMULATOR
     // ============================================
-    // DC blocker before cabinet to remove DC offset from asymmetric clipping
-    this.cabDCBlock = audioContext.createBiquadFilter();
-    this.cabDCBlock.type = 'highpass';
-    this.cabDCBlock.frequency.value = 20;
-    this.cabDCBlock.Q.value = 0.707;
-    
-    this.cabIR = audioContext.createConvolver();
-    this.cabBypass = audioContext.createGain(); // For bypassing cabinet
-    this.cabEnabled = true; // Cabinet on by default
-    // Load default 4×12 V30 IR immediately to avoid fizzy direct tone
-    this.loadDefaultCabinetIR();
+    this.cabinetSimulator = new CabinetSimulator(audioContext);
+    this.cabinet = null;
+    this.cabinetEnabled = true;
+    this.cabinetType = '4x12_sheffield'; // Peavey 5150 standard
+    this.micType = 'sm57';
+    this.micPosition = 'edge';
+    this.preCabinet = audioContext.createGain();
+    this.postCabinet = audioContext.createGain();
     
     // ============================================
     // RESONANCE & PRESENCE (after power amp)
@@ -176,6 +174,7 @@ class Peavey5150Amp extends BaseAmp {
     // ROUTING - LEAD CHANNEL (DEFAULT)
     // ============================================
     this.setupLeadChannel();
+    this.recreateCabinet();
     
     this.params = {
       channel: 1, // 0=rhythm, 1=lead
@@ -277,16 +276,10 @@ class Peavey5150Amp extends BaseAmp {
     this.dynamicBassShelf.connect(this.powerAmp);
     this.powerAmp.connect(this.powerSaturation);
     
-    // CABINET IR (can be bypassed for direct sound)
-    this.powerSaturation.connect(this.cabDCBlock);
-    
-    if (this.cabEnabled) {
-      this.cabDCBlock.connect(this.cabIR);
-      this.cabIR.connect(this.resonance);
-    } else {
-      this.cabDCBlock.connect(this.cabBypass);
-      this.cabBypass.connect(this.resonance);
-    }
+    // CABINET ROUTING
+    this.powerSaturation.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.resonance);
     
     // RESONANCE & PRESENCE after cabinet
     this.resonance.connect(this.presence);
@@ -371,16 +364,10 @@ class Peavey5150Amp extends BaseAmp {
     this.dynamicBassShelf.connect(this.powerAmp);
     this.powerAmp.connect(this.powerSaturation);
     
-    // CABINET IR (can be bypassed for direct sound)
-    this.powerSaturation.connect(this.cabDCBlock);
-    
-    if (this.cabEnabled) {
-      this.cabDCBlock.connect(this.cabIR);
-      this.cabIR.connect(this.resonance);
-    } else {
-      this.cabDCBlock.connect(this.cabBypass);
-      this.cabBypass.connect(this.resonance);
-    }
+    // CABINET ROUTING
+    this.powerSaturation.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.resonance);
     
     // RESONANCE & PRESENCE after cabinet
     this.resonance.connect(this.presence);
@@ -631,6 +618,33 @@ class Peavey5150Amp extends BaseAmp {
     }
   }
   
+  recreateCabinet() {
+    if (this.cabinet) {
+      try {
+        if (this.cabinet.dispose) this.cabinet.dispose();
+        if (this.cabinet.input) this.cabinet.input.disconnect();
+        if (this.cabinet.output) this.cabinet.output.disconnect();
+      } catch (e) {}
+    }
+    try { this.preCabinet.disconnect(); } catch (e) {}
+    
+    if (this.cabinetEnabled) {
+      this.cabinet = this.cabinetSimulator.createCabinet(
+        this.cabinetType,
+        this.micType,
+        this.micPosition
+      );
+      if (this.cabinet) {
+        this.preCabinet.connect(this.cabinet.input);
+        this.cabinet.output.connect(this.postCabinet);
+      } else {
+        this.preCabinet.connect(this.postCabinet);
+      }
+    } else {
+      this.preCabinet.connect(this.postCabinet);
+    }
+  }
+  
   updateParameter(parameter, value) {
     const now = this.audioContext.currentTime;
     
@@ -808,13 +822,21 @@ class Peavey5150Amp extends BaseAmp {
       // CABINET CONTROL
       // ============================================
       case 'cabinet_enabled':
-        this.cabEnabled = value;
-        // Re-route to enable/disable cabinet
-        if (this.activeChannel === 'lead') {
-          this.setupLeadChannel();
-        } else {
-          this.setupRhythmChannel();
-        }
+        this.cabinetEnabled = !!value;
+        this.recreateCabinet();
+        break;
+      case 'cabinet':
+        this.cabinetType = value;
+        this.recreateCabinet();
+        break;
+      case 'microphone':
+      case 'micType':
+        this.micType = value;
+        this.recreateCabinet();
+        break;
+      case 'micPosition':
+        this.micPosition = value;
+        this.recreateCabinet();
         break;
     }
     

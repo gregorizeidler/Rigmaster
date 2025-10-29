@@ -12,9 +12,9 @@ import './VisualMicPositioning.css';
  */
 
 const VisualMicPositioning = ({ cabinet, onPositionChange }) => {
-  const [distance, setDistance] = useState(cabinet?.distance || 0);
-  const [angle, setAngle] = useState(cabinet?.angle || 0);
-  const [height, setHeight] = useState(cabinet?.height || 0);
+  const [distance, setDistance] = useState(cabinet?.distance ?? 3);
+  const [angle, setAngle] = useState(cabinet?.angle ?? 0);
+  const [height, setHeight] = useState(cabinet?.height ?? 0);
   const [isDragging, setIsDragging] = useState(false);
   
   const canvasRef = useRef(null);
@@ -184,7 +184,8 @@ const VisualMicPositioning = ({ cabinet, onPositionChange }) => {
     
     const speakerRadius = 80;
     const newDistance = Math.max(0, Math.min(50, ((dist - speakerRadius) / 100) * 50));
-    const newAngle = (ang + 360) % 360;
+    // Limit angle to 0-90° (backend constraint)
+    const newAngle = Math.max(0, Math.min(90, (ang + 360) % 360));
     
     setDistance(Math.round(newDistance));
     setAngle(Math.round(newAngle));
@@ -237,12 +238,12 @@ const VisualMicPositioning = ({ cabinet, onPositionChange }) => {
     }
   };
   
-  // Preset positions
+  // Preset positions (0-90° range)
   const presetPositions = [
-    { name: 'Center', distance: 0, angle: 0, height: 0 },
-    { name: 'Edge', distance: 5, angle: 45, height: 0 },
-    { name: 'Off-Axis', distance: 10, angle: 90, height: 0 },
-    { name: 'Room', distance: 50, angle: 0, height: 1 }
+    { name: 'Center', distance: 3, angle: 0, height: 0 },
+    { name: 'Edge', distance: 8, angle: 30, height: 0 },
+    { name: 'Off-Axis', distance: 15, angle: 60, height: 0 },
+    { name: 'Room', distance: 30, angle: 45, height: 1 }
   ];
   
   const loadPresetPosition = (preset) => {
@@ -314,11 +315,11 @@ const VisualMicPositioning = ({ cabinet, onPositionChange }) => {
         </div>
         
         <div className="control-row">
-          <label>Angle (0-360°)</label>
+          <label>Angle (0-90°)</label>
           <input
             type="range"
             min="0"
-            max="360"
+            max="90"
             value={angle}
             onChange={handleAngleChange}
             className="mic-slider"
@@ -343,10 +344,11 @@ const VisualMicPositioning = ({ cabinet, onPositionChange }) => {
       <div className="mic-positioning-tips">
         <p><strong>💡 Tips:</strong></p>
         <ul>
-          <li><strong>Center (0cm):</strong> Maximum proximity, bright & aggressive</li>
-          <li><strong>Edge (5-10cm):</strong> Balanced tone, less bass</li>
-          <li><strong>Off-Axis (45-90°):</strong> Darker, smoother tone</li>
-          <li><strong>Room (50cm):</strong> Natural, airy sound</li>
+          <li><strong>Center (0-5cm, 0°):</strong> Maximum proximity, bright & aggressive</li>
+          <li><strong>Edge (5-15cm, 20-40°):</strong> Balanced tone, less bass</li>
+          <li><strong>Off-Axis (15-30cm, 50-90°):</strong> Darker, smoother tone</li>
+          <li><strong>Room (30-50cm):</strong> Natural, airy sound with air loss</li>
+          <li><strong>Angle:</strong> 0° = on-axis (bright), 90° = off-axis (dark)</li>
         </ul>
       </div>
     </div>

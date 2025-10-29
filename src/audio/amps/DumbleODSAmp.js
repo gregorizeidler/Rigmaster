@@ -1,4 +1,5 @@
 import BaseAmp from './BaseAmp.js';
+import CabinetSimulator from './CabinetSimulator.js';
 
 class DumbleODSAmp extends BaseAmp {
   constructor(audioContext, id) {
@@ -162,29 +163,27 @@ class DumbleODSAmp extends BaseAmp {
     this.loopReturnLevel.gain.value = 1.3; // +2.3 dB return make-up
     
     // ============================================
+    // CABINET SIMULATOR
+    // ============================================
+    this.cabinetSimulator = new CabinetSimulator(audioContext);
+    this.cabinet = null;
+    this.cabinetEnabled = true;
+    this.cabinetType = '1x12_open';
+    this.micType = 'condenser';
+    this.micPosition = 'center';
+    this.preCabinet = audioContext.createGain();
+    this.postCabinet = audioContext.createGain();
+    
+    // ============================================
     // MASTER VOLUME
     // ============================================
     this.master = audioContext.createGain();
     
     // ============================================
-    // CAB SIM (1x12 EVM/Thiele-ish)
-    // ============================================
-    this.cabOn = false;
-    this.cabHPF = audioContext.createBiquadFilter();
-    this.cabHPF.type = 'highpass';
-    this.cabHPF.frequency.value = 70;
-    this.cabLPF = audioContext.createBiquadFilter();
-    this.cabLPF.type = 'lowpass';
-    this.cabLPF.frequency.value = 6500;
-    this.cabNotch = audioContext.createBiquadFilter();
-    this.cabNotch.type = 'notch';
-    this.cabNotch.frequency.value = 3800;
-    this.cabNotch.Q.value = 1.2;
-    
-    // ============================================
     // ROUTING - OVERDRIVE CHANNEL (DEFAULT)
     // ============================================
     this.setupOverdriveChannel();
+    this.recreateCabinet();
     
     this.params = {
       channel: 1, // 0=clean, 1=overdrive
@@ -294,15 +293,9 @@ class DumbleODSAmp extends BaseAmp {
     this.powerAmp.connect(this.powerSaturation);
     this.powerSaturation.connect(this.master);
     
-    // Cabinet sim routing
-    if (this.cabOn) {
-      this.master.connect(this.cabHPF);
-      this.cabHPF.connect(this.cabNotch);
-      this.cabNotch.connect(this.cabLPF);
-      this.cabLPF.connect(this.output);
-    } else {
-      this.master.connect(this.output);
-    }
+    this.master.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.output);
     
     this.activeChannel = 'overdrive';
   }
@@ -340,15 +333,9 @@ class DumbleODSAmp extends BaseAmp {
     this.powerAmp.connect(this.powerSaturation);
     this.powerSaturation.connect(this.master);
     
-    // Cabinet sim routing
-    if (this.cabOn) {
-      this.master.connect(this.cabHPF);
-      this.cabHPF.connect(this.cabNotch);
-      this.cabNotch.connect(this.cabLPF);
-      this.cabLPF.connect(this.output);
-    } else {
-      this.master.connect(this.output);
-    }
+    this.master.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.output);
     
     this.activeChannel = 'clean';
   }
@@ -503,6 +490,33 @@ class DumbleODSAmp extends BaseAmp {
   getBrightDb(vol01, mode) {
     const max = mode === 2 ? 10 : mode === 1 ? 6 : 0;
     return (1 - vol01) * max; // More effect with lower volume
+  }
+  
+  recreateCabinet() {
+    if (this.cabinet) {
+      try {
+        if (this.cabinet.dispose) this.cabinet.dispose();
+        if (this.cabinet.input) this.cabinet.input.disconnect();
+        if (this.cabinet.output) this.cabinet.output.disconnect();
+      } catch (e) {}
+    }
+    try { this.preCabinet.disconnect(); } catch (e) {}
+    
+    if (this.cabinetEnabled) {
+      this.cabinet = this.cabinetSimulator.createCabinet(
+        this.cabinetType,
+        this.micType,
+        this.micPosition
+      );
+      if (this.cabinet) {
+        this.preCabinet.connect(this.cabinet.input);
+        this.cabinet.output.connect(this.postCabinet);
+      } else {
+        this.preCabinet.connect(this.postCabinet);
+      }
+    } else {
+      this.preCabinet.connect(this.postCabinet);
+    }
   }
   
   updateParameter(parameter, value) {
@@ -703,16 +717,25 @@ class DumbleODSAmp extends BaseAmp {
         break;
       
       // ============================================
-      // CABINET SIM
+      // CABINET SIMULATOR
       // ============================================
       case 'cab_sim':
-        this.cabOn = !!value;
-        // Re-route current channel to include/exclude cab sim
-        if (this.activeChannel === 'overdrive') {
-          this.setupOverdriveChannel();
-        } else {
-          this.setupCleanChannel();
-        }
+      case 'cabinet_enabled':
+        this.cabinetEnabled = !!value;
+        this.recreateCabinet();
+        break;
+      case 'cabinet':
+        this.cabinetType = value;
+        this.recreateCabinet();
+        break;
+      case 'microphone':
+      case 'micType':
+        this.micType = value;
+        this.recreateCabinet();
+        break;
+      case 'micPosition':
+        this.micPosition = value;
+        this.recreateCabinet();
         break;
       
       // ============================================

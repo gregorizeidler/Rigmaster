@@ -1,4 +1,5 @@
 import BaseAmp from './BaseAmp.js';
+import CabinetSimulator from './CabinetSimulator.js';
 
 /**
  * Vox AC30 (Top Boost) — WebAudio Amp Sim V3 (patched)
@@ -201,21 +202,17 @@ class VoxAC30Amp extends BaseAmp {
     this.spkrIndHi.frequency.value = 2000;
     this.spkrIndHi.gain.value = 1.5;
 
-    // ============== Cabinet ==============
-    this.cabIR = audioContext.createConvolver(); // mono IR recommended
-    this.cabEnabled = true;
-    this._loadDefaultCabinetIR();
-
-    // Lightweight IIR cab fallback (if IR disabled)
-    this.cabIIR1 = audioContext.createBiquadFilter(); // lowpass rolloff ~5k
-    this.cabIIR1.type = 'lowpass';
-    this.cabIIR1.frequency.value = 5200;
-    this.cabIIR1.Q.value = 0.7;
-    this.cabIIR2 = audioContext.createBiquadFilter(); // mid bump
-    this.cabIIR2.type = 'peaking';
-    this.cabIIR2.frequency.value = 1800;
-    this.cabIIR2.Q.value = 1.0;
-    this.cabIIR2.gain.value = 2.5;
+    // ============== Cabinet Simulator ==============
+    this.cabinetSimulator = new CabinetSimulator(audioContext);
+    this.cabinet = null; // Will be created on demand
+    this.cabinetEnabled = true;
+    this.cabinetType = '2x12_closed'; // Vox AC30 standard
+    this.micType = 'sm57';
+    this.micPosition = 'edge';
+    
+    // Cabinet bypass routing
+    this.preCabinet = audioContext.createGain();
+    this.postCabinet = audioContext.createGain();
 
     // Output soft limiter
     this.softLimiter = audioContext.createDynamicsCompressor();
@@ -273,6 +270,7 @@ class VoxAC30Amp extends BaseAmp {
     };
 
     this._startAutomation();
+    this.recreateCabinet();
   }
 
   //===================== Routing =====================
@@ -347,15 +345,10 @@ class VoxAC30Amp extends BaseAmp {
     this.dcBlock.connect(this.spkrResLo);
     this.spkrResLo.connect(this.spkrIndHi);
 
-    // Cab path
-    if (this.cabEnabled) {
-      this.spkrIndHi.connect(this.cabIR);
-      this.cabIR.connect(this.amTremGain);
-    } else {
-      this.spkrIndHi.connect(this.cabIIR1);
-      this.cabIIR1.connect(this.cabIIR2);
-      this.cabIIR2.connect(this.amTremGain);
-    }
+    // Cabinet routing with CabinetSimulator
+    this.spkrIndHi.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.amTremGain);
 
     // AM Trem (post cab)
     this.biasTremLFO.connect(this.amTremDepth); // reuse LFO rate
@@ -381,7 +374,7 @@ class VoxAC30Amp extends BaseAmp {
       this.sagDetector, this.sagLP, this.sagAnalyser, this.sagVCA,
       this.powerAmp, this.powerDrive, this.powerSaturation, this.aaPower,
       this.chime, this.dcBlock, this.spkrResLo, this.spkrIndHi,
-      this.cabIR, this.cabIIR1, this.cabIIR2, this.amTremGain, this.softLimiter, this.master
+      this.preCabinet, this.postCabinet, this.amTremGain, this.softLimiter, this.master
     ];
     try { nodes.forEach(n => n.disconnect()); } catch(e) {}
   }
@@ -425,31 +418,45 @@ class VoxAC30Amp extends BaseAmp {
     return c;
   }
 
-  //===================== Defaults / IR =====================
-  _loadDefaultCabinetIR() {
-    const sr = this.audioContext.sampleRate;
-    const dur = 0.035; const len = Math.floor(dur * sr);
-    const buf = this.audioContext.createBuffer(1, len, sr);
-    const d = buf.getChannelData(0);
-    for (let i = 0; i < len; i++) {
-      const t = i / sr; const decay = Math.exp(-t / 0.012);
-      const early = i < sr * 0.003 ? Math.random() * 0.4 : 0;
-      let s = (Math.random() * 2 - 1) * decay + early * decay;
-      if (i > 0) { const a = 0.65; s = a * s + (1 - a) * d[i - 1]; }
-      d[i] = s * 0.8;
+  //===================== Cabinet Simulator =====================
+  recreateCabinet() {
+    // Cleanup old cabinet properly
+    if (this.cabinet) {
+      try {
+        if (this.cabinet.dispose) this.cabinet.dispose();
+        if (this.cabinet.input) this.cabinet.input.disconnect();
+        if (this.cabinet.output) this.cabinet.output.disconnect();
+      } catch (e) {
+        // Already disconnected
+      }
     }
-    let m = 0; for (let i = 0; i < len; i++) m = Math.max(m, Math.abs(d[i]));
-    if (m > 0) for (let i = 0; i < len; i++) d[i] /= m;
-    this.cabIR.buffer = buf;
-  }
-
-  async loadIR(irData) {
+    
+    // Disconnect preCabinet
     try {
-      let raw; if (typeof irData === 'string') { const r = await fetch(irData); raw = await r.arrayBuffer(); }
-      else { raw = irData; }
-      const ab = await this.audioContext.decodeAudioData(raw);
-      this.cabIR.buffer = ab; return true;
-    } catch (e) { console.error('IR load error', e); return false; }
+      this.preCabinet.disconnect();
+    } catch (e) {
+      // Already disconnected
+    }
+    
+    if (this.cabinetEnabled) {
+      // Create new cabinet with current settings
+      this.cabinet = this.cabinetSimulator.createCabinet(
+        this.cabinetType,
+        this.micType,
+        this.micPosition
+      );
+      
+      if (this.cabinet) {
+        this.preCabinet.connect(this.cabinet.input);
+        this.cabinet.output.connect(this.postCabinet);
+      } else {
+        // Fallback if cabinet creation fails
+        this.preCabinet.connect(this.postCabinet);
+      }
+    } else {
+      // Bypass cabinet
+      this.preCabinet.connect(this.postCabinet);
+    }
   }
 
   //===================== Parameters =====================
@@ -533,7 +540,21 @@ class VoxAC30Amp extends BaseAmp {
 
       // Cabinet
       case 'cabinet_enabled':
-        this.cabEnabled = !!value; this._setupRouting();
+        this.cabinetEnabled = !!value;
+        this.recreateCabinet();
+        break;
+      case 'cabinet':
+        this.cabinetType = value;
+        this.recreateCabinet();
+        break;
+      case 'microphone':
+      case 'micType':
+        this.micType = value;
+        this.recreateCabinet();
+        break;
+      case 'micPosition':
+        this.micPosition = value;
+        this.recreateCabinet();
         break;
 
       // Extras

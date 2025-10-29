@@ -1,4 +1,5 @@
 import BaseAmp from './BaseAmp.js';
+import CabinetSimulator from './CabinetSimulator.js';
 
 class FenderBassmanAmp extends BaseAmp {
   constructor(audioContext, id) {
@@ -115,25 +116,18 @@ class FenderBassmanAmp extends BaseAmp {
     this.tweedHonk.gain.value = 4;
     
     // ============================================
-    // CABINET SIMULATION (4x10" Jensen P10R)
+    // CABINET SIMULATOR
     // ============================================
-    this._cabinetEnabled = true;
-    this.postHPF = audioContext.createBiquadFilter();
-    this.postHPF.type = 'highpass';
-    this.postHPF.frequency.value = 65;
-    this.postHPF.Q.value = 0.7;
+    this.cabinetSimulator = new CabinetSimulator(audioContext);
+    this.cabinet = null;
+    this.cabinetEnabled = true;
+    this.cabinetType = '4x10_bass'; // Fender Bassman standard
+    this.micType = 'sm57';
+    this.micPosition = 'edge';
     
-    this.postLPF = audioContext.createBiquadFilter();
-    this.postLPF.type = 'lowpass';
-    this.postLPF.frequency.value = 7500;
-    this.postLPF.Q.value = 0.7;
-    
-    // Cabinet character (mid bump from 10" speakers)
-    this.cabinetMid = audioContext.createBiquadFilter();
-    this.cabinetMid.type = 'peaking';
-    this.cabinetMid.frequency.value = 1200;
-    this.cabinetMid.Q.value = 1.2;
-    this.cabinetMid.gain.value = 3;
+    // Cabinet bypass routing
+    this.preCabinet = audioContext.createGain();
+    this.postCabinet = audioContext.createGain();
     
     // Master volume
     this.master = audioContext.createGain();
@@ -142,6 +136,7 @@ class FenderBassmanAmp extends BaseAmp {
     // ROUTING
     // ============================================
     this.setupRouting();
+    this.recreateCabinet();
     
     this.params = {
       // Channel controls
@@ -220,18 +215,12 @@ class FenderBassmanAmp extends BaseAmp {
     this.powerSaturation.connect(this.presence);
     
     // ============================================
-    // CABINET SIMULATION (can be toggled)
+    // CABINET ROUTING
     // ============================================
     this.presence.connect(this.master);
-    
-    if (this._cabinetEnabled) {
-      this.master.connect(this.postHPF);
-      this.postHPF.connect(this.cabinetMid);
-      this.cabinetMid.connect(this.postLPF);
-      this.postLPF.connect(this.output);
-    } else {
-      this.master.connect(this.output);
-    }
+    this.master.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.output);
   }
   
   disconnectAll() {
@@ -259,9 +248,8 @@ class FenderBassmanAmp extends BaseAmp {
       this.powerSaturation.disconnect();
       this.presence.disconnect();
       this.master.disconnect();
-      this.postHPF.disconnect();
-      this.cabinetMid.disconnect();
-      this.postLPF.disconnect();
+      this.preCabinet.disconnect();
+      this.postCabinet.disconnect();
     } catch (e) {
       // Some nodes may not be connected yet
     }
@@ -373,6 +361,49 @@ class FenderBassmanAmp extends BaseAmp {
     return curve;
   }
   
+  // ============================================
+  // CABINET SIMULATOR
+  // ============================================
+  recreateCabinet() {
+    // Cleanup old cabinet properly
+    if (this.cabinet) {
+      try {
+        if (this.cabinet.dispose) this.cabinet.dispose();
+        if (this.cabinet.input) this.cabinet.input.disconnect();
+        if (this.cabinet.output) this.cabinet.output.disconnect();
+      } catch (e) {
+        // Already disconnected
+      }
+    }
+    
+    // Disconnect preCabinet
+    try {
+      this.preCabinet.disconnect();
+    } catch (e) {
+      // Already disconnected
+    }
+    
+    if (this.cabinetEnabled) {
+      // Create new cabinet with current settings
+      this.cabinet = this.cabinetSimulator.createCabinet(
+        this.cabinetType,
+        this.micType,
+        this.micPosition
+      );
+      
+      if (this.cabinet) {
+        this.preCabinet.connect(this.cabinet.input);
+        this.cabinet.output.connect(this.postCabinet);
+      } else {
+        // Fallback if cabinet creation fails
+        this.preCabinet.connect(this.postCabinet);
+      }
+    } else {
+      // Bypass cabinet
+      this.preCabinet.connect(this.postCabinet);
+    }
+  }
+  
   updateParameter(parameter, value) {
     const now = this.audioContext.currentTime;
     
@@ -424,11 +455,24 @@ class FenderBassmanAmp extends BaseAmp {
         break;
       
       // ============================================
-      // CABINET TOGGLE
+      // CABINET
       // ============================================
       case 'cabinet_enabled':
-        this._cabinetEnabled = !!value;
-        this.setupRouting(); // Re-route to enable/disable cabinet
+        this.cabinetEnabled = !!value;
+        this.recreateCabinet();
+        break;
+      case 'cabinet':
+        this.cabinetType = value;
+        this.recreateCabinet();
+        break;
+      case 'microphone':
+      case 'micType':
+        this.micType = value;
+        this.recreateCabinet();
+        break;
+      case 'micPosition':
+        this.micPosition = value;
+        this.recreateCabinet();
         break;
       
       // ============================================

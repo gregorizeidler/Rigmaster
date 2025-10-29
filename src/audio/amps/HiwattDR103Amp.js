@@ -1,4 +1,5 @@
 import BaseAmp from './BaseAmp.js';
+import CabinetSimulator from './CabinetSimulator.js';
 
 class HiwattDR103Amp extends BaseAmp {
   constructor(audioContext, id) {
@@ -109,17 +110,16 @@ class HiwattDR103Amp extends BaseAmp {
     this.powerComp.release.value = 0.05;
     
     // ============================================
-    // CABINET SIMULATION (HPF/LPF post-power)
+    // CABINET SIMULATOR
     // ============================================
-    this.postHPF = audioContext.createBiquadFilter();
-    this.postHPF.type = 'highpass';
-    this.postHPF.frequency.value = 40;
-    this.postHPF.Q.value = 0.707;
-    
-    this.postLPF = audioContext.createBiquadFilter();
-    this.postLPF.type = 'lowpass';
-    this.postLPF.frequency.value = 9500;
-    this.postLPF.Q.value = 0.707;
+    this.cabinetSimulator = new CabinetSimulator(audioContext);
+    this.cabinet = null;
+    this.cabinetEnabled = true;
+    this.cabinetType = '4x12_fane';
+    this.micType = 'sm57';
+    this.micPosition = 'edge';
+    this.preCabinet = audioContext.createGain();
+    this.postCabinet = audioContext.createGain();
     
     // ============================================
     // MASTER VOLUME
@@ -148,6 +148,7 @@ class HiwattDR103Amp extends BaseAmp {
     
     this.applyInitialSettings();
     this.setupChannels();
+    this.recreateCabinet();
   }
   
   setupChannels() {
@@ -191,9 +192,9 @@ class HiwattDR103Amp extends BaseAmp {
     this.presence.connect(this.powerSaturation);
     
     // Cabinet simulation
-    this.powerSaturation.connect(this.postHPF);
-    this.postHPF.connect(this.postLPF);
-    this.postLPF.connect(this.output);
+    this.powerSaturation.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.output);
   }
   
   disconnectAll() {
@@ -313,6 +314,33 @@ class HiwattDR103Amp extends BaseAmp {
     return curve;
   }
   
+  recreateCabinet() {
+    if (this.cabinet) {
+      try {
+        if (this.cabinet.dispose) this.cabinet.dispose();
+        if (this.cabinet.input) this.cabinet.input.disconnect();
+        if (this.cabinet.output) this.cabinet.output.disconnect();
+      } catch (e) {}
+    }
+    try { this.preCabinet.disconnect(); } catch (e) {}
+    
+    if (this.cabinetEnabled) {
+      this.cabinet = this.cabinetSimulator.createCabinet(
+        this.cabinetType,
+        this.micType,
+        this.micPosition
+      );
+      if (this.cabinet) {
+        this.preCabinet.connect(this.cabinet.input);
+        this.cabinet.output.connect(this.postCabinet);
+      } else {
+        this.preCabinet.connect(this.postCabinet);
+      }
+    } else {
+      this.preCabinet.connect(this.postCabinet);
+    }
+  }
+  
   updateParameter(parameter, value) {
     const now = this.audioContext.currentTime;
     
@@ -384,15 +412,21 @@ class HiwattDR103Amp extends BaseAmp {
       // CABINET CONTROL
       // ============================================
       case 'cabinet_enabled':
-        // Enable/disable cabinet simulation filters
-        if (value) {
-          this.postHPF.frequency.setTargetAtTime(40, now, 0.01);
-          this.postLPF.frequency.setTargetAtTime(9500, now, 0.01);
-        } else {
-          // Open up filters for direct sound
-          this.postHPF.frequency.setTargetAtTime(20, now, 0.01);
-          this.postLPF.frequency.setTargetAtTime(20000, now, 0.01);
-        }
+        this.cabinetEnabled = !!value;
+        this.recreateCabinet();
+        break;
+      case 'cabinet':
+        this.cabinetType = value;
+        this.recreateCabinet();
+        break;
+      case 'microphone':
+      case 'micType':
+        this.micType = value;
+        this.recreateCabinet();
+        break;
+      case 'micPosition':
+        this.micPosition = value;
+        this.recreateCabinet();
         break;
       
       case 'cabinet':

@@ -1,4 +1,5 @@
 import BaseAmp from './BaseAmp.js';
+import CabinetSimulator from './CabinetSimulator.js';
 
 class MarshallJTM45Amp extends BaseAmp {
   constructor(audioContext, id) {
@@ -129,32 +130,16 @@ class MarshallJTM45Amp extends BaseAmp {
     this.powerComp.release.value = 0.15;
     
     // ============================================
-    // CABINET SIMULATION (2×12 Celestion Greenbacks)
+    // CABINET SIMULATOR
     // ============================================
-    this.postHPF = audioContext.createBiquadFilter();
-    this.postHPF.type = 'highpass';
-    this.postHPF.frequency.value = 35;
-    this.postHPF.Q.value = 0.707;
-    
-    this.postLPF = audioContext.createBiquadFilter();
-    this.postLPF.type = 'lowpass';
-    this.postLPF.frequency.value = 9500;
-    this.postLPF.Q.value = 0.707;
-    
-    // Cabinet presence bump (Greenback characteristic)
-    this.cabPresence = audioContext.createBiquadFilter();
-    this.cabPresence.type = 'peaking';
-    this.cabPresence.frequency.value = 3500;
-    this.cabPresence.Q.value = 1.2;
-    this.cabPresence.gain.value = 2;
-    
-    // Cabinet bypass path
-    this.cabBypass = audioContext.createGain();
-    this.cabEnabled = true; // Cabinet on by default
-    
-    // Optional: IR loader (for future use)
-    this.cabIR = audioContext.createConvolver();
-    this.loadDefaultCabinetIR();
+    this.cabinetSimulator = new CabinetSimulator(audioContext);
+    this.cabinet = null;
+    this.cabinetEnabled = true;
+    this.cabinetType = '4x12_greenback';
+    this.micType = 'sm57';
+    this.micPosition = 'edge';
+    this.preCabinet = audioContext.createGain();
+    this.postCabinet = audioContext.createGain();
     
     // ============================================
     // VOLUME CONTROLS
@@ -189,6 +174,7 @@ class MarshallJTM45Amp extends BaseAmp {
     };
     
     this.applyInitialSettings();
+    this.recreateCabinet();
   }
   
   setupHighInput() {
@@ -233,15 +219,9 @@ class MarshallJTM45Amp extends BaseAmp {
     this.powerAmp.connect(this.powerSaturation);
     
     // Cabinet routing (can be bypassed)
-    if (this.cabEnabled) {
-      this.powerSaturation.connect(this.postHPF);
-      this.postHPF.connect(this.postLPF);
-      this.postLPF.connect(this.cabPresence);
-      this.cabPresence.connect(this.volume2);
-    } else {
-      this.powerSaturation.connect(this.cabBypass);
-      this.cabBypass.connect(this.volume2);
-    }
+    this.powerSaturation.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.volume2);
     
     this.volume2.connect(this.output);
     
@@ -291,15 +271,9 @@ class MarshallJTM45Amp extends BaseAmp {
     this.powerAmp.connect(this.powerSaturation);
     
     // Cabinet routing (can be bypassed)
-    if (this.cabEnabled) {
-      this.powerSaturation.connect(this.postHPF);
-      this.postHPF.connect(this.postLPF);
-      this.postLPF.connect(this.cabPresence);
-      this.cabPresence.connect(this.volume2);
-    } else {
-      this.powerSaturation.connect(this.cabBypass);
-      this.cabBypass.connect(this.volume2);
-    }
+    this.powerSaturation.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.volume2);
     
     this.volume2.connect(this.output);
     
@@ -435,24 +409,31 @@ class MarshallJTM45Amp extends BaseAmp {
     return curve;
   }
   
-  loadDefaultCabinetIR() {
-    // Create a simple synthetic IR for 2×12 Greenback cabinet
-    // This ensures the amp works out of the box without external IR files
-    const sampleRate = this.audioContext.sampleRate;
-    const length = sampleRate * 0.05; // 50ms
-    const impulse = this.audioContext.createBuffer(2, length, sampleRate);
-    
-    for (let channel = 0; channel < 2; channel++) {
-      const channelData = impulse.getChannelData(channel);
-      for (let i = 0; i < length; i++) {
-        // Exponential decay with slight randomness
-        const decay = Math.exp(-i / (sampleRate * 0.01));
-        const noise = (Math.random() * 2 - 1) * 0.1;
-        channelData[i] = decay * (1 + noise);
-      }
+  recreateCabinet() {
+    if (this.cabinet) {
+      try {
+        if (this.cabinet.dispose) this.cabinet.dispose();
+        if (this.cabinet.input) this.cabinet.input.disconnect();
+        if (this.cabinet.output) this.cabinet.output.disconnect();
+      } catch (e) {}
     }
+    try { this.preCabinet.disconnect(); } catch (e) {}
     
-    this.cabIR.buffer = impulse;
+    if (this.cabinetEnabled) {
+      this.cabinet = this.cabinetSimulator.createCabinet(
+        this.cabinetType,
+        this.micType,
+        this.micPosition
+      );
+      if (this.cabinet) {
+        this.preCabinet.connect(this.cabinet.input);
+        this.cabinet.output.connect(this.postCabinet);
+      } else {
+        this.preCabinet.connect(this.postCabinet);
+      }
+    } else {
+      this.preCabinet.connect(this.postCabinet);
+    }
   }
   
   updateParameter(parameter, value) {
@@ -527,13 +508,21 @@ class MarshallJTM45Amp extends BaseAmp {
       // CABINET CONTROL
       // ============================================
       case 'cabinet_enabled':
-        this.cabEnabled = value;
-        // Re-route to enable/disable cabinet
-        if (this.activeInput === 'low') {
-          this.setupLowInput();
-        } else {
-          this.setupHighInput();
-        }
+        this.cabinetEnabled = !!value;
+        this.recreateCabinet();
+        break;
+      case 'cabinet':
+        this.cabinetType = value;
+        this.recreateCabinet();
+        break;
+      case 'microphone':
+      case 'micType':
+        this.micType = value;
+        this.recreateCabinet();
+        break;
+      case 'micPosition':
+        this.micPosition = value;
+        this.recreateCabinet();
         break;
     }
     

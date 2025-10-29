@@ -1,4 +1,5 @@
 import BaseAmp from './BaseAmp.js';
+import CabinetSimulator from './CabinetSimulator.js';
 
 class OrangeRockerverbAmp extends BaseAmp {
   constructor(audioContext, id) {
@@ -151,12 +152,16 @@ class OrangeRockerverbAmp extends BaseAmp {
     this.dcBlock.Q.value = 0.707;
     
     // ============================================
-    // CABINET IR (2×12 Closed Back)
+    // CABINET SIMULATOR
     // ============================================
-    this.cabIR = audioContext.createConvolver();
-    this.cabBypass = audioContext.createGain();
-    this.cabEnabled = true;
-    this.loadDefaultCabinetIR();
+    this.cabinetSimulator = new CabinetSimulator(audioContext);
+    this.cabinet = null;
+    this.cabinetEnabled = true;
+    this.cabinetType = '2x12_closed';
+    this.micType = 'sm57';
+    this.micPosition = 'edge';
+    this.preCabinet = audioContext.createGain();
+    this.postCabinet = audioContext.createGain();
     
     // ============================================
     // MASTER SECTION
@@ -200,6 +205,7 @@ class OrangeRockerverbAmp extends BaseAmp {
     // ============================================
     this.setupChannels();
     this.setActiveChannel('dirty');
+    this.recreateCabinet();
     this.applyInitialSettings();
   }
   
@@ -251,13 +257,9 @@ class OrangeRockerverbAmp extends BaseAmp {
     this.powerSaturation.connect(this.dcBlock);
     
     // Cabinet (can be bypassed)
-    if (this.cabEnabled) {
-      this.dcBlock.connect(this.cabIR);
-      this.cabIR.connect(this.master);
-    } else {
-      this.dcBlock.connect(this.cabBypass);
-      this.cabBypass.connect(this.master);
-    }
+    this.dcBlock.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.master);
     
     this.master.connect(this.output);
   }
@@ -407,6 +409,33 @@ class OrangeRockerverbAmp extends BaseAmp {
     return 0.001 * Math.pow(1000, value01); // ~-60dB to 0dB
   }
   
+  recreateCabinet() {
+    if (this.cabinet) {
+      try {
+        if (this.cabinet.dispose) this.cabinet.dispose();
+        if (this.cabinet.input) this.cabinet.input.disconnect();
+        if (this.cabinet.output) this.cabinet.output.disconnect();
+      } catch (e) {}
+    }
+    try { this.preCabinet.disconnect(); } catch (e) {}
+    
+    if (this.cabinetEnabled) {
+      this.cabinet = this.cabinetSimulator.createCabinet(
+        this.cabinetType,
+        this.micType,
+        this.micPosition
+      );
+      if (this.cabinet) {
+        this.preCabinet.connect(this.cabinet.input);
+        this.cabinet.output.connect(this.postCabinet);
+      } else {
+        this.preCabinet.connect(this.postCabinet);
+      }
+    } else {
+      this.preCabinet.connect(this.postCabinet);
+    }
+  }
+  
   updateParameter(parameter, value) {
     const now = this.audioContext.currentTime;
     
@@ -452,8 +481,21 @@ class OrangeRockerverbAmp extends BaseAmp {
         break;
       
       case 'cabinet_enabled':
-        this.cabEnabled = value;
-        this.reconnectChannels();
+        this.cabinetEnabled = !!value;
+        this.recreateCabinet();
+        break;
+      case 'cabinet':
+        this.cabinetType = value;
+        this.recreateCabinet();
+        break;
+      case 'microphone':
+      case 'micType':
+        this.micType = value;
+        this.recreateCabinet();
+        break;
+      case 'micPosition':
+        this.micPosition = value;
+        this.recreateCabinet();
         break;
     }
     

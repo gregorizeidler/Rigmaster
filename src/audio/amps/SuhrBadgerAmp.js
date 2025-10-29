@@ -1,4 +1,5 @@
 import BaseAmp from './BaseAmp.js';
+import CabinetSimulator from './CabinetSimulator.js';
 
 class SuhrBadgerAmp extends BaseAmp {
   constructor(audioContext, id) {
@@ -118,22 +119,18 @@ class SuhrBadgerAmp extends BaseAmp {
     this.powerComp.release.value = 0.1;
     
     // ============================================
-    // CABINET SIMULATION (1x12 or 2x12)
+    // CABINET SIMULATOR
     // ============================================
-    // DC-block filter (essential before cabinet)
-    this.dcBlock = audioContext.createBiquadFilter();
-    this.dcBlock.type = 'highpass';
-    this.dcBlock.frequency.value = 20;
-    this.dcBlock.Q.value = 0.707;
-    
-    // Cabinet IR (Celestion V30 or Greenback typical for Badger)
-    this.cabIR = audioContext.createConvolver();
+    this.cabinetSimulator = new CabinetSimulator(audioContext);
+    this.cabinet = null;
     this.cabinetEnabled = true;
+    this.cabinetType = '2x12_greenback';
+    this.micType = 'sm57';
+    this.micPosition = 'edge';
+    this.preCabinet = audioContext.createGain();
+    this.postCabinet = audioContext.createGain();
     
-    // Load default Suhr Badger cabinet (2x12 with V30)
-    this.loadDefaultCabinetIR();
-    
-    // Presence control (post-IR, more realistic)
+    // Presence control (post-cabinet, more realistic)
     this.presence = audioContext.createBiquadFilter();
     this.presence.type = 'highshelf';
     this.presence.frequency.value = 4500;
@@ -175,6 +172,7 @@ class SuhrBadgerAmp extends BaseAmp {
     // ============================================
     this.setupBothChannels();
     this.applyInitialSettings();
+    this.recreateCabinet();
   }
   
   setupBothChannels() {
@@ -257,11 +255,11 @@ class SuhrBadgerAmp extends BaseAmp {
     this.powerSaturation.connect(this.dcBlock);
     this.dcBlock.connect(this.cabIR);
     
-    // Variac tone loss + Presence (post-IR)
-    this.cabIR.connect(this.variacToneLPF);
+    // Power amp → Cabinet → Presence → Master
+    this.powerComp.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.variacToneLPF);
     this.variacToneLPF.connect(this.presence);
-    
-    // Master output
     this.presence.connect(this.master);
     this.master.connect(this.output);
   }
@@ -477,6 +475,33 @@ class SuhrBadgerAmp extends BaseAmp {
     return curve;
   }
   
+  recreateCabinet() {
+    if (this.cabinet) {
+      try {
+        if (this.cabinet.dispose) this.cabinet.dispose();
+        if (this.cabinet.input) this.cabinet.input.disconnect();
+        if (this.cabinet.output) this.cabinet.output.disconnect();
+      } catch (e) {}
+    }
+    try { this.preCabinet.disconnect(); } catch (e) {}
+    
+    if (this.cabinetEnabled) {
+      this.cabinet = this.cabinetSimulator.createCabinet(
+        this.cabinetType,
+        this.micType,
+        this.micPosition
+      );
+      if (this.cabinet) {
+        this.preCabinet.connect(this.cabinet.input);
+        this.cabinet.output.connect(this.postCabinet);
+      } else {
+        this.preCabinet.connect(this.postCabinet);
+      }
+    } else {
+      this.preCabinet.connect(this.postCabinet);
+    }
+  }
+  
   updateParameter(parameter, value) {
     const now = this.audioContext.currentTime;
     
@@ -552,22 +577,23 @@ class SuhrBadgerAmp extends BaseAmp {
         break;
       }
       
-      case 'cabinet': {
-        // Toggle cabinet on/off
-        const enabled = !!value;
-        this.cabinetEnabled = enabled;
-        
-        // Bypass cabinet by using very short impulse (direct through)
-        if (!enabled) {
-          const bypassBuffer = this.audioContext.createBuffer(1, 1, this.audioContext.sampleRate);
-          bypassBuffer.getChannelData(0)[0] = 1.0;
-          this.cabIR.buffer = bypassBuffer;
-        } else {
-          // Restore cabinet IR
-          this.loadDefaultCabinetIR();
-        }
+      case 'cabinet':
+        this.cabinetType = value;
+        this.recreateCabinet();
         break;
-      }
+      case 'cabinet_enabled':
+        this.cabinetEnabled = !!value;
+        this.recreateCabinet();
+        break;
+      case 'microphone':
+      case 'micType':
+        this.micType = value;
+        this.recreateCabinet();
+        break;
+      case 'micPosition':
+        this.micPosition = value;
+        this.recreateCabinet();
+        break;
       
       case 'master':
         this.master.gain.setTargetAtTime(lin2log(value / 100), now, 0.01);

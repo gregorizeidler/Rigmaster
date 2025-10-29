@@ -1,4 +1,5 @@
 import BaseAmp from './BaseAmp.js';
+import CabinetSimulator from './CabinetSimulator.js';
 
 class MarshallJCM800Amp extends BaseAmp {
   constructor(audioContext, id) {
@@ -90,15 +91,19 @@ class MarshallJCM800Amp extends BaseAmp {
     this.outputTransformer = audioContext.createWaveShaper();
     this.outputTransformer.curve = this.makeTransformerCurve();
     
-    // Cabinet simulation (basic HPF + LPF when no IR is used)
-    this.postHPF = audioContext.createBiquadFilter();
-    this.postHPF.type = 'highpass';
-    this.postHPF.frequency.value = 40;
+    // ============================================
+    // CABINET SIMULATOR
+    // ============================================
+    this.cabinetSimulator = new CabinetSimulator(audioContext);
+    this.cabinet = null; // Will be created on demand
+    this.cabinetEnabled = true;
+    this.cabinetType = '4x12_greenback'; // Marshall standard
+    this.micType = 'sm57';
+    this.micPosition = 'edge';
     
-    this.postLPF = audioContext.createBiquadFilter();
-    this.postLPF.type = 'lowpass';
-    this.postLPF.frequency.value = 9000;
-    this.postLPF.Q.value = 0.7;
+    // Cabinet bypass routing
+    this.preCabinet = audioContext.createGain();
+    this.postCabinet = audioContext.createGain();
     
     // Half Power switch (pentode/triode)
     this.powerMode = 'pentode'; // 'pentode' (100W) or 'triode' (50W)
@@ -145,10 +150,10 @@ class MarshallJCM800Amp extends BaseAmp {
     // Output transformer
     this.powerSaturation.connect(this.outputTransformer);
     
-    // Cabinet simulation (basic HPF + LPF)
-    this.outputTransformer.connect(this.postHPF);
-    this.postHPF.connect(this.postLPF);
-    this.postLPF.connect(this.standbyGain);
+    // Cabinet routing with CabinetSimulator
+    this.outputTransformer.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.standbyGain);
     this.standbyGain.connect(this.output);
     
     // ============================================
@@ -205,8 +210,8 @@ class MarshallJCM800Amp extends BaseAmp {
     // Input sensitivity (high by default)
     this.setInputSensitivity(true);
     
-    // Cabinet enabled by default
-    this.setCabinetEnabled(true);
+    // Initialize cabinet
+    this.recreateCabinet();
   }
   
   // ============================================
@@ -330,15 +335,43 @@ class MarshallJCM800Amp extends BaseAmp {
     }
   }
   
-  setCabinetEnabled(enabled) {
-    // Enable/disable basic cabinet simulation
-    if (enabled) {
-      this.postHPF.frequency.value = 40;
-      this.postLPF.frequency.value = 9000;
+  recreateCabinet() {
+    // Cleanup old cabinet properly
+    if (this.cabinet) {
+      try {
+        if (this.cabinet.dispose) this.cabinet.dispose();
+        if (this.cabinet.input) this.cabinet.input.disconnect();
+        if (this.cabinet.output) this.cabinet.output.disconnect();
+      } catch (e) {
+        // Already disconnected
+      }
+    }
+    
+    // Disconnect preCabinet
+    try {
+      this.preCabinet.disconnect();
+    } catch (e) {
+      // Already disconnected
+    }
+    
+    if (this.cabinetEnabled) {
+      // Create new cabinet with current settings
+      this.cabinet = this.cabinetSimulator.createCabinet(
+        this.cabinetType,
+        this.micType,
+        this.micPosition
+      );
+      
+      if (this.cabinet) {
+        this.preCabinet.connect(this.cabinet.input);
+        this.cabinet.output.connect(this.postCabinet);
+      } else {
+        // Fallback if cabinet creation fails
+        this.preCabinet.connect(this.postCabinet);
+      }
     } else {
-      // Bypass cabinet sim (wider frequency response)
-      this.postHPF.frequency.value = 20;
-      this.postLPF.frequency.value = 20000;
+      // Bypass cabinet
+      this.preCabinet.connect(this.postCabinet);
     }
   }
   
@@ -438,14 +471,24 @@ class MarshallJCM800Amp extends BaseAmp {
         break;
       
       case 'cabinet_enabled':
-        this.params.cabinet_enabled = !!value;
-        this.setCabinetEnabled(!!value);
+        this.cabinetEnabled = !!value;
+        this.recreateCabinet();
         break;
       
       case 'cabinet':
+        this.cabinetType = value;
+        this.recreateCabinet();
+        break;
+      
       case 'microphone':
+      case 'micType':
+        this.micType = value;
+        this.recreateCabinet();
+        break;
+      
       case 'micPosition':
-        // Cabinet parameters (handled by UI/IR loader)
+        this.micPosition = value;
+        this.recreateCabinet();
         break;
     }
     

@@ -1,4 +1,5 @@
 import BaseAmp from './BaseAmp.js';
+import CabinetSimulator from './CabinetSimulator.js';
 
 class MesaMarkVAmp extends BaseAmp {
   constructor(audioContext, id) {
@@ -171,27 +172,23 @@ class MesaMarkVAmp extends BaseAmp {
     this.dcBlock.frequency.value = 20;
     this.dcBlock.Q.value = 0.707;
     
-    // Cabinet IR (simulated for now, can be replaced with real IR)
-    this.cabinetSim = audioContext.createBiquadFilter();
-    this.cabinetSim.type = 'lowpass';
-    this.cabinetSim.frequency.value = 5200; // Mesa 4x12 V30
-    this.cabinetSim.Q.value = 1.5;
-    
-    // Microphone simulation
-    this.micSim = audioContext.createBiquadFilter();
-    this.micSim.type = 'peaking';
-    this.micSim.frequency.value = 5000; // SM57 presence peak
-    this.micSim.Q.value = 1.2;
-    this.micSim.gain.value = 4;
+    // ============================================
+    // CABINET SIMULATOR
+    // ============================================
+    this.cabinetSimulator = new CabinetSimulator(audioContext);
+    this.cabinet = null;
+    this.cabinetEnabled = true;
+    this.cabinetType = '4x12_v30';
+    this.micType = 'sm57';
+    this.micPosition = 'center';
+    this.preCabinet = audioContext.createGain();
+    this.postCabinet = audioContext.createGain();
     
     // Presence (post-cabinet as in real Mark V)
     this.presence = audioContext.createBiquadFilter();
     this.presence.type = 'highshelf';
     this.presence.frequency.value = 4500;
     this.presence.gain.value = 0;
-    
-    // Cabinet enabled flag
-    this.cabinetEnabled = true;
     
     // ============================================
     // NOISE GATE (for channel 3)
@@ -258,6 +255,7 @@ class MesaMarkVAmp extends BaseAmp {
     // Setup routing AFTER params are initialized
     this.setupChannel3();
     this.applyInitialSettings();
+    this.recreateCabinet();
     this.applyModeVoicing();
   }
   
@@ -291,14 +289,10 @@ class MesaMarkVAmp extends BaseAmp {
     this.powerSaturation.connect(this.dcBlock);
     
     // Cabinet routing
-    if (this.cabinetEnabled) {
-      this.dcBlock.connect(this.cabinetSim);
-      this.cabinetSim.connect(this.micSim);
-      this.micSim.connect(this.presence);
-      this.presence.connect(this.outputMaster);
-    } else {
-      this.dcBlock.connect(this.outputMaster);
-    }
+    this.dcBlock.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.presence);
+    this.presence.connect(this.outputMaster);
     
     this.outputMaster.connect(this.output);
     this.activeChannel = 1;
@@ -337,14 +331,10 @@ class MesaMarkVAmp extends BaseAmp {
     this.powerSaturation.connect(this.dcBlock);
     
     // Cabinet routing
-    if (this.cabinetEnabled) {
-      this.dcBlock.connect(this.cabinetSim);
-      this.cabinetSim.connect(this.micSim);
-      this.micSim.connect(this.presence);
-      this.presence.connect(this.outputMaster);
-    } else {
-      this.dcBlock.connect(this.outputMaster);
-    }
+    this.dcBlock.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.presence);
+    this.presence.connect(this.outputMaster);
     
     this.outputMaster.connect(this.output);
     this.activeChannel = 2;
@@ -389,14 +379,10 @@ class MesaMarkVAmp extends BaseAmp {
     this.powerSaturation.connect(this.dcBlock);
     
     // Cabinet routing
-    if (this.cabinetEnabled) {
-      this.dcBlock.connect(this.cabinetSim);
-      this.cabinetSim.connect(this.micSim);
-      this.micSim.connect(this.presence);
-      this.presence.connect(this.outputMaster);
-    } else {
-      this.dcBlock.connect(this.outputMaster);
-    }
+    this.dcBlock.connect(this.preCabinet);
+    // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
+    this.postCabinet.connect(this.presence);
+    this.presence.connect(this.outputMaster);
     
     this.outputMaster.connect(this.output);
     this.activeChannel = 3;
@@ -573,6 +559,33 @@ class MesaMarkVAmp extends BaseAmp {
     }
   }
   
+  recreateCabinet() {
+    if (this.cabinet) {
+      try {
+        if (this.cabinet.dispose) this.cabinet.dispose();
+        if (this.cabinet.input) this.cabinet.input.disconnect();
+        if (this.cabinet.output) this.cabinet.output.disconnect();
+      } catch (e) {}
+    }
+    try { this.preCabinet.disconnect(); } catch (e) {}
+    
+    if (this.cabinetEnabled) {
+      this.cabinet = this.cabinetSimulator.createCabinet(
+        this.cabinetType,
+        this.micType,
+        this.micPosition
+      );
+      if (this.cabinet) {
+        this.preCabinet.connect(this.cabinet.input);
+        this.cabinet.output.connect(this.postCabinet);
+      } else {
+        this.preCabinet.connect(this.postCabinet);
+      }
+    } else {
+      this.preCabinet.connect(this.postCabinet);
+    }
+  }
+  
   updateParameter(parameter, value) {
     const now = this.audioContext.currentTime;
     
@@ -686,15 +699,21 @@ class MesaMarkVAmp extends BaseAmp {
       }
       
       case 'cabinet_enabled':
-        this.cabinetEnabled = value;
-        // Reroute based on current channel
-        if (this.activeChannel === 1) {
-          this.setupChannel1();
-        } else if (this.activeChannel === 2) {
-          this.setupChannel2();
-        } else {
-          this.setupChannel3();
-        }
+        this.cabinetEnabled = !!value;
+        this.recreateCabinet();
+        break;
+      case 'cabinet':
+        this.cabinetType = value;
+        this.recreateCabinet();
+        break;
+      case 'microphone':
+      case 'micType':
+        this.micType = value;
+        this.recreateCabinet();
+        break;
+      case 'micPosition':
+        this.micPosition = value;
+        this.recreateCabinet();
         break;
       
       case 'master':
