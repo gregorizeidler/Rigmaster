@@ -5,23 +5,26 @@ import CabinetSimulator from './CabinetSimulator.js';
  * Mesa Boogie Dual Rectifier - 3-Channel High-Gain Amplifier
  * 
  * ARCHITECTURE (UPDATED):
- * - 3 parallel channels (Clean, Vintage, Modern) with TRUE equal-power crossfade (sqrt)
+ * - 3 parallel channels (Clean, Vintage, Modern) with TRUE equal-power crossfade (sin/cos)
+ * - Zipper-free channel switching using setValueCurveAtTime (64 samples)
+ * - Pre/de-emphasis anti-aliasing (±4-6dB, channel-specific pivot frequencies)
  * - Non-accumulative power gain computation (BOLD/SPONGY, Tube/Silicon, Multi-Watt, Variac)
- * - REAL SAG SYSTEM: Envelope-based headroom reduction (tube vs silicon, with proper attack/release)
- * - NFB (Negative Feedback): Presence/Resonance as shelves AFTER power saturation
- * - PASSIVE TONE STACK (CH3): Pre-clip, interactive (bass/mid/treble), with bright cap
+ * - REAL SAG SYSTEM: Hybrid peak/RMS envelope detector with dynamic time constants
+ * - NFB (Negative Feedback): Presence/Resonance with power amp damping simulation
+ * - INTERACTIVE TONE STACK (CH3): FMV-style with bass/mid/treble interaction + makeup gain
+ * - Waveshaper curves with bias shift: grid conduction, cathode voltage rise, load line bending
  * - POST-CLIP SHAPING: Mid scoop + low damping (adaptive, gain-dependent)
  * - Anti-alias filters: Pre/post saturation + post-cabinet (gain-dependent)
- * - Cached waveshaper curves (32k samples max) - SMOOTH tanh/atan (no amplitude EQ)
+ * - Cached waveshaper curves (32k samples max) with asymmetric clipping
  * - Dynamic LPF on fizz taming (gain-dependent)
  * - Logarithmic taper (x^2.2) on gain control for natural feel
  * - Safety limiter at output
- * - FX loop with explicit API
+ * - FX loop with equal-power mix (sin/cos)
  * - JSON preset serialization
  * 
  * NOISE GATE NOTE:
- * Current implementation uses DynamicsCompressor as gate (CH2/CH3).
- * For true gate behavior, implement AudioWorklet with:
+ * Current implementation uses DynamicsCompressor as gate (CH2/CH3) with soft knee.
+ * For production-grade gate, implement AudioWorklet with:
  *   - Envelope follower (RMS/peak detector)
  *   - Hysteresis (thresholdOpen/thresholdClose)
  *   - Attack/Release envelopes
@@ -146,16 +149,16 @@ class MesaDualRectifierAmp extends BaseAmp {
     this.powerPreEmph = audioContext.createBiquadFilter();
     
     this.ch1PreEmph.type = 'highshelf';
-    this.ch1PreEmph.frequency.value = 1000;
-    this.ch1PreEmph.gain.value = 6; // +6dB above 1kHz
+    this.ch1PreEmph.frequency.value = 1200; // Clean: higher pivot
+    this.ch1PreEmph.gain.value = 4; // ±4dB to avoid excessive brightness
     
     this.ch2PreEmph.type = 'highshelf';
-    this.ch2PreEmph.frequency.value = 1000;
-    this.ch2PreEmph.gain.value = 6;
+    this.ch2PreEmph.frequency.value = 1000; // Vintage: medium pivot
+    this.ch2PreEmph.gain.value = 5; // Moderate emphasis
     
     this.ch3PreEmph.type = 'highshelf';
-    this.ch3PreEmph.frequency.value = 1000;
-    this.ch3PreEmph.gain.value = 6;
+    this.ch3PreEmph.frequency.value = 800; // Modern: lower pivot for high-gain
+    this.ch3PreEmph.gain.value = 6; // More emphasis for tight high-gain
     
     this.powerPreEmph.type = 'highshelf';
     this.powerPreEmph.frequency.value = 1000;
@@ -176,16 +179,16 @@ class MesaDualRectifierAmp extends BaseAmp {
     this.powerDeEmph = audioContext.createBiquadFilter();
     
     this.ch1DeEmph.type = 'highshelf';
-    this.ch1DeEmph.frequency.value = 1000;
-    this.ch1DeEmph.gain.value = -6; // -6dB to compensate
+    this.ch1DeEmph.frequency.value = 1200; // Match pre-emphasis pivot
+    this.ch1DeEmph.gain.value = -4; // Compensate pre-emphasis
     
     this.ch2DeEmph.type = 'highshelf';
-    this.ch2DeEmph.frequency.value = 1000;
-    this.ch2DeEmph.gain.value = -6;
+    this.ch2DeEmph.frequency.value = 1000; // Match pre-emphasis pivot
+    this.ch2DeEmph.gain.value = -5; // Compensate pre-emphasis
     
     this.ch3DeEmph.type = 'highshelf';
-    this.ch3DeEmph.frequency.value = 1000;
-    this.ch3DeEmph.gain.value = -6;
+    this.ch3DeEmph.frequency.value = 800; // Match pre-emphasis pivot
+    this.ch3DeEmph.gain.value = -6; // Compensate pre-emphasis
     
     this.powerDeEmph.type = 'highshelf';
     this.powerDeEmph.frequency.value = 1000;
@@ -236,13 +239,8 @@ class MesaDualRectifierAmp extends BaseAmp {
     this.ch3NoiseGate.release.value = 0.15;
     this.ch3NoiseGate.knee.value = 6;
     
-    // Envelope tracking for gate (RMS detector)
-    this.gateEnvelope = audioContext.createAnalyser();
-    this.gateEnvelope.fftSize = 256;
-    this.gateEnvelope.smoothingTimeConstant = 0.6; // Smooth RMS
-    this._gateEnvelopeData = new Uint8Array(this.gateEnvelope.frequencyBinCount);
-    this._gateThreshold = 0.02; // Hysteresis threshold
-    this._gateIsOpen = false;
+    // Note: For production-grade gate, implement AudioWorklet with
+    // RMS/peak envelope follower + hysteresis (thresholdOpen/Close)
     
     // ============================================
     // MODERN CHANNEL TIGHTENING & SCOOP
@@ -1104,44 +1102,33 @@ class MesaDualRectifierAmp extends BaseAmp {
   setChannel(channel) {
     const now = this.audioContext.currentTime;
     const fadeTime = 0.035; // 35ms true equal-power crossfade
-    const steps = 8; // Number of automation steps for smooth curve
     
     this.activeChannel = channel;
     
     const faders = [this.ch1Fader.gain, this.ch2Fader.gain, this.ch3Fader.gain];
     
+    // Pre-compute sin/cos curves (64 samples for smooth, zipper-free crossfade)
+    const N = 64;
+    const sinCurve = new Float32Array(N);
+    const cosCurve = new Float32Array(N);
+    
+    for (let i = 0; i < N; i++) {
+      const x = i / (N - 1); // 0.0 to 1.0
+      sinCurve[i] = Math.sin(x * Math.PI / 2); // 0 → 1
+      cosCurve[i] = Math.cos(x * Math.PI / 2); // 1 → 0
+    }
+    
     faders.forEach((fader, i) => {
-      // Cancel previous automations
-      if (typeof fader.cancelAndHoldAtTime === 'function') {
-        fader.cancelAndHoldAtTime(now);
-      } else {
-        fader.cancelScheduledValues(now);
-        fader.setValueAtTime(fader.value, now);
-      }
-      
       const isTarget = (i + 1) === channel;
+      const curve = isTarget ? sinCurve : cosCurve;
       
-      // TRUE equal-power crossfade using cos/sin curves
-      // Target channel: x goes 0→1, gain = sin(πx/2)
-      // Other channels: x goes 0→1, gain = cos(πx/2)
-      for (let step = 0; step <= steps; step++) {
-        const x = step / steps; // 0.0 to 1.0
-        const time = now + (x * fadeTime);
-        let gain;
-        
-        if (isTarget) {
-          // Fade in: sin curve (0 → 1)
-          gain = Math.sin(x * Math.PI / 2);
-        } else {
-          // Fade out: cos curve (1 → 0)
-          gain = Math.cos(x * Math.PI / 2);
-        }
-        
-        fader.setValueAtTime(gain, time);
-      }
+      // Cancel previous automations and apply smooth curve
+      fader.cancelScheduledValues(now);
+      fader.setValueAtTime(fader.value, now);
+      fader.setValueCurveAtTime(curve, now, fadeTime);
     });
     
-    console.log(`Mesa Dual Rectifier: Channel ${channel} (true equal-power cos/sin x-fade)`);
+    console.log(`Mesa Dual Rectifier: Channel ${channel} (zipper-free equal-power cos/sin x-fade)`);
   }
   
   // ============================================
@@ -1300,10 +1287,12 @@ class MesaDualRectifierAmp extends BaseAmp {
       case 'presence': // Alias (NFB high shelf)
         {
           // Presence controls NFB (negative feedback) high shelf
-          // -6dB..+6dB, attenuates with master to simulate damping
+          // -6dB..+6dB, attenuates with master to simulate power amp damping
+          // At high volumes, speaker load damps presence (real amp behavior)
           const dB = (value - 50) / 50 * 6;
           const master = this.outputMaster.gain.value; // 0..1
-          const effective = dB * (0.7 + 0.3 * (1 - master));
+          const dampingFactor = 0.6 + 0.4 * (1 - master); // More effect at low volume
+          const effective = dB * dampingFactor;
           this.nfbHi.gain.setTargetAtTime(effective, now, 0.01);
         }
         break;
@@ -1428,7 +1417,9 @@ class MesaDualRectifierAmp extends BaseAmp {
       
       // Channel 1
       this.ch1Gain.disconnect();
+      this.ch1PreEmph.disconnect();
       this.ch1Saturation.disconnect();
+      this.ch1DeEmph.disconnect();
       this.ch1Bass.disconnect();
       this.ch1Mid.disconnect();
       this.ch1Treble.disconnect();
@@ -1439,7 +1430,9 @@ class MesaDualRectifierAmp extends BaseAmp {
       // Channel 2
       this.ch2Gain.disconnect();
       this.ch2NoiseGate.disconnect();
+      this.ch2PreEmph.disconnect();
       this.ch2Saturation.disconnect();
+      this.ch2DeEmph.disconnect();
       this.ch2Bass.disconnect();
       this.ch2Mid.disconnect();
       this.ch2Treble.disconnect();
@@ -1457,7 +1450,9 @@ class MesaDualRectifierAmp extends BaseAmp {
       this.ch3Treble.disconnect();
       this.ch3ToneStackMakeup.disconnect();
       this.ch3AntiAlias1.disconnect();
+      this.ch3PreEmph.disconnect();
       this.ch3Saturation.disconnect();
+      this.ch3DeEmph.disconnect();
       this.ch3MidScoop.disconnect();
       this.ch3LowDamping.disconnect();
       this.ch3AntiAlias2.disconnect();
@@ -1487,7 +1482,9 @@ class MesaDualRectifierAmp extends BaseAmp {
       this.variacGain.disconnect();
       this.powerAmp.disconnect();
       this.supplyGain.disconnect();
+      this.powerPreEmph.disconnect();
       this.powerSaturation.disconnect();
+      this.powerDeEmph.disconnect();
       this.nfbHi.disconnect();
       this.nfbLo.disconnect();
       this.biasFilter.disconnect();
