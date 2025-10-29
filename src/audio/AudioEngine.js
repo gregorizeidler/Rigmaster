@@ -120,11 +120,17 @@ class AudioEngine {
   }
 
   reconnectChain() {
-    if (!this.inputNode || !this.outputNode) return;
+    if (!this.outputNode) return;
+
+    console.log(`🔗 reconnectChain: usingAudioFile=${this.usingAudioFile}, hasAudioFileGain=${!!this.audioFileGain}, effectsCount=${this.effectsChain.length}`);
 
     // Disconnect ONLY external connections (not internal effect routing)
     try {
-      this.inputNode.disconnect();
+      if (this.inputNode) this.inputNode.disconnect();
+    } catch (e) {}
+    
+    try {
+      if (this.audioFileGain) this.audioFileGain.disconnect();
     } catch (e) {}
     
     this.effectsChain.forEach(effect => {
@@ -135,17 +141,31 @@ class AudioEngine {
       } catch (e) {}
     });
 
+    // Determine the source (microphone or audio file)
+    const sourceNode = this.usingAudioFile && this.audioFileGain ? this.audioFileGain : this.inputNode;
+    
+    console.log(`   Source: ${this.usingAudioFile && this.audioFileGain ? 'AUDIO FILE' : 'MICROPHONE'}`);
+    
+    if (!sourceNode) {
+      console.warn('   ⚠️ No source node available!');
+      return;
+    }
+
     // Reconnect in order
     if (this.effectsChain.length === 0) {
-      this.inputNode.connect(this.outputNode);
+      sourceNode.connect(this.outputNode);
+      console.log(`   ✅ Direct: source → output`);
     } else {
-      this.inputNode.connect(this.effectsChain[0].input);
+      sourceNode.connect(this.effectsChain[0].input);
+      console.log(`   ✅ Connected: source → ${this.effectsChain[0].name}`);
       
       for (let i = 0; i < this.effectsChain.length - 1; i++) {
         this.effectsChain[i].output.connect(this.effectsChain[i + 1].input);
+        console.log(`   ✅ Connected: ${this.effectsChain[i].name} → ${this.effectsChain[i + 1].name}`);
       }
       
       this.effectsChain[this.effectsChain.length - 1].output.connect(this.outputNode);
+      console.log(`   ✅ Connected: ${this.effectsChain[this.effectsChain.length - 1].name} → output`);
     }
   }
 
@@ -255,6 +275,12 @@ class AudioEngine {
       // Stop any existing playback
       this.stopAudioFile();
 
+      // Create gain if doesn't exist
+      if (!this.audioFileGain) {
+        this.audioFileGain = this.audioContext.createGain();
+        this.audioFileGain.gain.value = 0.8; // Default volume
+      }
+
       // Switch from microphone to file input
       if (!this.usingAudioFile) {
         this._switchToFileInput();
@@ -266,15 +292,11 @@ class AudioEngine {
       this.audioFileSource.loop = loop;
       this.audioFileLoop = loop;
 
-      // Create gain if doesn't exist
-      if (!this.audioFileGain) {
-        this.audioFileGain = this.audioContext.createGain();
-        this.audioFileGain.gain.value = 0.8; // Default volume
-      }
-
-      // Connect
+      // Connect source to gain
       this.audioFileSource.connect(this.audioFileGain);
-      this.audioFileGain.connect(this.effectsChain.length > 0 ? this.effectsChain[0].input : this.outputNode);
+      
+      // reconnectChain will handle connecting audioFileGain to effects/output
+      this.reconnectChain();
 
       // Start playback
       const offset = this.audioFilePaused ? this.audioFilePauseTime : 0;
@@ -282,7 +304,7 @@ class AudioEngine {
       this.audioFileStartTime = this.audioContext.currentTime - offset;
       this.audioFilePaused = false;
 
-      console.log('▶️ Playing audio file');
+      console.log('▶️ Playing audio file through effects chain');
       return true;
     } catch (error) {
       console.error('❌ Failed to play audio file:', error);

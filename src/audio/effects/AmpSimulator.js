@@ -1696,22 +1696,36 @@ class AmpSimulator extends BaseEffect {
 
   disconnect() {
     super.disconnect();
+    
+    // If using dedicated amp, disconnect it and return
+    if (this.useDedicatedAmp && this.dedicatedAmp) {
+      try {
+        if (this.dedicatedAmp.disconnect) {
+          this.dedicatedAmp.disconnect();
+        }
+      } catch (e) {
+        console.error('Error disconnecting dedicated amp:', e);
+      }
+      return;
+    }
+    
+    // Generic amp disconnection
     try {
-      this.inputGain.disconnect();
-      this.brightFilter.disconnect();
-      this.boostGain.disconnect();
-      this.preAmpGain.disconnect();
-      this.powerAmpCompressor.disconnect();
-      this.lowShelf.disconnect();
-      this.lowMid.disconnect();
-      this.midPeak.disconnect();
-      this.highShelf.disconnect();
-      this.shapeFilter.disconnect();
-      this.antiAliasing.disconnect(); // NEW: anti-aliasing filter
-      this.saturation.disconnect();
-      this.dcBlocker.disconnect(); // NEW: DC blocker
-      this.presenceFilter.disconnect();
-      this.resonanceFilter.disconnect();
+      if (this.inputGain) this.inputGain.disconnect();
+      if (this.brightFilter) this.brightFilter.disconnect();
+      if (this.boostGain) this.boostGain.disconnect();
+      if (this.preAmpGain) this.preAmpGain.disconnect();
+      if (this.powerAmpCompressor) this.powerAmpCompressor.disconnect();
+      if (this.lowShelf) this.lowShelf.disconnect();
+      if (this.lowMid) this.lowMid.disconnect();
+      if (this.midPeak) this.midPeak.disconnect();
+      if (this.highShelf) this.highShelf.disconnect();
+      if (this.shapeFilter) this.shapeFilter.disconnect();
+      if (this.antiAliasing) this.antiAliasing.disconnect();
+      if (this.saturation) this.saturation.disconnect();
+      if (this.dcBlocker) this.dcBlocker.disconnect();
+      if (this.presenceFilter) this.presenceFilter.disconnect();
+      if (this.resonanceFilter) this.resonanceFilter.disconnect();
       
       // Disconnect cabinet nodes
       if (this.cabinet) {
@@ -1724,49 +1738,55 @@ class AmpSimulator extends BaseEffect {
         });
       }
       
-      this.masterGain.disconnect();
-      this.tremoloGain.disconnect();
-      this.tremoloLFO.stop();
-      this.tremoloLFO.disconnect();
-      this.tremoloDepth.disconnect();
+      if (this.masterGain) this.masterGain.disconnect();
+      if (this.tremoloGain) this.tremoloGain.disconnect();
+      if (this.tremoloLFO) {
+        try { this.tremoloLFO.stop(); } catch (e) {}
+        this.tremoloLFO.disconnect();
+      }
+      if (this.tremoloDepth) this.tremoloDepth.disconnect();
       
-      this.chorusDelay.disconnect();
-      this.chorusLFO.stop();
-      this.chorusLFO.disconnect();
-      this.chorusDepth.disconnect();
-      this.chorusGain.disconnect();
+      if (this.chorusDelay) this.chorusDelay.disconnect();
+      if (this.chorusLFO) {
+        try { this.chorusLFO.stop(); } catch (e) {}
+        this.chorusLFO.disconnect();
+      }
+      if (this.chorusDepth) this.chorusDepth.disconnect();
+      if (this.chorusGain) this.chorusGain.disconnect();
       
-      this.reverbGain.disconnect();
+      if (this.reverbGain) this.reverbGain.disconnect();
       if (this.springReverb) {
         this.springReverb.disconnect();
       }
       
       // Disconnect advanced amp nodes
-      this.biasGain.disconnect();
-      this.sagCompressor.disconnect();
-      this.rectifierSag.disconnect();
-      this.transformerSaturation.disconnect();
-      this.transformerGain.disconnect();
-      this.humOscillator.stop();
-      this.humOscillator.disconnect();
-      this.humGain.disconnect();
-      this.impedanceFilter.disconnect();
-      this.dampingFilter.disconnect();
-      this.feedbackGain.disconnect();
-      this.feedbackDelay.disconnect();
-      this.feedbackFilter.disconnect();
-      this.roomReverbNode.disconnect();
-      this.roomGain.disconnect();
-      this.earlyReflections.disconnect();
-      this.earlyReflectionsGain.disconnect();
-      this.ambientMicGain.disconnect();
-      this.ambientMicFilter.disconnect();
-      this.splitter.disconnect();
-      this.merger.disconnect();
-      this.widthGainL.disconnect();
-      this.widthGainR.disconnect();
-      this.fxLoopSend.disconnect();
-      this.fxLoopReturn.disconnect();
+      if (this.biasGain) this.biasGain.disconnect();
+      if (this.sagCompressor) this.sagCompressor.disconnect();
+      if (this.rectifierSag) this.rectifierSag.disconnect();
+      if (this.transformerSaturation) this.transformerSaturation.disconnect();
+      if (this.transformerGain) this.transformerGain.disconnect();
+      if (this.humOscillator) {
+        try { this.humOscillator.stop(); } catch (e) {}
+        try { this.humOscillator.disconnect(); } catch (e) {}
+      }
+      if (this.humGain) this.humGain.disconnect();
+      if (this.impedanceFilter) this.impedanceFilter.disconnect();
+      if (this.dampingFilter) this.dampingFilter.disconnect();
+      if (this.feedbackGain) this.feedbackGain.disconnect();
+      if (this.feedbackDelay) this.feedbackDelay.disconnect();
+      if (this.feedbackFilter) this.feedbackFilter.disconnect();
+      if (this.roomReverbNode) this.roomReverbNode.disconnect();
+      if (this.roomGain) this.roomGain.disconnect();
+      if (this.earlyReflections) this.earlyReflections.disconnect();
+      if (this.earlyReflectionsGain) this.earlyReflectionsGain.disconnect();
+      if (this.ambientMicGain) this.ambientMicGain.disconnect();
+      if (this.ambientMicFilter) this.ambientMicFilter.disconnect();
+      if (this.splitter) this.splitter.disconnect();
+      if (this.merger) this.merger.disconnect();
+      if (this.widthGainL) this.widthGainL.disconnect();
+      if (this.widthGainR) this.widthGainR.disconnect();
+      if (this.fxLoopSend) this.fxLoopSend.disconnect();
+      if (this.fxLoopReturn) this.fxLoopReturn.disconnect();
     } catch (e) {
       console.warn('Error disconnecting amp nodes:', e);
     }

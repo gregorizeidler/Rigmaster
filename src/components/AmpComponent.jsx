@@ -2087,6 +2087,10 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       // PEAVEY 5150 - COMPLETE CONTROLS
       // ============================================
       case 'peavey_5150_controls':
+        const peaveyChannel = amp.params?.channel || 1; // 0=Rhythm, 1=Lead
+        const peaveyPreParam = peaveyChannel === 0 ? 'rhythm_pre_gain' : 'lead_pre_gain';
+        const peaveyPostParam = peaveyChannel === 0 ? 'rhythm_post_gain' : 'lead_post_gain';
+        
         return (
           <div key="peavey_5150_controls" className="peavey-5150-full-controls" style={{
             display: 'flex',
@@ -2110,7 +2114,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
               justifyContent: 'center',
               alignItems: 'center'
             }}>
-            {/* PREGAIN + POSTGAIN */}
+            {/* PREGAIN + POSTGAIN - Dinâmicos baseados no canal ativo */}
             <div style={{
               display: 'flex',
               gap: '6px',
@@ -2119,8 +2123,8 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
               borderRadius: '4px',
               border: '1px solid rgba(80,80,80,0.4)'
             }}>
-              <Knob label="PRE" value={amp.params?.pregain || 50} onChange={handleKnobChange('pregain')} size={26} color="#ffffff" />
-              <Knob label="POST" value={amp.params?.postgain || 50} onChange={handleKnobChange('postgain')} size={26} color="#ffffff" />
+              <Knob label="PRE" value={amp.params?.[peaveyPreParam] || 50} onChange={handleKnobChange(peaveyPreParam)} size={26} color="#ffffff" />
+              <Knob label="POST" value={amp.params?.[peaveyPostParam] || 50} onChange={handleKnobChange(peaveyPostParam)} size={26} color="#ffffff" />
               </div>
 
             {/* GAIN + TONE STACK */}

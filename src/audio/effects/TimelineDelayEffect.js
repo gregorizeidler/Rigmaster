@@ -144,6 +144,8 @@ class TimelineDelayEffect extends BaseEffect {
     // Mix init (equal power)
     this.mix=0.5; this.updateMix(50);
     this.setDelayType(this.currentType);
+    
+    console.log(`✅ Timeline Delay initialized - mix: ${this.mix}, wet: ${this.wetGain.gain.value}, dry: ${this.dryGain.gain.value}`);
   }
 
   async initIceWorkletNodes() {
@@ -275,7 +277,9 @@ class TimelineDelayEffect extends BaseEffect {
   applyReverseEnvelope(seconds){ const now=this.audioContext.currentTime; const end=now+seconds; this.swellL.gain.cancelScheduledValues(now); this.swellR.gain.cancelScheduledValues(now); this.swellL.gain.setValueAtTime(0.1, now); this.swellR.gain.setValueAtTime(0.1, now); this.swellL.gain.exponentialRampToValueAtTime(1.0, end); this.swellR.gain.exponentialRampToValueAtTime(1.0, end); }
 
   // ===== Parameters =====
-  updateParameter(parameter, value){ const now=this.audioContext.currentTime;
+  updateParameter(parameter, value){ 
+    console.log(`🎛️ Timeline: updateParameter(${parameter}, ${value})`);
+    const now=this.audioContext.currentTime;
     switch(parameter){
       case 'time':{ const t=0.04+(value/100)*4.96; this.delayL.delayTime.setTargetAtTime(t, now, 0.01); this.delayR.delayTime.setTargetAtTime(t, now, 0.01); this.tapTempo.enabled=false; break; }
       case 'repeats':{ const fb=Math.min(0.95,(value/100)*0.95); this.feedbackL.gain.setTargetAtTime(fb, now, 0.01); this.feedbackR.gain.setTargetAtTime(fb, now, 0.01); break; }
@@ -317,6 +321,21 @@ class TimelineDelayEffect extends BaseEffect {
   getParameters(){ return { type:this.currentType, time:((this.delayL.delayTime.value-0.04)/4.96)*100, repeats:(this.feedbackL.gain.value/0.95)*100, filter:((this.lpL.frequency.value-500)/11500)*100, grit:0, mod:this.modDepthL.gain.value*50000, speed:((this.modLFO.frequency.value-0.1)/9.9)*100, width:this.sideGain.gain.value*100, mix:(this.mix??0.5)*100, value1:this.value1, value2:this.value2, value3:this.value3, taptempo:this.tapTempo.enabled, subdivision:this.tapTempo.subdivision, bpm:this.tapTempo.bpm }; }
 
   updateMix(value){ this.mix=value/100; const now=this.audioContext.currentTime; const wet=Math.sin(0.5*Math.PI*this.mix); const dry=Math.cos(0.5*Math.PI*this.mix); this.wetGain.gain.setTargetAtTime(wet, now, 0.01); this.dryGain.gain.setTargetAtTime(dry, now, 0.01); }
+
+  // Sobrescrever toggleBypass para preservar o mix customizado
+  toggleBypass() {
+    this.bypassed = !this.bypassed;
+    console.log(`🔇 ${this.name} (${this.id}): toggleBypass -> ${this.bypassed ? 'BYPASSED' : 'ACTIVE'}`);
+    if (this.bypassed) {
+      // Bypassed: 0% wet, 100% dry
+      this.wetGain.gain.setTargetAtTime(0.0, this.audioContext.currentTime, 0.01);
+      this.dryGain.gain.setTargetAtTime(1.0, this.audioContext.currentTime, 0.01);
+    } else {
+      // Reativado: restaurar o mix configurado
+      this.updateMix(this.mix * 100);
+    }
+    return this.bypassed;
+  }
 
   disconnect(){ 
     super.disconnect();

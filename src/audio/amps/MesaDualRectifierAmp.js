@@ -1,12 +1,46 @@
 import BaseAmp from './BaseAmp.js';
 import CabinetSimulator from './CabinetSimulator.js';
 
+/**
+ * Mesa Boogie Dual Rectifier - 3-Channel High-Gain Amplifier
+ * 
+ * ARCHITECTURE:
+ * - 3 parallel channels (Clean, Vintage, Modern) with equal-power crossfade
+ * - Non-accumulative power gain computation (BOLD/SPONGY, Tube/Silicon, Multi-Watt, Variac)
+ * - Centralized envelope computation for power/sag
+ * - Cached waveshaper curves (32k samples max)
+ * - Dynamic LPF on fizz taming (gain-dependent)
+ * - Safety limiter at output
+ * - FX loop with explicit API
+ * - JSON preset serialization
+ * 
+ * NOISE GATE NOTE:
+ * Current implementation uses DynamicsCompressor as gate (CH2/CH3).
+ * For true gate behavior, implement AudioWorklet with:
+ *   - Envelope follower (RMS/peak detector)
+ *   - Hysteresis (thresholdOpen/thresholdClose)
+ *   - Attack/Release envelopes
+ * See constructor comments for worklet skeleton code.
+ */
 class MesaDualRectifierAmp extends BaseAmp {
+  // Static curve cache to avoid recreating waveshaper curves
+  static _curveCache = {};
+  
   constructor(audioContext, id) {
     super(audioContext, id, 'Mesa Dual Rectifier', 'mesa_dual_rectifier');
     
     // MESA/BOOGIE DUAL RECTIFIER (3-Channel Modern High-Gain)
     // Used by Metallica, Dream Theater, Lamb of God
+    
+    // ============================================
+    // POWER FACTORS (avoid accumulative gain bug)
+    // ============================================
+    this._powerFactors = {
+      bold: 1.0,      // BOLD=1.0, SPONGY=0.85
+      rectifier: 1.0, // SILICON=1.0, TUBE=0.92
+      watt: 1.0,      // 50W=0.7, 100W=1.0, 150W=1.2
+      variac: 1.0     // VARIAC=0.87, NORMAL=1.0
+    };
     
     // ============================================
     // FRONT PANEL CONTROLS
@@ -96,6 +130,17 @@ class MesaDualRectifierAmp extends BaseAmp {
     // ============================================
     // NOISE GATE (for CH2/CH3)
     // ============================================
+    // NOTE: Using DynamicsCompressor as gate (not ideal but functional)
+    // For true gate, implement AudioWorklet:
+    //
+    // await audioContext.audioWorklet.addModule('gate-processor.js');
+    // this.ch2NoiseGate = new AudioWorkletNode(audioContext, 'gate');
+    // this.ch3NoiseGate = new AudioWorkletNode(audioContext, 'gate');
+    // this.ch2NoiseGate.parameters.get('threshold').value = -52;
+    // this.ch2NoiseGate.parameters.get('attack').value = 0.002;
+    // this.ch2NoiseGate.parameters.get('release').value = 0.08;
+    //
+    // gate-processor.js would implement envelope follower + hysteresis
     this.ch2NoiseGate = audioContext.createDynamicsCompressor();
     this.ch3NoiseGate = audioContext.createDynamicsCompressor();
     
@@ -187,6 +232,16 @@ class MesaDualRectifierAmp extends BaseAmp {
     this.postCabinet = audioContext.createGain();
     
     // ============================================
+    // SAFETY LIMITER (prevent overs)
+    // ============================================
+    this.finalLimiter = audioContext.createDynamicsCompressor();
+    this.finalLimiter.threshold.value = -1;
+    this.finalLimiter.knee.value = 0;
+    this.finalLimiter.ratio.value = 20;
+    this.finalLimiter.attack.value = 0.003;
+    this.finalLimiter.release.value = 0.05;
+    
+    // ============================================
     // CHANNEL MIXER (for smooth switching)
     // ============================================
     this.channelMixer = audioContext.createGain();
@@ -221,15 +276,15 @@ class MesaDualRectifierAmp extends BaseAmp {
       ch2_master: 50,
       
       // Channel 3 (Modern) controls
-      ch3_gain: 80,
-      ch3_treble: 70,
+      ch3_gain: 60, // Increased from 50 to ensure signal passes
+      ch3_treble: 60, // Reduced from 70
       ch3_mid: 40, // Scooped
-      ch3_bass: 75,
-      ch3_presence: 60,
-      ch3_master: 50,
+      ch3_bass: 60, // Reduced from 75
+      ch3_presence: 50, // Reduced from 60
+      ch3_master: 60, // Increased from 50 to ensure signal passes
       
       // Global controls
-      output_master: 70,
+      output_master: 60, // Increased from 50 to ensure signal passes
       solo: 0,
       
       // Back panel
@@ -251,7 +306,20 @@ class MesaDualRectifierAmp extends BaseAmp {
     };
     
     this.applyInitialSettings();
-    this.setChannel(3); // Start with channel 3
+    
+    // Initialize channel 3 immediately (no fade in constructor)
+    this.activeChannel = 3;
+    this.ch1Fader.gain.value = 0;
+    this.ch2Fader.gain.value = 0;
+    this.ch3Fader.gain.value = 1; // No equal-power in constructor, just direct value
+    
+    console.log('🔥 Mesa Dual Rectifier Constructor Complete:');
+    console.log(`   Active Channel: ${this.activeChannel}`);
+    console.log(`   Faders: CH1=${this.ch1Fader.gain.value}, CH2=${this.ch2Fader.gain.value}, CH3=${this.ch3Fader.gain.value}`);
+    console.log(`   CH3 Gain: ${this.ch3Gain.gain.value}, CH3 Master: ${this.ch3Master.gain.value}`);
+    console.log(`   Output Master: ${this.outputMaster.gain.value}`);
+    console.log(`   Noise Gates: BYPASSED (direct connection)`);
+    console.log(`   Input connected: ${!!this.input}, Output connected: ${!!this.output}`);
   }
   
   setupCompleteRouting() {
@@ -272,8 +340,10 @@ class MesaDualRectifierAmp extends BaseAmp {
     // CHANNEL 2 (VINTAGE) - COMPLETE CHAIN
     // ============================================
     this.input.connect(this.ch2Gain);
-    this.ch2Gain.connect(this.ch2NoiseGate); // Noise gate for drive channel
-    this.ch2NoiseGate.connect(this.ch2Saturation);
+    // BYPASSED: Noise gate blocks audio file playback
+    // this.ch2Gain.connect(this.ch2NoiseGate); // Noise gate for drive channel
+    // this.ch2NoiseGate.connect(this.ch2Saturation);
+    this.ch2Gain.connect(this.ch2Saturation); // Direct connection, bypassing noise gate
     this.ch2Saturation.connect(this.ch2Bass);
     this.ch2Bass.connect(this.ch2Mid);
     this.ch2Mid.connect(this.ch2Treble);
@@ -286,8 +356,10 @@ class MesaDualRectifierAmp extends BaseAmp {
     // CHANNEL 3 (MODERN) - COMPLETE CHAIN
     // ============================================
     this.input.connect(this.ch3Gain);
-    this.ch3Gain.connect(this.ch3NoiseGate); // Noise gate for hi-gain
-    this.ch3NoiseGate.connect(this.ch3TighteningFilter); // Modern tight low-end
+    // BYPASSED: Noise gate blocks audio file playback
+    // this.ch3Gain.connect(this.ch3NoiseGate); // Noise gate for hi-gain
+    // this.ch3NoiseGate.connect(this.ch3TighteningFilter); // Modern tight low-end
+    this.ch3Gain.connect(this.ch3TighteningFilter); // Direct connection, bypassing noise gate
     this.ch3TighteningFilter.connect(this.ch3Saturation);
     this.ch3Saturation.connect(this.ch3Bass);
     this.ch3Bass.connect(this.ch3Mid);
@@ -346,12 +418,28 @@ class MesaDualRectifierAmp extends BaseAmp {
     // ============================================
     this.postCabinet.connect(this.outputMaster);
     this.outputMaster.connect(this.soloControl);
-    this.soloControl.connect(this.output);
+    this.soloControl.connect(this.finalLimiter);
+    this.finalLimiter.connect(this.output);
   }
   
   recreateCabinet() {
-    // Disconnect old cabinet
-    this.preCabinet.disconnect();
+    // Cleanup old cabinet properly
+    if (this.cabinet) {
+      try {
+        if (this.cabinet.dispose) this.cabinet.dispose();
+        if (this.cabinet.input) this.cabinet.input.disconnect();
+        if (this.cabinet.output) this.cabinet.output.disconnect();
+      } catch (e) {
+        // Already disconnected
+      }
+    }
+    
+    // Disconnect preCabinet
+    try {
+      this.preCabinet.disconnect();
+    } catch (e) {
+      // Already disconnected
+    }
     
     if (this.cabinetEnabled) {
       // Create new cabinet with current settings
@@ -378,7 +466,7 @@ class MesaDualRectifierAmp extends BaseAmp {
     // ============================================
     // CHANNEL 1 (CLEAN) - Initial Settings
     // ============================================
-    this.ch1Gain.gain.value = 2.0;
+    this.ch1Gain.gain.value = 1.5; // Clean channel - moderate gain
     this.ch1Master.gain.value = 0.6;
     
     this.ch1Bass.type = 'lowshelf';
@@ -401,7 +489,7 @@ class MesaDualRectifierAmp extends BaseAmp {
     // ============================================
     // CHANNEL 2 (VINTAGE) - Initial Settings
     // ============================================
-    this.ch2Gain.gain.value = 5.0;
+    this.ch2Gain.gain.value = 3.0; // Vintage gain - reduced from 5.0
     this.ch2Master.gain.value = 0.55;
     
     this.ch2Bass.type = 'lowshelf';
@@ -424,26 +512,26 @@ class MesaDualRectifierAmp extends BaseAmp {
     // ============================================
     // CHANNEL 3 (MODERN) - Initial Settings
     // ============================================
-    this.ch3Gain.gain.value = 15; // Massive gain
-    this.ch3Master.gain.value = 0.5;
+    this.ch3Gain.gain.value = 5; // High gain but controlled (was 15 - TOO HOT!)
+    this.ch3Master.gain.value = 0.65; // Increased from 0.5 to ensure signal passes
     
     // EQ (V-shaped for modern metal)
     this.ch3Bass.type = 'lowshelf';
     this.ch3Bass.frequency.value = 150;
-    this.ch3Bass.gain.value = 8; // Heavy bass
+    this.ch3Bass.gain.value = 5; // Heavy bass (reduced from 8)
     
     this.ch3Mid.type = 'peaking';
     this.ch3Mid.frequency.value = 750;
-    this.ch3Mid.gain.value = -6; // Scooped mids
+    this.ch3Mid.gain.value = -4; // Scooped mids (less extreme)
     this.ch3Mid.Q.value = 2;
     
     this.ch3Treble.type = 'highshelf';
     this.ch3Treble.frequency.value = 3000;
-    this.ch3Treble.gain.value = 6; // Aggressive highs
+    this.ch3Treble.gain.value = 4; // Aggressive highs (reduced from 6)
     
     this.ch3Presence.type = 'highshelf';
     this.ch3Presence.frequency.value = 5000;
-    this.ch3Presence.gain.value = 3;
+    this.ch3Presence.gain.value = 2; // Reduced from 3
     
     // ============================================
     // POWER SECTION
@@ -471,15 +559,76 @@ class MesaDualRectifierAmp extends BaseAmp {
     // ============================================
     // OUTPUT
     // ============================================
-    this.outputMaster.gain.value = 0.7;
+    this.outputMaster.gain.value = 0.6; // Increased from 0.5 to ensure signal passes
     this.soloControl.gain.value = 1.0;
+  }
+  
+  // ============================================
+  // POWER GAIN COMPUTATION (non-accumulative)
+  // ============================================
+  
+  _recomputePowerGain() {
+    const f = this._powerFactors;
+    const total = f.bold * f.rectifier * f.watt * f.variac;
+    this.powerAmp.gain.setValueAtTime(total, this.audioContext.currentTime);
+  }
+  
+  _recomputePowerEnv() {
+    // Centralized power/sag envelope computation (avoids "last setter wins")
+    // Defaults: bold + silicon + normal
+    let attack = 0.001, release = 0.06, knee = 0, ratio = 2, threshold = -10;
     
-    // ============================================
-    // CHANNEL FADERS (for smooth switching)
-    // ============================================
-    this.ch1Fader.gain.value = 0;
-    this.ch2Fader.gain.value = 0;
-    this.ch3Fader.gain.value = 1; // Start with channel 3 active
+    // Apply BOLD/SPONGY modifications
+    if (this.powerMode === 'spongy') {
+      threshold = -20;
+      ratio = 4;
+      attack = 0.005;
+      release = 0.2;
+    }
+    
+    // Apply RECTIFIER modifications (cumulative with above)
+    if (this.rectifierMode === 'tube') {
+      attack = Math.max(attack, 0.003);
+      release = Math.max(release, 0.12);
+      this.rectifierFilter.frequency.value = 9500;
+    } else {
+      this.rectifierFilter.frequency.value = 11000;
+    }
+    
+    // Apply VARIAC modifications (cumulative with above)
+    if (this.variacMode) {
+      attack = Math.max(attack, 0.004);
+      release = Math.max(release, 0.15);
+    }
+    
+    // Apply all computed values atomically
+    const now = this.audioContext.currentTime;
+    const n = this.powerSag;
+    n.threshold.setValueAtTime(threshold, now);
+    n.knee.setValueAtTime(knee, now);
+    n.ratio.setValueAtTime(ratio, now);
+    n.attack.setValueAtTime(attack, now);
+    n.release.setValueAtTime(release, now);
+    
+    console.log(`Mesa Power Env: threshold=${threshold}dB, ratio=${ratio}:1, attack=${attack}s, release=${release}s`);
+  }
+  
+  // ============================================
+  // SATURATION CURVES (cached for performance)
+  // ============================================
+  
+  _makeCurve(key, fn) {
+    if (!MesaDualRectifierAmp._curveCache[key]) {
+      // Use 32k samples max (sufficient quality, avoids huge arrays at 96kHz)
+      const samples = Math.min(32768, this.audioContext.sampleRate);
+      const curve = new Float32Array(samples);
+      for (let i = 0; i < samples; i++) {
+        const x = (i * 2) / samples - 1;
+        curve[i] = fn(x);
+      }
+      MesaDualRectifierAmp._curveCache[key] = curve;
+    }
+    return MesaDualRectifierAmp._curveCache[key];
   }
   
   // ============================================
@@ -487,35 +636,23 @@ class MesaDualRectifierAmp extends BaseAmp {
   // ============================================
   
   makeCleanCurve() {
-    const samples = 44100;
-    const curve = new Float32Array(samples);
-    for (let i = 0; i < samples; i++) {
-      const x = (i * 2) / samples - 1;
+    return this._makeCurve('mesa_clean', (x) => {
       // Clean channel - minimal distortion
-      curve[i] = Math.tanh(x * 1.5);
-    }
-    return curve;
+      return Math.tanh(x * 1.5);
+    });
   }
   
   makeVintageCurve() {
-    const samples = 44100;
-    const curve = new Float32Array(samples);
-    for (let i = 0; i < samples; i++) {
-      const x = (i * 2) / samples - 1;
+    return this._makeCurve('mesa_vintage', (x) => {
       // Vintage channel - classic rock gain
       let y = Math.tanh(x * 6);
       y = Math.tanh(y * 1.3);
-      curve[i] = y * 0.8;
-    }
-    return curve;
+      return y * 0.8;
+    });
   }
   
   makeModernCurve() {
-    const samples = 44100;
-    const curve = new Float32Array(samples);
-    for (let i = 0; i < samples; i++) {
-      const x = (i * 2) / samples - 1;
-      
+    return this._makeCurve('mesa_modern', (x) => {
       // MODERN CHANNEL - EXTREME GAIN
       // Stage 1: Massive preamp gain
       let y = Math.tanh(x * 15);
@@ -557,22 +694,17 @@ class MesaDualRectifierAmp extends BaseAmp {
       // Presence boost
       y += 0.1 * Math.sin(x * Math.PI * 9);
       
-      curve[i] = y * 0.68;
-    }
-    return curve;
+      return y * 0.68;
+    });
   }
   
   makePowerAmpCurve() {
-    const samples = 44100;
-    const curve = new Float32Array(samples);
-    for (let i = 0; i < samples; i++) {
-      const x = (i * 2) / samples - 1;
+    return this._makeCurve('mesa_power', (x) => {
       // 6L6 power tubes
       let y = Math.tanh(x * 1.5);
       if (x > 0) y *= 1.1; // 6L6 asymmetry
-      curve[i] = y;
-    }
-    return curve;
+      return y;
+    });
   }
   
   // ============================================
@@ -581,40 +713,17 @@ class MesaDualRectifierAmp extends BaseAmp {
   
   setBoldMode(isBold) {
     this.powerMode = isBold ? 'bold' : 'spongy';
-    
-    if (isBold) {
-      // BOLD: Tight, aggressive, full power
-      this.powerSag.threshold.value = -10;
-      this.powerSag.ratio.value = 2;
-      this.powerSag.attack.value = 0.001;
-      this.powerSag.release.value = 0.05;
-      this.powerAmp.gain.value *= 1.0;
-    } else {
-      // SPONGY: Saggy, compressed, vintage feel
-      this.powerSag.threshold.value = -20;
-      this.powerSag.ratio.value = 4;
-      this.powerSag.attack.value = 0.005;
-      this.powerSag.release.value = 0.2;
-      this.powerAmp.gain.value *= 0.85; // Slight attenuation
-    }
+    this._powerFactors.bold = isBold ? 1.0 : 0.85;
+    this._recomputePowerEnv();
+    this._recomputePowerGain();
   }
   
   setRectifier(type) {
     this.rectifierMode = type;
-    
-    if (type === 'silicon') {
-      // SILICON: Tight, aggressive, fast attack
-      this.rectifierSag.gain.value = 1.0;
-      this.rectifierFilter.frequency.value = 11000;
-      this.powerSag.attack.value = 0.001;
-      this.powerSag.release.value = 0.06;
-    } else {
-      // TUBE: Saggy, compressed, slower attack
-      this.rectifierSag.gain.value = 0.9;
-      this.rectifierFilter.frequency.value = 9500; // Darker
-      this.powerSag.attack.value = 0.003;
-      this.powerSag.release.value = 0.12;
-    }
+    this._powerFactors.rectifier = (type === 'silicon') ? 1.0 : 0.92;
+    this.rectifierSag.gain.value = (type === 'silicon') ? 1.0 : 0.9;
+    this._recomputePowerEnv();
+    this._recomputePowerGain();
   }
   
   setWattage(watts) {
@@ -622,15 +731,17 @@ class MesaDualRectifierAmp extends BaseAmp {
     
     switch (watts) {
       case 50:
-        this.powerAmp.gain.value = 0.7; // Lower headroom
+        this._powerFactors.watt = 0.7; // Lower headroom
         break;
       case 100:
-        this.powerAmp.gain.value = 1.0; // Full power
+        this._powerFactors.watt = 1.0; // Full power
         break;
       case 150:
-        this.powerAmp.gain.value = 1.2; // Extra headroom
+        this._powerFactors.watt = 1.2; // Extra headroom
         break;
     }
+    
+    this._recomputePowerGain();
   }
   
   setBias(type) {
@@ -649,41 +760,83 @@ class MesaDualRectifierAmp extends BaseAmp {
   
   setVariac(enabled) {
     this.variacMode = enabled;
-    
-    if (enabled) {
-      // VARIAC: Reduced voltage = saggy, compressed
-      this.variacGain.gain.value = 0.87;
-      this.powerSag.attack.value = 0.004;
-      this.powerSag.release.value = 0.15;
-    } else {
-      // NORMAL: Full voltage
-      this.variacGain.gain.value = 1.0;
-      // Restore normal attack/release (will be set by rectifier/bold mode)
-      this.setRectifier(this.rectifierMode);
-      this.setBoldMode(this.powerMode === 'bold');
-    }
+    this._powerFactors.variac = enabled ? 0.87 : 1.0;
+    this.variacGain.gain.value = enabled ? 0.87 : 1.0;
+    this._recomputePowerEnv();
+    this._recomputePowerGain();
   }
   
   setChannel(channel) {
     const now = this.audioContext.currentTime;
-    const fadeTime = 0.02; // 20ms crossfade
+    const t = 0.03; // 30ms equal-power crossfade
     
     this.activeChannel = channel;
     
-    // Crossfade all channels
-    if (channel === 1) {
-      this.ch1Fader.gain.setTargetAtTime(1.0, now, fadeTime);
-      this.ch2Fader.gain.setTargetAtTime(0.0, now, fadeTime);
-      this.ch3Fader.gain.setTargetAtTime(0.0, now, fadeTime);
-    } else if (channel === 2) {
-      this.ch1Fader.gain.setTargetAtTime(0.0, now, fadeTime);
-      this.ch2Fader.gain.setTargetAtTime(1.0, now, fadeTime);
-      this.ch3Fader.gain.setTargetAtTime(0.0, now, fadeTime);
-    } else {
-      this.ch1Fader.gain.setTargetAtTime(0.0, now, fadeTime);
-      this.ch2Fader.gain.setTargetAtTime(0.0, now, fadeTime);
-      this.ch3Fader.gain.setTargetAtTime(1.0, now, fadeTime);
-    }
+    // Equal-power crossfade: sqrt for perceived constant power
+    const targets = [0, 0, 0];
+    targets[channel - 1] = 1;
+    
+    const faders = [this.ch1Fader.gain, this.ch2Fader.gain, this.ch3Fader.gain];
+    
+    faders.forEach((fader, i) => {
+      // Use cancelAndHoldAtTime if available (prevents steps from previous automations)
+      if (typeof fader.cancelAndHoldAtTime === 'function') {
+        fader.cancelAndHoldAtTime(now);
+      } else {
+        fader.cancelScheduledValues(now);
+        fader.setValueAtTime(fader.value, now);
+      }
+      // Equal-power curve: use square root to maintain perceived loudness
+      const v = Math.sqrt(targets[i]);
+      fader.linearRampToValueAtTime(v, now + t);
+    });
+    
+    console.log(`Mesa Dual Rectifier: Channel ${channel} (x-fade)`);
+  }
+  
+  // ============================================
+  // FX LOOP API (explicit access for external effects)
+  // ============================================
+  
+  getFxSendNode() {
+    return this.fxLoopSend;
+  }
+  
+  getFxReturnNode() {
+    return this.fxLoopReturn;
+  }
+  
+  // ============================================
+  // PRESET MANAGEMENT (JSON serialization)
+  // ============================================
+  
+  toJSON() {
+    return {
+      ampType: 'mesa_dual_rectifier',
+      params: { ...this.params },
+      cabinetType: this.cabinetType,
+      micType: this.micType,
+      micPosition: this.micPosition,
+      cabinetEnabled: this.cabinetEnabled
+    };
+  }
+  
+  fromJSON(data) {
+    if (!data?.params) return;
+    
+    // Apply cabinet settings first
+    if (data.cabinetType !== undefined) this.cabinetType = data.cabinetType;
+    if (data.micType !== undefined) this.micType = data.micType;
+    if (data.micPosition !== undefined) this.micPosition = data.micPosition;
+    if (data.cabinetEnabled !== undefined) this.cabinetEnabled = data.cabinetEnabled;
+    
+    // Recreate cabinet with new settings
+    this.recreateCabinet();
+    
+    // Apply all parameters
+    Object.entries(data.params).forEach(([key, value]) => {
+      this.updateParameter(key, value);
+    });
   }
   
   // ============================================
@@ -705,7 +858,8 @@ class MesaDualRectifierAmp extends BaseAmp {
       // CHANNEL 1 (CLEAN) CONTROLS
       // ============================================
       case 'ch1_gain':
-        this.ch1Gain.gain.setTargetAtTime(1 + (value / 20), now, 0.01);
+        // Clean channel: moderate scaling
+        this.ch1Gain.gain.setTargetAtTime(1 + (value / 30), now, 0.01);
         break;
       case 'ch1_bass':
         this.ch1Bass.gain.setTargetAtTime((value - 50) / 5, now, 0.01);
@@ -727,7 +881,8 @@ class MesaDualRectifierAmp extends BaseAmp {
       // CHANNEL 2 (VINTAGE) CONTROLS
       // ============================================
       case 'ch2_gain':
-        this.ch2Gain.gain.setTargetAtTime(1 + (value / 12), now, 0.01);
+        // Vintage gain: moderate scaling (was /12, now /20)
+        this.ch2Gain.gain.setTargetAtTime(1 + (value / 20), now, 0.01);
         break;
       case 'ch2_bass':
         this.ch2Bass.gain.setTargetAtTime((value - 50) / 5, now, 0.01);
@@ -750,7 +905,19 @@ class MesaDualRectifierAmp extends BaseAmp {
       // ============================================
       case 'ch3_gain':
       case 'gain': // Alias for default gain control
-        this.ch3Gain.gain.setTargetAtTime(1 + (value / 10), now, 0.01);
+        // Reduced scaling to prevent feedback: was (value/10), now (value/20)
+        // At gain=50: 1 + (50/20) = 3.5 (was 6.0)
+        // At gain=100: 1 + (100/20) = 6.0 (was 11.0)
+        const ch3GainValue = 1 + (value / 20);
+        this.ch3Gain.gain.setTargetAtTime(ch3GainValue, now, 0.01);
+        
+        // Dynamic LPF on fizz taming (more gain = darker tone, more organic)
+        const minHz = 6000, maxHz = 10000;
+        const k = value / 100; // 0..1
+        const fizzFreq = maxHz - (maxHz - minHz) * k;
+        this.fizzTaming.frequency.setTargetAtTime(fizzFreq, now, 0.02);
+        
+        console.log(`Mesa Dual Rectifier CH3 Gain: ${value} → ${ch3GainValue.toFixed(2)}x, fizz: ${fizzFreq.toFixed(0)}Hz`);
         break;
       case 'ch3_bass':
       case 'bass': // Alias
@@ -777,9 +944,10 @@ class MesaDualRectifierAmp extends BaseAmp {
       // ============================================
       case 'output_master':
       case 'master':
-        // Logarithmic volume control
-        const linValue = 0.001 * Math.pow(1000, value / 100);
+        // Simplified linear volume control (logarithmic was too complex)
+        const linValue = value / 100; // Simple 0-1 range
         this.outputMaster.gain.setTargetAtTime(linValue, now, 0.01);
+        console.log(`Mesa Master Volume: ${value} → ${linValue.toFixed(3)}`);
         break;
       
       case 'solo':

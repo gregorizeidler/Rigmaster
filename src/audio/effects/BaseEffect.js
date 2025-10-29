@@ -44,13 +44,17 @@ class BaseEffect {
 
   toggleBypass() {
     this.bypassed = !this.bypassed;
+    console.log(`🔇 ${this.name} (${this.id}): toggleBypass -> ${this.bypassed ? 'BYPASSED' : 'ACTIVE'}`);
     if (this.bypassed) {
       this.wetGain.gain.value = 0.0;
       this.dryGain.gain.value = 1.0;
     } else {
+      // Quando reativado, voltar ao valor padrão (100% wet)
+      // Nota: Efeitos com mix customizado devem sobrescrever este método
       this.wetGain.gain.value = 1.0;
       this.dryGain.gain.value = 0.0;
     }
+    console.log(`   wet: ${this.wetGain.gain.value}, dry: ${this.dryGain.gain.value}`);
     return this.bypassed;
   }
 

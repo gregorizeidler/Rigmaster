@@ -179,10 +179,41 @@ function App() {
         // Wait for audioContext to be fully ready
         await new Promise(resolve => setTimeout(resolve, 100));
         setIsAudioActive(true);
-        // Re-add existing effects to the new audio context
-        effects.forEach(effect => {
-          addEffectToEngine(effect.type, effect);
-        });
+        
+        // Re-create existing effects with the new audio context
+        if (effects.length > 0) {
+          console.log(`🔄 Recreating ${effects.length} effects with new AudioContext`);
+          const savedEffectsData = effects.map(e => ({
+            type: e.type,
+            params: e.params,
+            bypassed: e.bypassed,
+            ampType: e.ampType
+          }));
+          
+          // Clear old effects from state
+          setEffects([]);
+          
+          // Recreate effects with new audio context
+          const newEffects = [];
+          savedEffectsData.forEach(effectData => {
+            const newEffect = addEffectToEngine(effectData.type, effectData);
+            if (newEffect) {
+              // Restore parameters
+              if (effectData.params) {
+                Object.entries(effectData.params).forEach(([param, value]) => {
+                  newEffect.instance.updateParameter(param, value);
+                });
+              }
+              // Restore bypass state
+              if (effectData.bypassed && newEffect.instance.toggleBypass) {
+                newEffect.instance.toggleBypass();
+              }
+              newEffects.push(newEffect);
+            }
+          });
+          
+          setEffects(newEffects);
+        }
       }
     }
   };
@@ -193,11 +224,20 @@ function App() {
     
     // If audio is already active, restart with new device
     if (isAudioActive) {
+      // Save current effects state
+      const savedEffectsData = effects.map(e => ({
+        type: e.type,
+        params: e.params,
+        bypassed: e.bypassed,
+        ampType: e.ampType
+      }));
+      
       // Stop current audio
       if (audioEngineRef.current) {
         audioEngineRef.current.stop();
       }
       setIsAudioActive(false);
+      setEffects([]);
       
       // Wait a bit
       await new Promise(resolve => setTimeout(resolve, 200));
@@ -207,9 +247,28 @@ function App() {
       if (success) {
         await new Promise(resolve => setTimeout(resolve, 100));
         setIsAudioActive(true);
-        effects.forEach(effect => {
-          addEffectToEngine(effect.type, effect);
+        
+        // Recreate effects with new audio context
+        console.log(`🔄 Recreating ${savedEffectsData.length} effects with new device`);
+        const newEffects = [];
+        savedEffectsData.forEach(effectData => {
+          const newEffect = addEffectToEngine(effectData.type, effectData);
+          if (newEffect) {
+            // Restore parameters
+            if (effectData.params) {
+              Object.entries(effectData.params).forEach(([param, value]) => {
+                newEffect.instance.updateParameter(param, value);
+              });
+            }
+            // Restore bypass state
+            if (effectData.bypassed && newEffect.instance.toggleBypass) {
+              newEffect.instance.toggleBypass();
+            }
+            newEffects.push(newEffect);
+          }
         });
+        
+        setEffects(newEffects);
       }
     }
   };
@@ -543,6 +602,106 @@ function App() {
   };
 
   const updateEffect = (id, parameter, value) => {
+    // Se trocar o tipo de amplificador, precisa recriar o amp
+    if (parameter === 'ampType') {
+      const effect = effects.find(e => e.id === id);
+      if (effect && effect.type === 'amp') {
+        console.log(`🔄 Recreating amp: ${effect.ampType} → ${value}`);
+        
+        // Salvar parâmetros atuais
+        const savedParams = { ...effect.params };
+        const savedBypassed = effect.bypassed;
+        
+        // Remover amp antigo
+        audioEngineRef.current.removeEffect(id);
+        
+        // Pequeno delay para garantir cleanup
+        setTimeout(() => {
+          // Criar novo amp com o novo tipo
+          const newAmp = addEffectToEngine('amp', {
+            id: id,
+            ampType: value,
+            params: { ...savedParams, ampType: value },
+            bypassed: savedBypassed
+          });
+          
+          if (newAmp) {
+            // Atualizar estado React
+            setEffects(effects.map(e => e.id === id ? newAmp : e));
+            
+            // CRÍTICO: Atualizar também o effectsChain interno do AudioEngine
+            const effectIndex = audioEngineRef.current.effectsChain.findIndex(e => e.id === id);
+            if (effectIndex !== -1) {
+              audioEngineRef.current.effectsChain[effectIndex] = newAmp.instance;
+              console.log(`🔄 Updated effectsChain[${effectIndex}] with new amp instance`);
+            }
+            
+            // IMPORTANTE: Forçar reconexão da cadeia após criar o amp
+            audioEngineRef.current.reconnectChain();
+            console.log(`🔗 Chain reconnected after amp creation (usingAudioFile: ${audioEngineRef.current.usingAudioFile})`);
+            
+            // Restaurar parâmetros após um pequeno delay
+            setTimeout(() => {
+              // Garantir que master volume está sempre configurado
+              if (newAmp.instance && newAmp.instance.updateParameter) {
+                try {
+                  // Aplicar master primeiro
+                  const masterVol = savedParams.master !== undefined ? savedParams.master : 70;
+                  newAmp.instance.updateParameter('master', masterVol);
+                  
+                  // Para Mesa Dual Rectifier, apenas restaurar parâmetros salvos (não forçar defaults)
+                  if (value === 'mesa_dual_rectifier') {
+                    const channel = savedParams.channel || 3;
+                    
+                    // Apenas restaurar parâmetros que foram salvos
+                    if (savedParams.channel !== undefined) {
+                      newAmp.instance.updateParameter('channel', channel);
+                    }
+                    
+                    console.log(`✅ Mesa Dual Rectifier switched - Channel ${channel}`);
+                  }
+                  
+                  // Depois aplicar outros parâmetros
+                  // Para amps multicanal (Mesa, Peavey, etc), não aplicar parâmetros genéricos
+                  const isMultichannelAmp = ['mesa_dual_rectifier', 'peavey_5150'].includes(value);
+                  
+                  Object.entries(savedParams).forEach(([param, val]) => {
+                    // Pular ampType e master (já aplicados)
+                    if (param === 'ampType' || param === 'master') return;
+                    
+                    // Para amps multicanal, só aplicar parâmetros específicos do canal
+                    if (isMultichannelAmp) {
+                      // Aplicar apenas se for parâmetro específico do canal (ch1_*, ch2_*, ch3_*)
+                      // ou parâmetros de back panel (presence, resonance, etc)
+                      if (param.startsWith('ch') || ['channel', 'presence', 'resonance', 'reverb', 'cabinet_enabled'].includes(param)) {
+                        try {
+                          newAmp.instance.updateParameter(param, val);
+                        } catch (error) {
+                          console.warn(`Failed to set ${param}:`, error);
+                        }
+                      }
+                    } else {
+                      // Para amps single-channel, aplicar todos os parâmetros normalmente
+                      try {
+                        newAmp.instance.updateParameter(param, val);
+                      } catch (error) {
+                        console.warn(`Failed to set ${param}:`, error);
+                      }
+                    }
+                  });
+                  console.log(`✅ Amp switched to: ${value} (master: ${masterVol})`);
+                } catch (error) {
+                  console.error('Error setting amp parameters:', error);
+                }
+              }
+            }, 50);
+          }
+        }, 50);
+        return;
+      }
+    }
+    
+    // Para outros parâmetros, atualização normal
     audioEngineRef.current.updateEffect(id, parameter, value);
     
     setEffects(effects.map(e => {
@@ -574,8 +733,13 @@ function App() {
 
   const reorderEffects = (newOrder) => {
     setEffects(newOrder);
-    // Reconectar a cadeia de áudio na nova ordem
-    audioEngineRef.current.reconnectChain(newOrder.map(e => e.instance));
+    // Atualizar a cadeia interna do AudioEngine com a nova ordem
+    if (audioEngineRef.current) {
+      audioEngineRef.current.effectsChain = newOrder
+        .map(e => e.instance)
+        .filter(instance => instance != null);
+      audioEngineRef.current.reconnectChain();
+    }
   };
 
   const loadPresets = async () => {
