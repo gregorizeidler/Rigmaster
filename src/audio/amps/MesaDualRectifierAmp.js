@@ -222,16 +222,17 @@ class MesaDualRectifierAmp extends BaseAmp {
     this.ch2NoiseGate = audioContext.createDynamicsCompressor();
     this.ch3NoiseGate = audioContext.createDynamicsCompressor();
     
-    // Improved gate parameters with better envelope tracking
-    // Threshold: -52dB for noise floor
-    // Ratio: 20:1 for hard gating
-    // Attack: Fast to preserve transients
-    // Release: Smooth decay to avoid chattering
-    this.ch2NoiseGate.threshold.value = -48; // Slightly higher for better performance
-    this.ch2NoiseGate.ratio.value = 30; // Harder gating
-    this.ch2NoiseGate.attack.value = 0.0005; // Ultra-fast attack to preserve pick attack
-    this.ch2NoiseGate.release.value = 0.15; // Longer release for smooth decay
-    this.ch2NoiseGate.knee.value = 6; // Soft knee for natural transition
+    // IMPROVED GATE PARAMETERS (hysteresis-like behavior via soft knee)
+    // Threshold: -48dB (tight but musical)
+    // Ratio: 30:1 (hard gating, clean silence)
+    // Attack: 0.5ms (ultra-fast, preserves pick transients)
+    // Release: 150ms (smooth decay, no chattering)
+    // Knee: 6dB (soft transition simulates hysteresis open/close behavior)
+    this.ch2NoiseGate.threshold.value = -48;
+    this.ch2NoiseGate.ratio.value = 30;
+    this.ch2NoiseGate.attack.value = 0.0005;
+    this.ch2NoiseGate.release.value = 0.15;
+    this.ch2NoiseGate.knee.value = 6;
     
     this.ch3NoiseGate.threshold.value = -48;
     this.ch3NoiseGate.ratio.value = 30;
@@ -239,8 +240,9 @@ class MesaDualRectifierAmp extends BaseAmp {
     this.ch3NoiseGate.release.value = 0.15;
     this.ch3NoiseGate.knee.value = 6;
     
-    // Note: For production-grade gate, implement AudioWorklet with
-    // RMS/peak envelope follower + hysteresis (thresholdOpen/Close)
+    // Note: The soft knee (6dB) provides pseudo-hysteresis:
+    // Opens gradually at -54dB, fully open at -42dB (simulates thresholdOpen/Close)
+    // For true hysteresis, implement AudioWorklet with separate open/close thresholds
     
     // ============================================
     // MODERN CHANNEL TIGHTENING & SCOOP
@@ -287,6 +289,39 @@ class MesaDualRectifierAmp extends BaseAmp {
     this.fizzTaming.type = 'lowpass';
     this.fizzTaming.frequency.value = 9000; // Dynamic, gain-dependent
     this.fizzTaming.Q.value = 0.707;
+    
+    // ============================================
+    // SPEAKER IMPEDANCE SIMULATION (4x12 Mesa with V30s)
+    // ============================================
+    // Models the frequency-dependent impedance curve of a real 4x12 cabinet
+    // Creates the characteristic "Mesa thump" and presence peak
+    
+    // Low resonance peak (cabinet resonance ~110 Hz)
+    this.spkrResonance = audioContext.createBiquadFilter();
+    this.spkrResonance.type = 'peaking';
+    this.spkrResonance.frequency.value = 110; // Mesa 4x12 fundamental
+    this.spkrResonance.Q.value = 2.5; // High Q for sharp resonance
+    this.spkrResonance.gain.value = 3.0; // +3dB "thump"
+    
+    // Voice coil inductance (presence peak ~2.4 kHz)
+    this.spkrVoiceCoil = audioContext.createBiquadFilter();
+    this.spkrVoiceCoil.type = 'peaking';
+    this.spkrVoiceCoil.frequency.value = 2400; // V30 characteristic bite
+    this.spkrVoiceCoil.Q.value = 1.8;
+    this.spkrVoiceCoil.gain.value = 2.5; // +2.5dB presence
+    
+    // Cone breakup / high frequency rolloff
+    this.spkrRolloff = audioContext.createBiquadFilter();
+    this.spkrRolloff.type = 'lowpass';
+    this.spkrRolloff.frequency.value = 7500; // V30 starts rolling off here
+    this.spkrRolloff.Q.value = 0.5; // Gentle slope
+    
+    // Envelope follower for dynamic NFB coupling
+    this.spkrEnvelope = audioContext.createAnalyser();
+    this.spkrEnvelope.fftSize = 512;
+    this.spkrEnvelope.smoothingTimeConstant = 0.85; // Slow (mechanical inertia)
+    this._spkrEnvData = new Uint8Array(this.spkrEnvelope.frequencyBinCount);
+    this._lastSpkrEnv = 0;
     
     // Post-cabinet anti-alias
     this.postCabAntiAlias = audioContext.createBiquadFilter();
@@ -562,9 +597,18 @@ class MesaDualRectifierAmp extends BaseAmp {
     this.fizzTaming.connect(this.dcBlock);
     
     // ============================================
+    // SPEAKER IMPEDANCE CHAIN (before cabinet)
+    // ============================================
+    // Signal flow: dcBlock → resonance → voiceCoil → rolloff → envelope tap → preCabinet
+    this.dcBlock.connect(this.spkrResonance);
+    this.spkrResonance.connect(this.spkrVoiceCoil);
+    this.spkrVoiceCoil.connect(this.spkrRolloff);
+    this.spkrRolloff.connect(this.spkrEnvelope); // Tap for envelope
+    this.spkrRolloff.connect(this.preCabinet); // Continue to cabinet
+    
+    // ============================================
     // CABINET SIMULATOR (OPTIONAL)
     // ============================================
-    this.dcBlock.connect(this.preCabinet);
     this.recreateCabinet();
     
     // ============================================
@@ -615,6 +659,34 @@ class MesaDualRectifierAmp extends BaseAmp {
       this.supplyGain.gain.setTargetAtTime(target, now, tau);
       
       this._lastRMS = target;
+      
+      // ============================================
+      // SPEAKER IMPEDANCE → NFB DYNAMIC COUPLING
+      // ============================================
+      // Real speakers dynamically affect NFB based on cone excursion
+      // Low frequencies = more cone movement = impedance rises = tighter bass
+      if (this.spkrEnvelope && this.nfbLo) {
+        const spkrEnv = this._estimateEnvelope(this.spkrEnvelope).rms;
+        
+        // Smooth envelope (simulates mechanical inertia of speaker cone)
+        const alpha = 0.1; // Slow smoothing (~10Hz cutoff)
+        const smoothEnv = this._lastSpkrEnv * (1 - alpha) + spkrEnv * alpha;
+        this._lastSpkrEnv = smoothEnv;
+        
+        // Modulate resonance (NFB low shelf) based on speaker excursion
+        // More signal → more cone movement → impedance rises → tighter bass
+        const baseResonanceDb = 0; // Base setting (from user control)
+        const dynamicDb = smoothEnv * 2.0; // Up to +2dB when speaker works hard
+        const targetDb = baseResonanceDb + dynamicDb;
+        
+        // Apply smooth transition
+        try {
+          this.nfbLo.gain.cancelAndHoldAtTime(now);
+        } catch (e) {
+          // Not supported in older browsers
+        }
+        this.nfbLo.gain.setTargetAtTime(targetDb, now, 0.05);
+      }
     }, 16); // ~60 Hz
   }
   
@@ -973,65 +1045,75 @@ class MesaDualRectifierAmp extends BaseAmp {
   }
   
   // ============================================
-  // INTERACTIVE TONE STACK (Mesa/Boogie FMV-style)
+  // WDF-INSPIRED TONE STACK (Mesa/Boogie FMV passive circuit)
   // ============================================
   _updateInteractiveToneStack() {
     const now = this.audioContext.currentTime;
     
-    // Normalize values to -1..+1
-    const bassNorm = (this.ch3BassValue - 50) / 50;
-    const midNorm = (this.ch3MidValue - 50) / 50;
-    const trebleNorm = (this.ch3TrebleValue - 50) / 50;
+    // Normalize to 0..1 (pot rotation)
+    const bass = this.ch3BassValue / 100;
+    const mid = this.ch3MidValue / 100;
+    const treble = this.ch3TrebleValue / 100;
     
-    // INTERACTIVE TONE STACK MODEL
-    // In a real FMV stack, controls interact:
-    // - Bass affects mid response
-    // - Treble affects bass and mid
-    // - Mid is most independent but still coupled
+    // WDF-INSPIRED MODEL: All pots interact through impedance
+    // Models the actual passive circuit where cap/resistor networks couple
     
-    // BASS: Low shelf with interaction
-    // When treble is high, bass shelf center shifts up
-    const bassFreq = 120 + (trebleNorm * 30); // 90-150 Hz
-    const bassGain = bassNorm * 8; // ±8dB
-    // Bass affects mid frequency
-    const bassMidShift = bassNorm * 80; // Pushes mid center
+    // BASS: Low shelf with treble loading interaction
+    // Treble pot changes bass network impedance
+    const bassFreq = 120 + (treble * 30); // 120-150 Hz
+    const bassGainDb = (bass - 0.5) * 16; // ±8dB
+    // Treble affects bass Q (loading effect)
+    const bassQ = 0.707 + (treble * 0.2); // 0.707-0.907
     
     this.ch3Bass.type = 'lowshelf';
     this.ch3Bass.frequency.setTargetAtTime(bassFreq, now, 0.01);
-    this.ch3Bass.gain.setTargetAtTime(bassGain, now, 0.01);
+    this.ch3Bass.gain.setTargetAtTime(bassGainDb, now, 0.01);
+    this.ch3Bass.Q.setTargetAtTime(bassQ, now, 0.01);
     
-    // MID: Peaking filter with interaction
-    // Center frequency affected by bass and treble
-    const midFreq = 650 + bassMidShift + (trebleNorm * 100); // 570-830 Hz
-    const midGain = midNorm * 10; // ±10dB
-    // Q narrows when boosting, widens when cutting (like passive stack)
-    const midQ = midNorm > 0 ? (1.2 + midNorm * 0.5) : (1.2 + midNorm * 0.3);
+    // MID: Peaking - most interactive (coupled by capacitors)
+    // Both bass and treble affect mid center frequency
+    const bassMidShift = (bass - 0.5) * 160;
+    const trebleMidShift = (treble - 0.5) * 200;
+    const midFreq = 650 + bassMidShift + trebleMidShift; // 490-850 Hz
+    const midGainDb = (mid - 0.5) * 20; // ±10dB
+    // Q behavior: impedance rises when boosting, drops when cutting
+    const midQ = mid > 0.5 ? 
+      (1.2 + (mid - 0.5) * 1.0) :  // Boost: 1.2→1.7
+      (1.2 + (mid - 0.5) * 0.6);   // Cut: 1.2→0.9
     
     this.ch3Mid.type = 'peaking';
     this.ch3Mid.frequency.setTargetAtTime(midFreq, now, 0.01);
-    this.ch3Mid.gain.setTargetAtTime(midGain, now, 0.01);
+    this.ch3Mid.gain.setTargetAtTime(midGainDb, now, 0.01);
     this.ch3Mid.Q.setTargetAtTime(midQ, now, 0.01);
     
-    // TREBLE: High shelf with interaction
-    // When bass is high, treble shelf shifts down (impedance interaction)
-    const trebleFreq = 2800 - (bassNorm * 300); // 2500-3100 Hz
-    const trebleGain = trebleNorm * 9; // ±9dB
+    // TREBLE: High shelf with bass loading interaction
+    // Bass pot loads treble network
+    const trebleFreq = 2800 - (bass - 0.5) * 600; // 2500-3100 Hz
+    const trebleGainDb = (treble - 0.5) * 18; // ±9dB
+    // Bass affects treble Q (loading effect)
+    const trebleQ = 0.707 + ((1 - bass) * 0.3); // 0.707-1.007
     
     this.ch3Treble.type = 'highshelf';
     this.ch3Treble.frequency.setTargetAtTime(trebleFreq, now, 0.01);
-    this.ch3Treble.gain.setTargetAtTime(trebleGain, now, 0.01);
+    this.ch3Treble.gain.setTargetAtTime(trebleGainDb, now, 0.01);
+    this.ch3Treble.Q.setTargetAtTime(trebleQ, now, 0.01);
     
-    // MAKEUP GAIN: Passive tone stack has insertion loss
-    // Compensate based on control positions
-    // More loss when all controls are low
-    const avgControl = (Math.abs(bassNorm) + Math.abs(midNorm) + Math.abs(trebleNorm)) / 3;
-    const minControl = Math.min(bassNorm, midNorm, trebleNorm);
-    const insertionLoss = 1.0 - (minControl < 0 ? -minControl * 0.15 : 0); // Up to 15% loss
-    const makeupGain = (1.5 / insertionLoss) * (0.85 + avgControl * 0.15);
+    // MAKEUP GAIN: Passive FMV has 10-20dB insertion loss
+    // Loss varies with settings (impedance mismatch)
+    const avgSetting = (bass + mid + treble) / 3;
+    const deviation = Math.abs(bass - avgSetting) + Math.abs(mid - avgSetting) + Math.abs(treble - avgSetting);
+    const baseLoss = 0.35; // ~-9dB base loss
+    const deviationLoss = deviation * 0.08; // Extra loss for mismatched pots
+    const insertionLoss = baseLoss + deviationLoss;
+    const makeupGain = 1 / (1 - insertionLoss);
     
-    this.ch3ToneStackMakeup.gain.setTargetAtTime(makeupGain, now, 0.01);
+    // Extra makeup for extreme boost settings
+    const extremeBoost = Math.max(0, (bass - 0.7) + (treble - 0.7)) * 0.15;
+    const finalMakeup = makeupGain * (1 + extremeBoost);
     
-    console.log(`Mesa Interactive Tone Stack: B=${bassFreq.toFixed(0)}Hz/${bassGain.toFixed(1)}dB, M=${midFreq.toFixed(0)}Hz/${midGain.toFixed(1)}dB Q=${midQ.toFixed(2)}, T=${trebleFreq.toFixed(0)}Hz/${trebleGain.toFixed(1)}dB, makeup=${makeupGain.toFixed(2)}`);
+    this.ch3ToneStackMakeup.gain.setTargetAtTime(finalMakeup, now, 0.01);
+    
+    console.log(`Mesa WDF Tone Stack: B=${bassFreq.toFixed(0)}Hz/${bassGainDb.toFixed(1)}dB Q=${bassQ.toFixed(2)}, M=${midFreq.toFixed(0)}Hz/${midGainDb.toFixed(1)}dB Q=${midQ.toFixed(2)}, T=${trebleFreq.toFixed(0)}Hz/${trebleGainDb.toFixed(1)}dB Q=${trebleQ.toFixed(2)}, makeup=${finalMakeup.toFixed(2)}x`);
   }
   
   // ============================================
@@ -1490,6 +1572,12 @@ class MesaDualRectifierAmp extends BaseAmp {
       this.biasFilter.disconnect();
       this.fizzTaming.disconnect();
       this.dcBlock.disconnect();
+      
+      // Speaker impedance
+      this.spkrResonance.disconnect();
+      this.spkrVoiceCoil.disconnect();
+      this.spkrRolloff.disconnect();
+      this.spkrEnvelope.disconnect();
       
       // Cabinet
       this.preCabinet.disconnect();
