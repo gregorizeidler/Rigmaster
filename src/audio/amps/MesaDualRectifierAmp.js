@@ -318,6 +318,7 @@ class MesaDualRectifierAmp extends BaseAmp {
     console.log(`   Faders: CH1=${this.ch1Fader.gain.value}, CH2=${this.ch2Fader.gain.value}, CH3=${this.ch3Fader.gain.value}`);
     console.log(`   CH3 Gain: ${this.ch3Gain.gain.value}, CH3 Master: ${this.ch3Master.gain.value}`);
     console.log(`   Output Master: ${this.outputMaster.gain.value}`);
+    console.log(`   FX Loop: Dry=${this.fxLoopDry.gain.value}, Wet=${this.fxLoopWet.gain.value}`);
     console.log(`   Noise Gates: BYPASSED (direct connection)`);
     console.log(`   Input connected: ${!!this.input}, Output connected: ${!!this.output}`);
   }
@@ -545,8 +546,9 @@ class MesaDualRectifierAmp extends BaseAmp {
     // ============================================
     // FX LOOP
     // ============================================
-    this.fxLoopDry.gain.value = 0.0; // No dry when in series mode
-    this.fxLoopWet.gain.value = 1.0; // Full wet
+    // FIXED: When no external FX connected, dry path must be open!
+    this.fxLoopDry.gain.value = 1.0; // Pass signal through when no FX connected
+    this.fxLoopWet.gain.value = 0.0; // No wet when nothing connected
     this.fxLoopSend.gain.value = 1.0;
     this.fxLoopReturn.gain.value = 1.0;
     
