@@ -41,6 +41,47 @@ class CabinetSimulator {
     this.clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
     
     // =========================================================
+    // HELPER: Smooth parameter changes with automation cancel
+    // Prevents "fila" of automations when user moves sliders frantically
+    // =========================================================
+    this._setSmooth = (param, value, timeConstant = this.SMOOTH_TIME) => {
+      if (!param || typeof param.setTargetAtTime !== 'function') return;
+      const now = this.audioContext.currentTime;
+      try {
+        // Cancel any scheduled automations to prevent queuing
+        if (typeof param.cancelAndHoldAtTime === 'function') {
+          param.cancelAndHoldAtTime(now);
+        }
+      } catch (e) {
+        // cancelAndHoldAtTime not supported in older browsers
+      }
+      param.setTargetAtTime(value, now, timeConstant);
+    };
+    
+    // =========================================================
+    // HELPER: Create StereoPanner with fallback for old Safari
+    // =========================================================
+    this._createStereoPanner = () => {
+      if (typeof audioContext.createStereoPanner === 'function') {
+        return audioContext.createStereoPanner();
+      } else {
+        // Fallback to PannerNode for old Safari
+        const panner = audioContext.createPanner();
+        panner.panningModel = 'equalpower';
+        panner.setPosition(0, 0, 0);
+        // Wrap pan property to match StereoPanner API
+        panner.pan = {
+          value: 0,
+          setTargetAtTime: (value, time, timeConstant) => {
+            const clampedValue = Math.max(-1, Math.min(1, value));
+            panner.setPosition(clampedValue, 0, 1 - Math.abs(clampedValue));
+          }
+        };
+        return panner;
+      }
+    };
+    
+    // =========================================================
     // CABINET TYPES (8 authentic models)
     // =========================================================
     this.cabinets = {
@@ -275,9 +316,9 @@ class CabinetSimulator {
     this.cabAGain.gain.value = 1.0;
     this.cabBGain.gain.value = 0.0;
     
-    // Stereo spread (pan)
-    this.panA = audioContext.createStereoPanner();
-    this.panB = audioContext.createStereoPanner();
+    // Stereo spread (pan) - with fallback for old Safari
+    this.panA = this._createStereoPanner();
+    this.panB = this._createStereoPanner();
     this.panA.pan.value = -0.3;  // slight left
     this.panB.pan.value = 0.3;   // slight right
     
@@ -997,6 +1038,9 @@ class CabinetSimulator {
     const delaySec = delayMs / 1000;
     const now = this.audioContext.currentTime;
     this.dualSkew.delayTime.setTargetAtTime(delaySec, now, this.SMOOTH_TIME);
+    
+    // Realign dry/wet phase compensation when micro-delay changes
+    this.alignDryToWet();
   }
   
   // =========================================================
@@ -1010,6 +1054,9 @@ class CabinetSimulator {
     // Equal-power fade
     this.mixWet.gain.setTargetAtTime(Math.sqrt(w), now, this.SMOOTH_TIME);
     this.mixDry.gain.setTargetAtTime(Math.sqrt(1 - w), now, this.SMOOTH_TIME);
+    
+    // Realign dry/wet phase compensation (perceptible in parallel mix)
+    this.alignDryToWet();
   }
   
   setOutputGainDb(db) {
@@ -1200,6 +1247,27 @@ class CabinetSimulator {
     };
   }
   
+  // Public connect/disconnect helpers (safer than direct output access)
+  connect(node) {
+    if (this.output && node) {
+      this.output.connect(node);
+    }
+  }
+  
+  disconnect(node) {
+    if (this.output) {
+      try {
+        if (node) {
+          this.output.disconnect(node);
+        } else {
+          this.output.disconnect();
+        }
+      } catch (e) {
+        // Already disconnected
+      }
+    }
+  }
+  
   disconnectAll() {
     // Safe disconnect helper
     const safeDisconnect = (node) => {
@@ -1215,9 +1283,8 @@ class CabinetSimulator {
       }
     };
     
-    // Disconnect main nodes
+    // Disconnect main nodes (NOT this.output - prevents breaking downstream connections)
     safeDisconnect(this.input);
-    safeDisconnect(this.output);
     safeDisconnect(this.compressor);
     safeDisconnect(this.limiter);
     safeDisconnect(this.outputTrim);
