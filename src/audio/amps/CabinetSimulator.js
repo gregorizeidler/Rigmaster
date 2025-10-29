@@ -68,15 +68,19 @@ class CabinetSimulator {
         // Fallback to PannerNode for old Safari
         const panner = audioContext.createPanner();
         panner.panningModel = 'equalpower';
-        panner.setPosition(0, 0, 0);
-        // Wrap pan property to match StereoPanner API
-        panner.pan = {
-          value: 0,
-          setTargetAtTime: (value, time, timeConstant) => {
-            const clampedValue = Math.max(-1, Math.min(1, value));
-            panner.setPosition(clampedValue, 0, 1 - Math.abs(clampedValue));
-          }
+        let _val = 0;
+        const apply = (v) => {
+          const x = Math.max(-1, Math.min(1, v));
+          // Map x ∈ [-1,1] → position on front semicircle
+          panner.setPosition(x, 0, 1 - Math.abs(x));
         };
+        // Reactive pan property with getter/setter
+        panner.pan = {
+          get value() { return _val; },
+          set value(v) { _val = v; apply(v); },
+          setTargetAtTime: (v/*, t, k*/) => { _val = v; apply(v); }
+        };
+        apply(0);
         return panner;
       }
     };
@@ -654,33 +658,17 @@ class CabinetSimulator {
     // Update proximity effect (exponential decay)
     const proxDb = Math.max(0, mic.proximityBoost * Math.exp(-distanceM / mic.proximityDecay));
     const proxFreq = mic.proximityFreq * (1 - 0.2 * distanceM);
-    f.proximity.frequency.setTargetAtTime(
-      this.clamp(proxFreq, 80, mic.proximityFreq),
-      now,
-      this.SMOOTH_TIME
-    );
-    f.proximity.gain.setTargetAtTime(
-      this.clamp(proxDb, 0, mic.proximityBoost),
-      now,
-      this.SMOOTH_TIME
-    );
+    this._setSmooth(f.proximity.frequency, this.clamp(proxFreq, 80, mic.proximityFreq));
+    this._setSmooth(f.proximity.gain, this.clamp(proxDb, 0, mic.proximityBoost));
     
     // Update presence (cosine curve + height shift)
     const presenceGainDb = mic.presenceBoost * Math.cos(angleRad);
     const heightMul = 1 + 0.12 * heightNorm;
     const presenceFreqAdjusted = mic.presenceFreq * heightMul;
     const presenceQAdjusted = mic.presenceQ * (1 + 0.3 * (angleDeg / 90));
-    f.presence.frequency.setTargetAtTime(
-      this.clamp(presenceFreqAdjusted, 1500, 12000),
-      now,
-      this.SMOOTH_TIME
-    );
-    f.presence.Q.setTargetAtTime(presenceQAdjusted, now, this.SMOOTH_TIME);
-    f.presence.gain.setTargetAtTime(
-      this.clamp(presenceGainDb, -6, 6),
-      now,
-      this.SMOOTH_TIME
-    );
+    this._setSmooth(f.presence.frequency, this.clamp(presenceFreqAdjusted, 1500, 12000));
+    this._setSmooth(f.presence.Q, presenceQAdjusted);
+    this._setSmooth(f.presence.gain, this.clamp(presenceGainDb, -6, 6));
     
     // Update off-axis notch (always present, bypassed via params)
     if (f.offAxisNotch) {
@@ -689,33 +677,17 @@ class CabinetSimulator {
       const targetF = this.clamp(notchBase * notchShift, 2000, 9000);
       const targetQ = 1.0 + 0.6 * (angleDeg / 90);
       const enabled = angleDeg > 10;
-      f.offAxisNotch.frequency.setTargetAtTime(
-        enabled ? targetF : 20000,
-        now,
-        this.SMOOTH_TIME
-      );
-      f.offAxisNotch.Q.setTargetAtTime(
-        enabled ? targetQ : 0.1,
-        now,
-        this.SMOOTH_TIME
-      );
+      this._setSmooth(f.offAxisNotch.frequency, enabled ? targetF : 20000);
+      this._setSmooth(f.offAxisNotch.Q, enabled ? targetQ : 0.1);
     }
     
     // Update air absorption (distance-dependent lowpass)
     const fAir = 20000 / (1 + distanceM * 25);
-    f.airLoss.frequency.setTargetAtTime(
-      this.clamp(Math.max(6000, fAir), 6000, 20000),
-      now,
-      this.SMOOTH_TIME
-    );
+    this._setSmooth(f.airLoss.frequency, this.clamp(Math.max(6000, fAir), 6000, 20000));
     
     // Update time-of-flight delay (phase accuracy)
     const delaySec = distanceM / 343;
-    f.timeOfFlight.delayTime.setTargetAtTime(
-      this.clamp(delaySec, 0, 0.05),
-      now,
-      this.SMOOTH_TIME
-    );
+    this._setSmooth(f.timeOfFlight.delayTime, this.clamp(delaySec, 0, 0.05));
   }
   
   // =========================================================
@@ -995,38 +967,23 @@ class CabinetSimulator {
     if (this.mode !== 'dual') return;
     
     const mix = this.clamp(percentage, 0, 100) / 100;
-    const now = this.audioContext.currentTime;
     
-    // Equal-power crossfade
-    this.cabAGain.gain.setTargetAtTime(
-      Math.cos(mix * Math.PI / 2), 
-      now, 
-      this.SMOOTH_TIME
-    );
-    this.cabBGain.gain.setTargetAtTime(
-      Math.sin(mix * Math.PI / 2), 
-      now, 
-      this.SMOOTH_TIME
-    );
+    // Equal-power crossfade with smooth automation cancel
+    this._setSmooth(this.cabAGain.gain, Math.cos(mix * Math.PI / 2));
+    this._setSmooth(this.cabBGain.gain, Math.sin(mix * Math.PI / 2));
   }
   
   setStereoSpread(amount) {
     if (this.mode !== 'dual') return;
     
     const spread = this.clamp(amount, -100, 100) / 100;
-    const now = this.audioContext.currentTime;
     
-    this.panA.pan.setTargetAtTime(-spread, now, this.SMOOTH_TIME);
-    this.panB.pan.setTargetAtTime(spread, now, this.SMOOTH_TIME);
+    this._setSmooth(this.panA.pan, -spread);
+    this._setSmooth(this.panB.pan, spread);
   }
   
   setPhaseB(inverted) {
-    const now = this.audioContext.currentTime;
-    this.phaseInverter.gain.setTargetAtTime(
-      inverted ? -1 : 1, 
-      now, 
-      this.SMOOTH_TIME
-    );
+    this._setSmooth(this.phaseInverter.gain, inverted ? -1 : 1);
   }
   
   setMicroDelayB(milliseconds) {
@@ -1036,8 +993,7 @@ class CabinetSimulator {
       console.warn('Micro-delay >1.5ms may cause phase issues in mono. Recommended: 0.2-1.5ms');
     }
     const delaySec = delayMs / 1000;
-    const now = this.audioContext.currentTime;
-    this.dualSkew.delayTime.setTargetAtTime(delaySec, now, this.SMOOTH_TIME);
+    this._setSmooth(this.dualSkew.delayTime, delaySec);
     
     // Realign dry/wet phase compensation when micro-delay changes
     this.alignDryToWet();
@@ -1049,23 +1005,20 @@ class CabinetSimulator {
   
   setWet(percent) {
     const w = this.clamp(percent, 0, 100) / 100;
-    const now = this.audioContext.currentTime;
     
-    // Equal-power fade
-    this.mixWet.gain.setTargetAtTime(Math.sqrt(w), now, this.SMOOTH_TIME);
-    this.mixDry.gain.setTargetAtTime(Math.sqrt(1 - w), now, this.SMOOTH_TIME);
+    // Equal-power fade with smooth automation cancel
+    this._setSmooth(this.mixWet.gain, Math.sqrt(w));
+    this._setSmooth(this.mixDry.gain, Math.sqrt(1 - w));
     
     // Realign dry/wet phase compensation (perceptible in parallel mix)
     this.alignDryToWet();
   }
   
   setOutputGainDb(db) {
-    const g = Math.pow(10, db / 20);
-    this.outputTrim.gain.setTargetAtTime(
-      g,
-      this.audioContext.currentTime,
-      this.SMOOTH_TIME
-    );
+    // Clamp to safe range to prevent preset explosions
+    const safeDb = this.clamp(db, -60, +12);
+    const g = Math.pow(10, safeDb / 20);
+    this._setSmooth(this.outputTrim.gain, g);
   }
   
   setRoom(enabled, roomSize = 0.023, feedback = 0.25, tone = 4000, mix = 0.15) {
@@ -1146,6 +1099,9 @@ class CabinetSimulator {
   // =========================================================
   
   setMode(mode) {
+    // Guard: avoid unnecessary rebuild if already in this mode
+    if (mode === this.mode) return;
+    
     switch (mode) {
       case 'single':
         this.initializeSingleMode();
