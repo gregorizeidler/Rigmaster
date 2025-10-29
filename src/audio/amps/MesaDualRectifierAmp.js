@@ -571,15 +571,25 @@ class MesaDualRectifierAmp extends BaseAmp {
         this.micPosition
       );
       
+      console.log('🔥 Mesa Dual Rectifier recreateCabinet:', {
+        cabinetType: this.cabinetType,
+        micType: this.micType,
+        micPosition: this.micPosition,
+        cabinetCreated: !!this.cabinet,
+        cabinetEnabled: this.cabinetEnabled
+      });
+      
       if (this.cabinet) {
         this.preCabinet.connect(this.cabinet.input);
         this.cabinet.output.connect(this.postCabinet);
       } else {
         // Fallback if cabinet creation fails
+        console.error('❌ Mesa Dual Rectifier: Cabinet creation failed! Bypassing cabinet.');
         this.preCabinet.connect(this.postCabinet);
       }
     } else {
       // Bypass cabinet
+      console.log('🔥 Mesa Dual Rectifier: Cabinet bypassed');
       this.preCabinet.connect(this.postCabinet);
     }
   }
