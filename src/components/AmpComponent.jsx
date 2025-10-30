@@ -27,6 +27,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       'vox_ac30': '2x12_closed',
       'fender_deluxe': '1x12_open',
       'fender_bassman': '4x10_bassman',
+      'fender_pro_junior': '1x10_open',
       'roland_jc120': '2x12_open',
       'matchless_dc30': '2x12_closed',
       
@@ -108,6 +109,13 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
         accent: '#b8860b',
         grill: '#daa520',
         logo: 'Bassman',
+        brand: 'FENDER'
+      },
+      fender_pro_junior: {
+        color: '#d4af37',    // Tweed dourado (como o real)
+        accent: '#b8860b',   // Detalhes dourados
+        grill: '#daa520',    // Grill cloth tweed
+        logo: 'Pro Junior',
         brand: 'FENDER'
       },
       roland_jc120: {
@@ -274,6 +282,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       clean: ['reverb', 'bright'],
       fender_deluxe: ['fender_deluxe_channel', 'fender_reverb_dwell', 'bright', 'fender_cabinet'],
       fender_bassman: ['fender_bassman_controls'],
+      fender_pro_junior: ['cabinet_enabled'], // Pro Junior - apenas Volume/Tone/Master nos knobs + Cabinet
       fender_twin_reverb: ['twin_channel', 'twin_speed', 'twin_intensity', 'reverb', 'reverb_dwell', 'bright', 'cabinet_enabled'],
       
       // VOX AC30 - Full control suite
@@ -4416,6 +4425,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
               <option value="vox_ac30">Vox AC30</option>
               <option value="fender_deluxe">Fender Deluxe Reverb</option>
               <option value="fender_bassman">Fender Bassman</option>
+              <option value="fender_pro_junior">Fender Pro Junior</option>
               <option value="roland_jc120">Roland JC-120</option>
               <option value="matchless_dc30">Matchless DC-30</option>
             </optgroup>
@@ -4526,6 +4536,24 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                     <Knob label="Master" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={36} />
                   </div>
                 </div>
+              </div>
+            ) : amp.ampType === 'fender_pro_junior' ? (
+              /* FENDER PRO JUNIOR - Apenas Volume + Tone (como o real) */
+              <div className="pro-junior-knobs-layout" style={{ display: 'flex', gap: '24px', justifyContent: 'center', alignItems: 'center', padding: '16px' }}>
+                <Knob 
+                  label="VOLUME" 
+                  value={amp.params?.volume || 60} 
+                  onChange={handleKnobChange('volume')} 
+                  size={52}
+                  color="#000000"
+                />
+                <Knob 
+                  label="TONE" 
+                  value={amp.params?.tone || 60} 
+                  onChange={handleKnobChange('tone')} 
+                  size={52}
+                  color="#000000"
+                />
               </div>
             ) : amp.ampType === 'matchless_dc30' ? (
               /* MATCHLESS DC-30 - Compact dual-channel boutique layout */

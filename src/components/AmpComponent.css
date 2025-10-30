@@ -1111,6 +1111,101 @@
     inset 0 0 15px rgba(184, 134, 11, 0.2);
 }
 
+/* FENDER PRO JUNIOR - Tweed (mais compacto que Bassman) */
+.amp-head.amp-fender_pro_junior {
+  background: 
+    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(184,134,11,0.3) 2px, rgba(184,134,11,0.3) 4px),
+    linear-gradient(180deg, #e5c85a 0%, #d4af37 50%, #daa520 100%);
+  border: 3px solid #b8860b;
+  box-shadow: 
+    0 10px 40px rgba(212, 175, 55, 0.6),
+    inset 0 2px 0 rgba(255, 235, 180, 0.4);
+}
+
+.amp-head.amp-fender_pro_junior .amp-head-top {
+  background: linear-gradient(180deg, #c9a959 0%, #b8941f 100%);
+  border-bottom: 3px solid #8b6914;
+}
+
+.amp-head.amp-fender_pro_junior .brand-text {
+  color: #000000;
+  letter-spacing: 5px;
+  font-weight: 900;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+}
+
+.amp-head.amp-fender_pro_junior .model-text {
+  color: #000000;
+  font-weight: 900;
+  text-shadow: 0 0 10px rgba(255, 235, 180, 0.6);
+}
+
+.amp-head.amp-fender_pro_junior .amp-control-panel {
+  background: linear-gradient(180deg, #d4af37 0%, #c9a520 100%);
+  border-top: 1px solid #b8860b;
+}
+
+.amp-head.amp-fender_pro_junior:hover {
+  box-shadow:
+    0 15px 50px rgba(212, 175, 55, 0.8),
+    inset 0 2px 0 rgba(255, 235, 180, 0.5);
+  border-color: #e5c158;
+}
+
+.amp-head.amp-fender_pro_junior .amp-type-selector {
+  background: linear-gradient(180deg, #3a2a1a, #2a1a10);
+  border-color: #8b6914;
+  color: #ffd700;
+  font-weight: 800;
+}
+
+.amp-head.amp-fender_pro_junior .amp-type-selector:hover {
+  background: linear-gradient(180deg, #4a3a2a, #3a2a1a);
+  border-color: #d4af37;
+  color: #ffffff;
+}
+
+.amp-head.amp-fender_pro_junior .knob-group label,
+.amp-head.amp-fender_pro_junior .amp-knobs-section label,
+.amp-head.amp-fender_pro_junior .knob-label,
+.amp-head.amp-fender_pro_junior .amp-control-panel label {
+  color: #000000 !important;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+  font-weight: 700;
+}
+
+.amp-head.amp-fender_pro_junior .toggle-switch label {
+  color: #000000 !important;
+  font-weight: 600;
+}
+
+.amp-head.amp-fender_pro_junior ~ .amp-cabinet {
+  background: linear-gradient(180deg, #d4af37 0%, #daa520 100%);
+  border: 3px solid #b8860b;
+}
+
+.amp-head.amp-fender_pro_junior ~ .amp-cabinet .speaker-cone {
+  background: linear-gradient(135deg, #8b6914, #6b5010);
+  border: 2px solid #d4af37;
+}
+
+/* Tweed texture for Pro Junior */
+.amp-head.amp-fender_pro_junior::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4"><rect width="4" height="4" fill="%23d4a574"/><path d="M0 0h2v2H0zM2 2h2v2H2z" fill="%23c9b896"/></svg>'),
+    repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(139,105,20,0.1) 2px, rgba(139,105,20,0.1) 4px);
+  background-size: 4px 4px, 6px 6px;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  opacity: 0.8;
+}
+
 /* ROLAND JC-120 - Black/Blue */
 .amp-head.amp-roland_jc120 {
   background: 

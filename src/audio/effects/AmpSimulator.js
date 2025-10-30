@@ -26,6 +26,7 @@ import SuhrBadgerAmp from '../amps/SuhrBadgerAmp';
 import VictoryDuchessAmp from '../amps/VictoryDuchessAmp';
 import FenderTwinReverbAmp from '../amps/FenderTwinReverbAmp';
 import ENGLPowerballAmp from '../amps/ENGLPowerballAmp';
+import FenderProJuniorAmp from '../amps/FenderProJuniorAmp';
 
 class AmpSimulator extends BaseEffect {
   constructor(audioContext, id, ampType = 'clean') {
@@ -352,7 +353,8 @@ class AmpSimulator extends BaseEffect {
       'suhr_badger': SuhrBadgerAmp,
       'victory_duchess': VictoryDuchessAmp,
       'fender_twin_reverb': FenderTwinReverbAmp,
-      'engl_powerball': ENGLPowerballAmp
+      'engl_powerball': ENGLPowerballAmp,
+      'fender_pro_junior': FenderProJuniorAmp
     };
     
     const AmpClass = ampClasses[ampType];
