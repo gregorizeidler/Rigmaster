@@ -24,6 +24,7 @@ import MesaMarkVAmp from '../amps/MesaMarkVAmp';
 import SuhrBadgerAmp from '../amps/SuhrBadgerAmp';
 import VictoryDuchessAmp from '../amps/VictoryDuchessAmp';
 import FenderTwinReverbAmp from '../amps/FenderTwinReverbAmp';
+import ENGLPowerballAmp from '../amps/ENGLPowerballAmp';
 
 class AmpSimulator extends BaseEffect {
   constructor(audioContext, id, ampType = 'clean') {
@@ -348,7 +349,8 @@ class AmpSimulator extends BaseEffect {
       'mesa_mark_v': MesaMarkVAmp,
       'suhr_badger': SuhrBadgerAmp,
       'victory_duchess': VictoryDuchessAmp,
-      'fender_twin_reverb': FenderTwinReverbAmp
+      'fender_twin_reverb': FenderTwinReverbAmp,
+      'engl_powerball': ENGLPowerballAmp
     };
     
     const AmpClass = ampClasses[ampType];

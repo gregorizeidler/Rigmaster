@@ -188,6 +188,13 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
         logo: 'VH4',
         brand: 'DIEZEL'
       },
+      engl_powerball: {
+        color: '#000000',     // Preto ENGL clássico
+        accent: '#ff0000',    // Vermelho característico
+        grill: '#1a1a1a',     // Grade escura
+        logo: 'POWERBALL II',
+        brand: 'ENGL'
+      },
       friedman_be100: {
         color: '#000000',
         accent: '#ffd700',
@@ -285,6 +292,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       peavey_5150: ['peavey_5150_controls'],
       bogner_ecstasy: ['bogner_ecstasy_controls'],
       diezel_vh4: ['diezel_vh4_controls'],
+      engl_powerball: ['engl_powerball_controls'],
       friedman_be100: ['friedman_channel', 'friedman_depth', 'friedman_tight', 'friedman_fat', 'friedman_sat', 'friedman_bright', 'friedman_cabinet'],
       soldano_slo100: ['soldano_slo100_controls'],
       
@@ -3264,6 +3272,289 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
         );
       
       // ============================================
+      // ENGL POWERBALL - COMPLETE CONTROLS
+      // ============================================
+      case 'engl_powerball_controls':
+        const englChannel = amp.params?.channel || 4;
+        return (
+          <div key="engl_powerball_controls" className="engl-powerball-full-controls" style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '5px',
+            padding: '6px 8px',
+            background: 'repeating-radial-gradient(circle at 2px 2px, rgba(40,0,0,0.8) 0px, transparent 1px), linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%)',
+            backgroundSize: '4px 4px, 100% 100%',
+            borderRadius: '4px',
+            border: '2px solid #ff0000',
+            boxShadow: 'inset 0 1px 0 rgba(255,0,0,0.2), inset 0 2px 4px rgba(0,0,0,0.6), 0 0 10px rgba(255,0,0,0.3)',
+            maxWidth: '850px',
+            alignItems: 'center'
+          }}>
+            {/* LINHA SUPERIOR - KNOBS PRINCIPAIS */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'row',
+              gap: '5px',
+              flexWrap: 'nowrap',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}>
+              {/* GAIN + VOLUME DO CANAL */}
+              <div style={{
+                display: 'flex',
+                gap: '6px',
+                padding: '4px 6px',
+                background: 'rgba(0,0,0,0.8)',
+                borderRadius: '4px',
+                border: '1px solid rgba(255,0,0,0.4)'
+              }}>
+                <Knob 
+                  label="GAIN" 
+                  value={amp.params?.gain || 80} 
+                  onChange={handleKnobChange('gain')} 
+                  size={28} 
+                  color="#ff4444" 
+                />
+                <Knob 
+                  label="CH VOL" 
+                  value={amp.params?.channel_volume || 72} 
+                  onChange={handleKnobChange('channel_volume')} 
+                  size={28} 
+                  color="#ff4444" 
+                />
+              </div>
+
+              {/* TONE STACK */}
+              <div style={{
+                display: 'flex',
+                gap: '6px',
+                padding: '4px 6px',
+                background: 'rgba(0,0,0,0.8)',
+                borderRadius: '4px',
+                border: '1px solid rgba(255,0,0,0.4)'
+              }}>
+                <Knob label="BASS" value={amp.params?.bass || 68} onChange={handleKnobChange('bass')} size={26} color="#ff4444" />
+                <Knob label="MID" value={amp.params?.middle || 45} onChange={handleKnobChange('middle')} size={26} color="#ff4444" />
+                <Knob label="TREB" value={amp.params?.treble || 70} onChange={handleKnobChange('treble')} size={26} color="#ff4444" />
+              </div>
+
+              {/* PRESENCE + DEPTH + CONTOUR + MASTER */}
+              <div style={{
+                display: 'flex',
+                gap: '6px',
+                padding: '4px 6px',
+                background: 'rgba(0,0,0,0.8)',
+                borderRadius: '4px',
+                border: '1px solid rgba(255,0,0,0.4)'
+              }}>
+                <Knob label="PRES" value={amp.params?.presence || 65} onChange={handleKnobChange('presence')} size={26} color="#ff4444" />
+                <Knob label="DEPTH" value={amp.params?.depth || 65} onChange={handleKnobChange('depth')} size={26} color="#ff4444" />
+                <Knob label="CNTR" value={amp.params?.contour || 40} onChange={handleKnobChange('contour')} size={26} color="#ff8800" />
+                <Knob label="MSTR" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={28} color="#ffffff" />
+              </div>
+            </div>
+
+            {/* LINHA INFERIOR - CHANNEL SELECTOR COM LEDS + SWITCHES */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'row',
+              gap: '6px',
+              flexWrap: 'nowrap',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}>
+              {/* CHANNEL SELECTOR COM LEDs (4 canais) */}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'row',
+                gap: '4px',
+                padding: '4px 8px',
+                background: 'rgba(0,0,0,0.9)',
+                borderRadius: '4px', 
+                border: '1px solid rgba(255,0,0,0.6)',
+                alignItems: 'center'
+              }}>
+                <label style={{ fontSize: '7px', color: '#ff0000', fontWeight: 'bold', marginRight: '4px', textTransform: 'uppercase' }}>CHANNEL</label>
+                
+                {/* Clean LED + Button */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                  <div style={{
+                    width: '9px',
+                    height: '9px',
+                    borderRadius: '50%',
+                    background: englChannel === 1 ? 'radial-gradient(circle, #00ff00 0%, #00aa00 100%)' : '#1a1a1a',
+                    boxShadow: englChannel === 1 ? '0 0 10px #00ff00, inset 0 1px 2px rgba(255,255,255,0.3)' : 'inset 0 1px 2px rgba(0,0,0,0.8)',
+                    border: '1px solid ' + (englChannel === 1 ? '#00ff00' : '#0a0a0a')
+                  }}></div>
+                  <button 
+                    onClick={() => onUpdate(amp.id, 'channel', 1)}
+                    style={{ 
+                      padding: '4px 8px',
+                      background: englChannel === 1 ? 'linear-gradient(135deg, #ff0000 0%, #cc0000 100%)' : 'rgba(0,0,0,0.7)',
+                      border: '1px solid ' + (englChannel === 1 ? '#ff0000' : '#666'),
+                      color: englChannel === 1 ? '#fff' : '#ff4444',
+                      borderRadius: '2px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '8px',
+                      textTransform: 'uppercase',
+                      transition: 'all 0.2s',
+                      boxShadow: englChannel === 1 ? '0 0 8px rgba(255,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.2)' : 'none'
+                    }}
+                  >CLN</button>
+                </div>
+
+                {/* Crunch LED + Button */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                  <div style={{
+                    width: '9px',
+                    height: '9px',
+                    borderRadius: '50%',
+                    background: englChannel === 2 ? 'radial-gradient(circle, #ffaa00 0%, #cc8800 100%)' : '#1a1a1a',
+                    boxShadow: englChannel === 2 ? '0 0 10px #ffaa00, inset 0 1px 2px rgba(255,255,255,0.3)' : 'inset 0 1px 2px rgba(0,0,0,0.8)',
+                    border: '1px solid ' + (englChannel === 2 ? '#ffaa00' : '#0a0a0a')
+                  }}></div>
+                  <button 
+                    onClick={() => onUpdate(amp.id, 'channel', 2)}
+                    style={{
+                      padding: '4px 8px',
+                      background: englChannel === 2 ? 'linear-gradient(135deg, #ff0000 0%, #cc0000 100%)' : 'rgba(0,0,0,0.7)',
+                      border: '1px solid ' + (englChannel === 2 ? '#ff0000' : '#666'),
+                      color: englChannel === 2 ? '#fff' : '#ff4444',
+                      borderRadius: '2px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '8px',
+                      textTransform: 'uppercase',
+                      transition: 'all 0.2s',
+                      boxShadow: englChannel === 2 ? '0 0 8px rgba(255,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.2)' : 'none'
+                    }}
+                  >CRU</button>
+                </div>
+
+                {/* Soft Lead LED + Button */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                  <div style={{
+                    width: '9px',
+                    height: '9px',
+                    borderRadius: '50%',
+                    background: englChannel === 3 ? 'radial-gradient(circle, #ff6600 0%, #cc4400 100%)' : '#1a1a1a',
+                    boxShadow: englChannel === 3 ? '0 0 10px #ff6600, inset 0 1px 2px rgba(255,255,255,0.3)' : 'inset 0 1px 2px rgba(0,0,0,0.8)',
+                    border: '1px solid ' + (englChannel === 3 ? '#ff6600' : '#0a0a0a')
+                  }}></div>
+                  <button 
+                    onClick={() => onUpdate(amp.id, 'channel', 3)}
+                    style={{
+                      padding: '4px 8px',
+                      background: englChannel === 3 ? 'linear-gradient(135deg, #ff0000 0%, #cc0000 100%)' : 'rgba(0,0,0,0.7)',
+                      border: '1px solid ' + (englChannel === 3 ? '#ff0000' : '#666'),
+                      color: englChannel === 3 ? '#fff' : '#ff4444',
+                      borderRadius: '2px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '8px',
+                      textTransform: 'uppercase',
+                      transition: 'all 0.2s',
+                      boxShadow: englChannel === 3 ? '0 0 8px rgba(255,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.2)' : 'none'
+                    }}
+                  >SFT</button>
+                </div>
+
+                {/* Heavy Lead LED + Button */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                  <div style={{
+                    width: '9px',
+                    height: '9px',
+                    borderRadius: '50%',
+                    background: englChannel === 4 ? 'radial-gradient(circle, #ff0000 0%, #aa0000 100%)' : '#1a1a1a',
+                    boxShadow: englChannel === 4 ? '0 0 10px #ff0000, inset 0 1px 2px rgba(255,255,255,0.3)' : 'inset 0 1px 2px rgba(0,0,0,0.8)',
+                    border: '1px solid ' + (englChannel === 4 ? '#ff0000' : '#0a0a0a')
+                  }}></div>
+                  <button 
+                    onClick={() => onUpdate(amp.id, 'channel', 4)}
+                    style={{
+                      padding: '4px 8px',
+                      background: englChannel === 4 ? 'linear-gradient(135deg, #ff0000 0%, #cc0000 100%)' : 'rgba(0,0,0,0.7)',
+                      border: '1px solid ' + (englChannel === 4 ? '#ff0000' : '#666'),
+                      color: englChannel === 4 ? '#fff' : '#ff4444',
+                      borderRadius: '2px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '8px',
+                      textTransform: 'uppercase',
+                      transition: 'all 0.2s',
+                      boxShadow: englChannel === 4 ? '0 0 8px rgba(255,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.2)' : 'none'
+                    }}
+                  >HVY</button>
+                </div>
+              </div>
+
+              {/* BRIGHT + GATE + CABINET */}
+              <div style={{
+                display: 'flex',
+                gap: '4px',
+                padding: '4px 6px',
+                background: 'rgba(0,0,0,0.9)',
+                borderRadius: '4px',
+                border: '1px solid rgba(255,0,0,0.6)',
+                alignItems: 'center'
+              }}>
+                <button
+                  onClick={() => onUpdate(amp.id, 'bright', !amp.params?.bright)}
+                  style={{
+                    padding: '5px 10px',
+                    background: amp.params?.bright ? 'linear-gradient(135deg, #ffaa00 0%, #cc8800 100%)' : 'rgba(0,0,0,0.7)',
+                    border: '1px solid ' + (amp.params?.bright ? '#ffaa00' : '#666'),
+                    color: amp.params?.bright ? '#000' : '#ffaa00',
+                    borderRadius: '2px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '8px',
+                    textTransform: 'uppercase',
+                    transition: 'all 0.2s',
+                    boxShadow: amp.params?.bright ? '0 0 6px rgba(255,170,0,0.6), inset 0 1px 0 rgba(255,255,255,0.3)' : 'none'
+                  }}
+                >BRIGHT</button>
+
+                <button
+                  onClick={() => onUpdate(amp.id, 'gate', !amp.params?.gate)}
+                  style={{
+                    padding: '5px 10px',
+                    background: amp.params?.gate !== false ? 'linear-gradient(135deg, #00c864 0%, #00a050 100%)' : 'rgba(0,0,0,0.7)',
+                    border: '1px solid ' + (amp.params?.gate !== false ? '#00c864' : '#666'),
+                    color: amp.params?.gate !== false ? '#000' : '#00c864',
+                    borderRadius: '2px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '8px',
+                    textTransform: 'uppercase',
+                    transition: 'all 0.2s',
+                    boxShadow: amp.params?.gate !== false ? '0 0 6px rgba(0,200,100,0.6), inset 0 1px 0 rgba(255,255,255,0.3)' : 'none'
+                  }}
+                >GATE</button>
+                
+                <button
+                  onClick={() => onUpdate(amp.id, 'cabinet_enabled', !amp.params?.cabinet_enabled)}
+                  style={{
+                    padding: '5px 10px',
+                    background: amp.params?.cabinet_enabled !== false ? 'linear-gradient(135deg, #ff0000 0%, #cc0000 100%)' : 'rgba(0,0,0,0.7)',
+                    border: '1px solid ' + (amp.params?.cabinet_enabled !== false ? '#ff0000' : '#666'),
+                    color: amp.params?.cabinet_enabled !== false ? '#fff' : '#ff4444',
+                    borderRadius: '2px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '8px',
+                    textTransform: 'uppercase',
+                    transition: 'all 0.2s',
+                    boxShadow: amp.params?.cabinet_enabled !== false ? '0 0 6px rgba(255,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.2)' : 'none'
+                  }}
+                >CAB</button>
+              </div>
+            </div>
+          </div>
+        );
+      
+      // ============================================
       // SOLDANO SLO-100 - COMPLETE CONTROLS
       // ============================================
       case 'soldano_slo100_controls':
@@ -3789,6 +4080,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
               <option value="mesa_dual_rectifier">Mesa Dual Rectifier</option>
               <option value="bogner_ecstasy">Bogner Ecstasy</option>
               <option value="diezel_vh4">Diezel VH4</option>
+              <option value="engl_powerball">ENGL Powerball</option>
               <option value="friedman_be100">Friedman BE-100</option>
               <option value="soldano_slo100">Soldano SLO-100</option>
             </optgroup>
@@ -4392,6 +4684,9 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
               <div style={{ display: 'none' }}></div>
             ) : amp.ampType === 'diezel_vh4' ? (
               /* DIEZEL VH4 - Controls handled in custom section below */
+              <div style={{ display: 'none' }}></div>
+            ) : amp.ampType === 'engl_powerball' ? (
+              /* ENGL POWERBALL - Controls handled in custom section below */
               <div style={{ display: 'none' }}></div>
             ) : amp.ampType === 'soldano_slo100' ? (
               /* SOLDANO SLO-100 - Controls handled in custom section below */
