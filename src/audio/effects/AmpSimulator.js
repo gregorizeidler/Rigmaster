@@ -1,7 +1,7 @@
 import BaseEffect from './BaseEffect';
 import CabinetSimulator from '../amps/CabinetSimulator';
 
-// Import ALL individual amp models (21 professional amps)
+// Import ALL individual amp models (27 professional amps)
 import Peavey5150Amp from '../amps/Peavey5150Amp';
 import VoxAC30Amp from '../amps/VoxAC30Amp';
 import FenderDeluxeReverbAmp from '../amps/FenderDeluxeReverbAmp';
@@ -12,6 +12,7 @@ import FenderBassmanAmp from '../amps/FenderBassmanAmp';
 import RolandJC120Amp from '../amps/RolandJC120Amp';
 import MatchlessDC30Amp from '../amps/MatchlessDC30Amp';
 import OrangeRockerverbAmp from '../amps/OrangeRockerverbAmp';
+import OrangeTinyTerrorAmp from '../amps/OrangeTinyTerrorAmp';
 import HiwattDR103Amp from '../amps/HiwattDR103Amp';
 import MarshallJTM45Amp from '../amps/MarshallJTM45Amp';
 import BadCatHotCatAmp from '../amps/BadCatHotCatAmp';
@@ -328,7 +329,7 @@ class AmpSimulator extends BaseEffect {
   }
 
   initializeDedicatedAmp(ampType) {
-    // Map ALL amp types to their dedicated classes (22 professional amps)
+    // Map ALL amp types to their dedicated classes (27 professional amps)
     const ampClasses = {
       // Professional amps only
       'peavey_5150': Peavey5150Amp,
@@ -341,6 +342,7 @@ class AmpSimulator extends BaseEffect {
       'roland_jc120': RolandJC120Amp,
       'matchless_dc30': MatchlessDC30Amp,
       'orange_rockerverb': OrangeRockerverbAmp,
+      'orange_tiny_terror': OrangeTinyTerrorAmp,
       'hiwatt_dr103': HiwattDR103Amp,
       'marshall_jtm45': MarshallJTM45Amp,
       'badcat_hotcat': BadCatHotCatAmp,

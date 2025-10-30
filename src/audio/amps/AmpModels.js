@@ -125,6 +125,21 @@ export const AmpModels = {
     description: 'Thick British gain'
   },
   
+  'orange-tiny-terror': {
+    name: 'Tiny Terror',
+    type: 'lead',
+    color: '#ff6600',
+    grill: '#brown',
+    preGain: 8,
+    saturationAmount: 5,
+    bass: 5,
+    mid: 6,
+    treble: 5,
+    presence: 3500,
+    master: 0.65,
+    description: 'Lunchbox legend'
+  },
+  
   // SOLDANO STYLE
   'soldano-slo': {
     name: 'SLO 100',

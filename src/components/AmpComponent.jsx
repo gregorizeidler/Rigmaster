@@ -148,6 +148,13 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
         logo: 'Rockerverb',
         brand: 'ORANGE'
       },
+      orange_tiny_terror: {
+        color: '#ff6600',      // Orange vibrante (icônico)
+        accent: '#ffffff',     // Detalhes brancos
+        grill: '#654321',      // Grade marrom clássica Orange
+        logo: 'Tiny Terror',
+        brand: 'ORANGE'
+      },
       hiwatt_dr103: {
         color: '#4682b4',
         accent: '#c0c0c0',
@@ -312,6 +319,9 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       
       // ORANGE - Full Rockerverb Controls
       orange_rockerverb: ['orange_channel', 'channel_volume', 'reverb', 'cabinet_enabled'],
+      
+      // ORANGE TINY TERROR - Wattage Switch + Cabinet
+      orange_tiny_terror: ['tiny_terror_wattage', 'cabinet_enabled'],
       
       // HIGH GAIN MODERN - Presence + Resonance/Depth
       metal: ['presence', 'resonance'],
@@ -986,6 +996,35 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
         );
       case 'channel_volume':
         return <Knob key="channel_volume" label="Ch Vol" value={amp.params?.channel_volume || 70} onChange={handleKnobChange('channel_volume')} size={32} />;
+      
+      // ============================================
+      // ORANGE TINY TERROR SPECIFIC CONTROLS
+      // ============================================
+      case 'tiny_terror_wattage':
+        // Orange Tiny Terror wattage switch (7W/15W)
+        return (
+          <div key="tiny_terror_wattage" className="amp-wattage-switch">
+            <label>Power</label>
+            <select 
+              value={amp.params?.wattage || 15}
+              onChange={(e) => onUpdate(amp.id, 'wattage', parseInt(e.target.value))}
+              style={{ 
+                padding: '5px 8px', 
+                fontSize: '12px', 
+                borderRadius: '4px', 
+                background: '#ff6600', 
+                color: '#fff', 
+                border: '2px solid #fff',
+                fontWeight: 'bold',
+                cursor: 'pointer'
+              }}
+            >
+              <option value="7">7W</option>
+              <option value="15">15W</option>
+            </select>
+          </div>
+        );
+      
       case 'master_gain':
         return <Knob key="master_gain" label="Pre-Master" value={amp.params?.master_gain || 70} onChange={handleKnobChange('master_gain')} size={32} />;
       case 'gate':
@@ -4791,6 +4830,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
             <optgroup label="🔥 CRUNCH/BRITISH">
               <option value="marshall_jcm800">Marshall JCM800</option>
               <option value="orange_rockerverb">Orange Rockerverb</option>
+              <option value="orange_tiny_terror">Orange Tiny Terror</option>
               <option value="hiwatt_dr103">Hiwatt DR103</option>
               <option value="marshall_jtm45">Marshall JTM45</option>
               <option value="badcat_hotcat">Bad Cat Hot Cat</option>
@@ -5063,6 +5103,19 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                   <div style={{ display: 'flex', gap: '10px' }}>
                     <Knob label="Reverb" value={amp.params?.reverb || 30} onChange={handleKnobChange('reverb')} size={38} />
                     <Knob label="Master" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={38} />
+                  </div>
+                </div>
+              </div>
+            ) : amp.ampType === 'orange_tiny_terror' ? (
+              /* ORANGE TINY TERROR - Lunchbox legend with simple controls */
+              <div className="orange-tiny-terror-knobs-layout" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <div className="knob-group" style={{ display: 'flex', gap: '8px', flexDirection: 'column', alignItems: 'center', padding: '10px', background: 'linear-gradient(135deg, rgba(255,102,0,0.25), rgba(255,102,0,0.12))', borderRadius: '8px', border: '2px solid rgba(255,102,0,0.5)', boxShadow: '0 2px 8px rgba(255,102,0,0.3)' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#ff6600', textTransform: 'uppercase', letterSpacing: '1.5px', textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>⚡ Tiny Terror</span>
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <Knob label="Gain" value={amp.params?.gain || 65} onChange={handleKnobChange('gain')} size={40} />
+                    <Knob label="Volume" value={amp.params?.volume || 65} onChange={handleKnobChange('volume')} size={40} />
+                    <Knob label="Tone" value={amp.params?.tone || 60} onChange={handleKnobChange('tone')} size={40} />
+                    <Knob label="Master" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={40} />
                   </div>
                 </div>
               </div>
