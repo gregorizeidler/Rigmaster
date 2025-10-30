@@ -28,7 +28,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       'vox_ac30': '2x12_closed',
       'fender_deluxe': '1x12_open',
       'fender_vibro_king': '3x10_open',
-      'fender_bassman': '4x10_bassman',
+      'fender_bassman': '4x10_bass',
       'fender_pro_junior': '1x10_open',
       'roland_jc120': '2x12_open',
       'matchless_dc30': '2x12_closed',
@@ -37,26 +37,26 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       'marshall_jcm800': '4x12_greenback',
       'orange_rockerverb': '2x12_closed',
       'orange_tiny_terror': '1x12_closed',
-      'hiwatt_dr103': '4x12_greenback',
-      'marshall_jtm45': '2x12_greenback',
+      'hiwatt_dr103': '4x12_fane',
+      'marshall_jtm45': '4x12_greenback',
       'badcat_hotcat': '2x12_closed',
       
       // HIGH GAIN/MODERN
-      'peavey_5150': '4x12_vintage',
+      'peavey_5150': '4x12_sheffield',
       'mesa_dual_rectifier': '4x12_vintage',
-      'bogner_ecstasy': '4x12_vintage',
+      'bogner_ecstasy': '4x12_v30',
       'bogner_uberschall': '4x12_v30',
-      'diezel_vh4': '4x12_vintage',
-      'engl_powerball': '4x12_v30',
-      'friedman_be100': '4x12_greenback',
-      'soldano_slo100': '4x12_vintage',
+      'diezel_vh4': '4x12_v30',
+      'engl_powerball': '4x12_vintage',
+      'friedman_be100': '4x12_v30',
+      'soldano_slo100': '4x12_v30',
       
       // BOUTIQUE/MODERN
-      'tworock_classic': '2x12_open',
+      'tworock_classic': '1x12_open',
       'dumble_ods': '1x12_open',
-      'mesa_mark_v': '4x12_vintage',
+      'mesa_mark_v': '4x12_v30',
       'mesa_transatlantic_ta30': '2x12_blue',
-      'suhr_badger': '2x12_closed',
+      'suhr_badger': '2x12_greenback',
       'victory_duchess': '2x12_closed'
     };
     

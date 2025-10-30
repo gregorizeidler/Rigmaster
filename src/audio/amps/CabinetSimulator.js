@@ -195,6 +195,19 @@ class CabinetSimulator {
           { freq: 4500, gain: 2, Q: 0.9 }
         ]
       },
+      '4x10_bass': {
+        name: '4x10" Bass',
+        description: 'Fender Bassman style, full range clean',
+        resonanceFreq: 95,
+        resonanceQ: 2.2,
+        resonanceGain: 3,
+        lowpassFreq: 6000,
+        lowpassQ: 0.5,
+        breakupPeaks: [
+          { freq: 2600, gain: 1.5, Q: 1.0 },
+          { freq: 4500, gain: 2, Q: 0.9 }
+        ]
+      },
       '1x10_open': {
         name: '1x10" Open Back',
         description: 'Fender Pro Junior style, warm and intimate',
@@ -258,6 +271,32 @@ class CabinetSimulator {
         breakupPeaks: [
           { freq: 2600, gain: 2.2, Q: 1.15 },
           { freq: 4100, gain: 1.5, Q: 0.9 }
+        ]
+      },
+      '4x12_fane': {
+        name: '4x12" Fane',
+        description: 'Hiwatt DR103 style, clear British tone',
+        resonanceFreq: 108,
+        resonanceQ: 2.5,
+        resonanceGain: 3.5,
+        lowpassFreq: 5500,
+        lowpassQ: 0.85,
+        breakupPeaks: [
+          { freq: 2900, gain: 2.8, Q: 1.2 },
+          { freq: 5200, gain: 1.2, Q: 0.9 }
+        ]
+      },
+      '4x12_sheffield': {
+        name: '4x12" Sheffield',
+        description: 'Peavey 5150 style, aggressive American tone',
+        resonanceFreq: 118,
+        resonanceQ: 3.0,
+        resonanceGain: 4.2,
+        lowpassFreq: 5000,
+        lowpassQ: 1.0,
+        breakupPeaks: [
+          { freq: 2400, gain: 3.2, Q: 1.35 },
+          { freq: 4600, gain: 2.0, Q: 1.1 }
         ]
       }
     };
