@@ -110,11 +110,18 @@ class SuhrBadgerAmp extends BaseAmp {
     this.powerSaturation.curve = this.makePowerAmpCurve();
     this.powerSaturation.oversample = '4x';
     
-    // British-style compression
-    this.powerComp = audioContext.createDynamicsCompressor();
-    this.powerComp.threshold.value = -15;
-    this.powerComp.knee.value = 12;
-    this.powerComp.ratio.value = 3.5;
+    // POWER SUPPLY SAG - AUDIOWORKLET (tube rectifier)
+    // Suhr Badger uses EL34/KT88 tubes with tube rectifier
+    this.powerSag = this.createSagProcessor('tube', {
+      depth: 0.11,      // 11% sag (British-style)
+      att: 0.007,       // 7ms attack
+      relFast: 0.07,    // 70ms fast recovery
+      relSlow: 0.23,    // 230ms slow recovery
+      rmsMs: 20.0,      // 20ms RMS window
+      shape: 1.5,       // Progressive (British EL34)
+      floor: 0.28,      // 28% minimum headroom
+      peakMix: 0.30     // Balanced peak/RMS
+    });
     this.powerComp.attack.value = 0.006;
     this.powerComp.release.value = 0.1;
     
@@ -245,10 +252,14 @@ class SuhrBadgerAmp extends BaseAmp {
     
     // Variac power scaling
     this.channelVolume.connect(this.variacPower);
-    this.variacPower.connect(this.powerComp);
+    if (this.powerSag) {
+      this.variacPower.connect(this.powerSag);
+      this.powerSag.connect(this.powerAmp);
+    } else {
+      this.variacPower.connect(this.powerAmp);
+    }
     
     // Power amp
-    this.powerComp.connect(this.powerAmp);
     this.powerAmp.connect(this.powerSaturation);
     
     // DC block + Cabinet IR

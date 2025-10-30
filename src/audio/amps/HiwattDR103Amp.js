@@ -101,13 +101,18 @@ class HiwattDR103Amp extends BaseAmp {
     this.powerSaturation.curve = this.makePowerAmpCurve();
     this.powerSaturation.oversample = '4x';
     
-    // KT88 compression (very clean, massive headroom)
-    this.powerComp = audioContext.createDynamicsCompressor();
-    this.powerComp.threshold.value = -5; // VERY high threshold (clean!)
-    this.powerComp.knee.value = 5;
-    this.powerComp.ratio.value = 2;
-    this.powerComp.attack.value = 0.001; // Fast attack (tight)
-    this.powerComp.release.value = 0.05;
+    // POWER SUPPLY SAG - AUDIOWORKLET (silicon rectifier)
+    // Hiwatt DR103 uses KT88 tubes with solid-state rectifier (massive headroom!)
+    this.powerSag = this.createSagProcessor('silicon', {
+      depth: 0.05,      // 5% sag (minimal - Hiwatt clean power!)
+      att: 0.001,       // 1ms attack (very fast, tight)
+      relFast: 0.03,    // 30ms fast recovery
+      relSlow: 0.12,    // 120ms slow recovery
+      rmsMs: 8.0,       // 8ms RMS window (very responsive)
+      shape: 0.8,       // Almost linear (Hiwatt transparency)
+      floor: 0.40,      // 40% minimum headroom (massive!)
+      peakMix: 0.35     // Balanced peak/RMS
+    });
     
     // ============================================
     // CABINET SIMULATOR
@@ -186,8 +191,12 @@ class HiwattDR103Amp extends BaseAmp {
     this.glassyHighs.connect(this.masterVolume);
     
     // Power amp with presence in NFB position
-    this.masterVolume.connect(this.powerComp);
-    this.powerComp.connect(this.powerAmp);
+    if (this.powerSag) {
+      this.masterVolume.connect(this.powerSag);
+      this.powerSag.connect(this.powerAmp);
+    } else {
+      this.masterVolume.connect(this.powerAmp);
+    }
     this.powerAmp.connect(this.presence); // Presence acts as NFB
     this.presence.connect(this.powerSaturation);
     

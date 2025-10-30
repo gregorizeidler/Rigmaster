@@ -10,14 +10,19 @@ class Peavey5150Amp extends BaseAmp {
     // Enhanced with realistic modeling improvements
     
     // ============================================
-    // NOISE GATE (before first gain stage)
+    // NOISE GATE - AUDIOWORKLET (before first gain stage)
     // ============================================
-    this.noiseGate = audioContext.createDynamicsCompressor();
-    this.noiseGate.threshold.value = -50; // dB
-    this.noiseGate.knee.value = 0;
-    this.noiseGate.ratio.value = 20; // High ratio for gating
-    this.noiseGate.attack.value = 0.001; // Fast attack
-    this.noiseGate.release.value = 0.1; // Fast release for palm mutes
+    // Production-grade gate for ultra-tight metal playing
+    this.noiseGate = this.createNoiseGate({
+      thOpen: -48,      // Open threshold
+      thClose: -56,     // Close threshold (TRUE HYSTERESIS)
+      attack: 0.0005,   // 0.5ms attack (ultra-fast for palm mutes)
+      release: 0.10,    // 100ms release (fast for metal riffs)
+      rms: 0.012,       // 12ms RMS window
+      peakMix: 0.40,    // 40% peak, 60% RMS (responsive to transients)
+      floorDb: -70,     // Musical floor
+      holdMs: 6         // 6ms hold (prevents chattering on fast playing)
+    });
     this.gateEnabled = true;
     
     // ============================================
@@ -90,14 +95,19 @@ class Peavey5150Amp extends BaseAmp {
     this.master = audioContext.createGain();
     
     // ============================================
-    // POWER SUPPLY SAG/COMPRESSION
+    // POWER SUPPLY SAG - AUDIOWORKLET
     // ============================================
-    this.powerSag = audioContext.createDynamicsCompressor();
-    this.powerSag.threshold.value = -20; // dB
-    this.powerSag.knee.value = 12;
-    this.powerSag.ratio.value = 3; // Moderate compression
-    this.powerSag.attack.value = 0.005;
-    this.powerSag.release.value = 0.100; // Sag feel
+    // Silicon rectifier (5150 uses solid-state rectifier)
+    this.powerSag = this.createSagProcessor('silicon', {
+      depth: 0.10,      // 10% sag (moderate for high-gain metal)
+      att: 0.005,       // 5ms attack
+      relFast: 0.05,    // 50ms fast recovery
+      relSlow: 0.18,    // 180ms slow recovery
+      rmsMs: 12.0,      // 12ms RMS window
+      shape: 1.2,       // Slightly progressive
+      floor: 0.28,      // 28% minimum headroom
+      peakMix: 0.32     // Balanced peak/RMS
+    });
     
     // Dynamic bass shelving (loosens under load)
     this.dynamicBassShelf = audioContext.createBiquadFilter();

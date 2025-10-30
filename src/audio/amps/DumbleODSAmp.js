@@ -147,6 +147,19 @@ class DumbleODSAmp extends BaseAmp {
     // ============================================
     // POWER AMP (6L6 sweet spot)
     // ============================================
+    // POWER SUPPLY SAG - AUDIOWORKLET (silicon rectifier)
+    // Dumble ODS uses tight silicon rectifier (boutique touch-sensitive)
+    this.powerSag = this.createSagProcessor('silicon', {
+      depth: 0.08,      // 8% sag (tight, touch-sensitive)
+      att: 0.012,       // 12ms attack (very touch-sensitive)
+      relFast: 0.09,    // 90ms fast recovery
+      relSlow: 0.28,    // 280ms slow recovery (musical sustain)
+      rmsMs: 20.0,      // 20ms RMS window
+      shape: 1.3,       // Slightly progressive (Dumble magic)
+      floor: 0.31,      // 31% minimum headroom (high)
+      peakMix: 0.29     // More RMS-focused (smooth)
+    });
+    
     this.powerAmp = audioContext.createGain();
     this.powerSaturation = audioContext.createWaveShaper();
     this.powerSaturation.curve = this.makePowerAmpCurve();
@@ -284,9 +297,19 @@ class DumbleODSAmp extends BaseAmp {
       this.presence.connect(this.loopSendLevel);
       this.loopSendLevel.connect(this.fxSend); // Send to external FX
       this.fxReturn.connect(this.loopReturnLevel);
-      this.loopReturnLevel.connect(this.powerAmp); // Return from external FX
+      if (this.powerSag) {
+        this.loopReturnLevel.connect(this.powerSag);
+        this.powerSag.connect(this.powerAmp);
+      } else {
+        this.loopReturnLevel.connect(this.powerAmp);
+      }
     } else {
-      this.presence.connect(this.powerAmp);
+      if (this.powerSag) {
+        this.presence.connect(this.powerSag);
+        this.powerSag.connect(this.powerAmp);
+      } else {
+        this.presence.connect(this.powerAmp);
+      }
     }
     
     // Power amp
@@ -324,9 +347,19 @@ class DumbleODSAmp extends BaseAmp {
       this.presence.connect(this.loopSendLevel);
       this.loopSendLevel.connect(this.fxSend); // Send to external FX
       this.fxReturn.connect(this.loopReturnLevel);
-      this.loopReturnLevel.connect(this.powerAmp); // Return from external FX
+      if (this.powerSag) {
+        this.loopReturnLevel.connect(this.powerSag);
+        this.powerSag.connect(this.powerAmp);
+      } else {
+        this.loopReturnLevel.connect(this.powerAmp);
+      }
     } else {
-      this.presence.connect(this.powerAmp);
+      if (this.powerSag) {
+        this.presence.connect(this.powerSag);
+        this.powerSag.connect(this.powerAmp);
+      } else {
+        this.presence.connect(this.powerAmp);
+      }
     }
     
     // Power amp

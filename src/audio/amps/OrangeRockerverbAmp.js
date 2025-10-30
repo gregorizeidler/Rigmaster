@@ -12,8 +12,18 @@ class OrangeRockerverbAmp extends BaseAmp {
     // ============================================
     // NOISE GATE (Dirty channel only)
     // ============================================
-    this.noiseGate = audioContext.createDynamicsCompressor();
-    this.noiseGate.threshold.value = -52;
+    // NOISE GATE - AUDIOWORKLET
+    // ============================================
+    this.noiseGate = this.createNoiseGate({
+      thOpen: -52,      // Orange moderate threshold
+      thClose: -60,     // TRUE HYSTERESIS
+      attack: 0.0010,   // 1ms attack
+      release: 0.10,    // 100ms release
+      rms: 0.018,       // 18ms RMS window
+      peakMix: 0.33,    // Balanced peak/RMS
+      floorDb: -73,     // Musical floor
+      holdMs: 12        // 12ms hold
+    });
     this.noiseGate.knee.value = 0;
     this.noiseGate.ratio.value = 20;
     this.noiseGate.attack.value = 0.001;
@@ -135,13 +145,18 @@ class OrangeRockerverbAmp extends BaseAmp {
     this.powerSaturation.curve = this.makePowerAmpCurve();
     this.powerSaturation.oversample = '4x';
     
-    // Orange's natural compression
-    this.powerComp = audioContext.createDynamicsCompressor();
-    this.powerComp.threshold.value = -18;
-    this.powerComp.knee.value = 15;
-    this.powerComp.ratio.value = 3;
-    this.powerComp.attack.value = 0.008;
-    this.powerComp.release.value = 0.12;
+    // POWER SUPPLY SAG - AUDIOWORKLET (tube rectifier)
+    // Orange Rockerverb uses EL34 tubes with tube rectifier
+    this.powerSag = this.createSagProcessor('tube', {
+      depth: 0.11,      // 11% sag (Orange natural compression)
+      att: 0.008,       // 8ms attack
+      relFast: 0.08,    // 80ms fast recovery
+      relSlow: 0.24,    // 240ms slow recovery (Orange spongy feel)
+      rmsMs: 20.0,      // 20ms RMS window
+      shape: 1.4,       // Progressive (Orange character)
+      floor: 0.28,      // 28% minimum headroom
+      peakMix: 0.31     // Balanced peak/RMS
+    });
     
     // ============================================
     // DC BLOCKER (Essential before cabinet)
@@ -250,9 +265,13 @@ class OrangeRockerverbAmp extends BaseAmp {
     this.channelVolume.connect(this.outputMixer);
     this.reverbReturn.connect(this.outputMixer);
     
-    // Power section
-    this.outputMixer.connect(this.powerComp);
-    this.powerComp.connect(this.powerAmp);
+    // Power section with sag
+    if (this.powerSag) {
+      this.outputMixer.connect(this.powerSag);
+      this.powerSag.connect(this.powerAmp);
+    } else {
+      this.outputMixer.connect(this.powerAmp);
+    }
     this.powerAmp.connect(this.powerSaturation);
     this.powerSaturation.connect(this.dcBlock);
     

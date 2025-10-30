@@ -122,11 +122,18 @@ class DiezelVH4Amp extends BaseAmp {
     this.midCutDepth.gain.value = 0; // Negative = cut depth
     
     // ============================================
-    // NOISE GATE (Transparent, high-gain)
+    // NOISE GATE - AUDIOWORKLET (Transparent, high-gain)
     // ============================================
-    this.gate = audioContext.createDynamicsCompressor();
-    this.gate.threshold.value = -60; // Higher = more aggressive
-    this.gate.knee.value = 0;
+    this.gate = this.createNoiseGate({
+      thOpen: -52,      // Transparent but effective
+      thClose: -60,     // TRUE HYSTERESIS
+      attack: 0.0008,   // 0.8ms attack
+      release: 0.12,    // 120ms release
+      rms: 0.015,       // 15ms RMS window
+      peakMix: 0.35,    // Balanced peak/RMS
+      floorDb: -72,     // Musical floor
+      holdMs: 10        // 10ms hold
+    });
     this.gate.ratio.value = 20;
     this.gate.attack.value = 0.002;
     this.gate.release.value = 0.08;
@@ -142,13 +149,17 @@ class DiezelVH4Amp extends BaseAmp {
     this.powerSaturation.curve = this.makePowerAmpCurve();
     this.powerSaturation.oversample = '4x';
     
-    // Power amp compression
-    this.powerComp = audioContext.createDynamicsCompressor();
-    this.powerComp.threshold.value = -15;
-    this.powerComp.knee.value = 10;
-    this.powerComp.ratio.value = 5;
-    this.powerComp.attack.value = 0.005;
-    this.powerComp.release.value = 0.08;
+    // Power supply sag (Diezel uses tube rectifier)
+    this.powerSag = this.createSagProcessor('tube', {
+      depth: 0.14,      // 14% sag (heavy tube rectifier)
+      att: 0.005,       // 5ms attack
+      relFast: 0.06,    // 60ms fast recovery
+      relSlow: 0.24,    // 240ms slow recovery
+      rmsMs: 23.0,      // 23ms RMS window
+      shape: 1.6,       // Progressive/tube-like
+      floor: 0.26,      // 26% minimum headroom
+      peakMix: 0.30     // Balanced peak/RMS
+    });
     
     // ============================================
     // CABINET SIMULATOR
@@ -269,14 +280,19 @@ class DiezelVH4Amp extends BaseAmp {
       this.fxReturn.connect(this.fxReturnLevel);     // ← return from effects
       
       // Mix dry + wet
-      this.fxDryTap.connect(this.powerComp);
+      this.fxDryTap.connect(this.powerSag || this.powerAmp);
       this.fxReturnLevel.connect(this.fxMix);
-      this.fxMix.connect(this.powerComp);
+      this.fxMix.connect(this.powerSag || this.powerAmp);
     } else {
-      this.channelVolume.connect(this.powerComp);
+      this.channelVolume.connect(this.powerSag || this.powerAmp);
     }
     
-    this.powerComp.connect(this.powerAmp);
+    if (this.powerSag) {
+      this.powerSag.connect(this.powerAmp);
+    } else {
+      // Fallback connection if sag unavailable
+      this.powerAmp.gain.value = 1.0;
+    }
     this.powerAmp.connect(this.powerSaturation);
     this.powerSaturation.connect(this.master);
     this.master.connect(this.preCabinet);
@@ -335,14 +351,19 @@ class DiezelVH4Amp extends BaseAmp {
       this.fxReturn.connect(this.fxReturnLevel);     // ← return from effects
       
       // Mix dry + wet
-      this.fxDryTap.connect(this.powerComp);
+      this.fxDryTap.connect(this.powerSag || this.powerAmp);
       this.fxReturnLevel.connect(this.fxMix);
-      this.fxMix.connect(this.powerComp);
+      this.fxMix.connect(this.powerSag || this.powerAmp);
     } else {
-      this.channelVolume.connect(this.powerComp);
+      this.channelVolume.connect(this.powerSag || this.powerAmp);
     }
     
-    this.powerComp.connect(this.powerAmp);
+    if (this.powerSag) {
+      this.powerSag.connect(this.powerAmp);
+    } else {
+      // Fallback connection if sag unavailable
+      this.powerAmp.gain.value = 1.0;
+    }
     this.powerAmp.connect(this.powerSaturation);
     this.powerSaturation.connect(this.master);
     this.master.connect(this.preCabinet);
@@ -401,14 +422,19 @@ class DiezelVH4Amp extends BaseAmp {
       this.fxReturn.connect(this.fxReturnLevel);     // ← return from effects
       
       // Mix dry + wet
-      this.fxDryTap.connect(this.powerComp);
+      this.fxDryTap.connect(this.powerSag || this.powerAmp);
       this.fxReturnLevel.connect(this.fxMix);
-      this.fxMix.connect(this.powerComp);
+      this.fxMix.connect(this.powerSag || this.powerAmp);
     } else {
-      this.channelVolume.connect(this.powerComp);
+      this.channelVolume.connect(this.powerSag || this.powerAmp);
     }
     
-    this.powerComp.connect(this.powerAmp);
+    if (this.powerSag) {
+      this.powerSag.connect(this.powerAmp);
+    } else {
+      // Fallback connection if sag unavailable
+      this.powerAmp.gain.value = 1.0;
+    }
     this.powerAmp.connect(this.powerSaturation);
     this.powerSaturation.connect(this.master);
     this.master.connect(this.preCabinet);
@@ -470,14 +496,19 @@ class DiezelVH4Amp extends BaseAmp {
       this.fxReturn.connect(this.fxReturnLevel);     // ← return from effects
       
       // Mix dry + wet
-      this.fxDryTap.connect(this.powerComp);
+      this.fxDryTap.connect(this.powerSag || this.powerAmp);
       this.fxReturnLevel.connect(this.fxMix);
-      this.fxMix.connect(this.powerComp);
+      this.fxMix.connect(this.powerSag || this.powerAmp);
     } else {
-      this.channelVolume.connect(this.powerComp);
+      this.channelVolume.connect(this.powerSag || this.powerAmp);
     }
     
-    this.powerComp.connect(this.powerAmp);
+    if (this.powerSag) {
+      this.powerSag.connect(this.powerAmp);
+    } else {
+      // Fallback connection if sag unavailable
+      this.powerAmp.gain.value = 1.0;
+    }
     this.powerAmp.connect(this.powerSaturation);
     this.powerSaturation.connect(this.master);
     this.master.connect(this.preCabinet);

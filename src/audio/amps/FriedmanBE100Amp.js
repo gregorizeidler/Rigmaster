@@ -78,13 +78,19 @@ class FriedmanBE100Amp extends BaseAmp {
     this.satClip.oversample = '4x';
     
     // ============================================
-    // NOISE GATE (soft expander after preamp)
+    // NOISE GATE - AUDIOWORKLET (soft gate after preamp)
     // ============================================
-    this.noiseGate = audioContext.createDynamicsCompressor();
-    this.noiseGate.threshold.value = -60;
-    this.noiseGate.ratio.value = 1.5; // Light expansion
-    this.noiseGate.attack.value = 0.01;
-    this.noiseGate.release.value = 0.15;
+    // Friedman uses softer gating (not aggressive metal gate)
+    this.noiseGate = this.createNoiseGate({
+      thOpen: -58,      // Softer open threshold
+      thClose: -66,     // Softer close threshold (gentle hysteresis)
+      attack: 0.010,    // 10ms attack (slower, more natural)
+      release: 0.15,    // 150ms release (smooth)
+      rms: 0.020,       // 20ms RMS window (smoother response)
+      peakMix: 0.25,    // More RMS-focused (75% RMS)
+      floorDb: -75,     // Very soft floor (musical)
+      holdMs: 15        // 15ms hold (gentle)
+    });
     
     // ============================================
     // TONE STACK (Modified Marshall)
@@ -119,13 +125,17 @@ class FriedmanBE100Amp extends BaseAmp {
     this.powerSaturation.curve = this.makePowerAmpCurve();
     this.powerSaturation.oversample = '4x';
     
-    // Power amp compression
-    this.powerComp = audioContext.createDynamicsCompressor();
-    this.powerComp.threshold.value = -15;
-    this.powerComp.knee.value = 10;
-    this.powerComp.ratio.value = 4;
-    this.powerComp.attack.value = 0.005;
-    this.powerComp.release.value = 0.1;
+    // Power supply sag (Friedman uses tube rectifier)
+    this.powerSag = this.createSagProcessor('tube', {
+      depth: 0.13,      // 13% sag (tube rectifier)
+      att: 0.005,       // 5ms attack
+      relFast: 0.06,    // 60ms fast recovery
+      relSlow: 0.23,    // 230ms slow recovery
+      rmsMs: 22.0,      // 22ms RMS window
+      shape: 1.5,       // Progressive/tube-like
+      floor: 0.27,      // 27% minimum headroom
+      peakMix: 0.30     // Balanced peak/RMS
+    });
     
     // ============================================
     // DEPTH (Resonance - low shelf in power section)
@@ -213,8 +223,12 @@ class FriedmanBE100Amp extends BaseAmp {
     this.bass.connect(this.middle);
     this.middle.connect(this.treble);
     this.treble.connect(this.channelVolume);
-    this.channelVolume.connect(this.powerComp);
-    this.powerComp.connect(this.powerAmp);
+    if (this.powerSag) {
+      this.channelVolume.connect(this.powerSag);
+      this.powerSag.connect(this.powerAmp);
+    } else {
+      this.channelVolume.connect(this.powerAmp);
+    }
     this.powerAmp.connect(this.depth);
     this.depth.connect(this.presence);
     this.presence.connect(this.powerSaturation);
@@ -257,8 +271,12 @@ class FriedmanBE100Amp extends BaseAmp {
     this.bass.connect(this.middle);
     this.middle.connect(this.treble);
     this.treble.connect(this.channelVolume);
-    this.channelVolume.connect(this.powerComp);
-    this.powerComp.connect(this.powerAmp);
+    if (this.powerSag) {
+      this.channelVolume.connect(this.powerSag);
+      this.powerSag.connect(this.powerAmp);
+    } else {
+      this.channelVolume.connect(this.powerAmp);
+    }
     this.powerAmp.connect(this.depth);
     this.depth.connect(this.presence);
     this.presence.connect(this.powerSaturation);

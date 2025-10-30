@@ -91,13 +91,18 @@ class FenderBassmanAmp extends BaseAmp {
     this.powerSaturation.curve = this.makePowerAmpCurve();
     this.powerSaturation.oversample = '4x';
     
-    // Power amp compression (6L6 sag)
-    this.powerComp = audioContext.createDynamicsCompressor();
-    this.powerComp.threshold.value = -18;
-    this.powerComp.knee.value = 12;
-    this.powerComp.ratio.value = 2.8;
-    this.powerComp.attack.value = 0.008;
-    this.powerComp.release.value = 0.12;
+    // POWER SUPPLY SAG - AUDIOWORKLET (tube rectifier)
+    // Bassman uses tube rectifier with 6L6 power tubes
+    this.powerSag = this.createSagProcessor('tube', {
+      depth: 0.11,      // 11% sag (moderate vintage)
+      att: 0.008,       // 8ms attack
+      relFast: 0.08,    // 80ms fast recovery
+      relSlow: 0.24,    // 240ms slow recovery
+      rmsMs: 22.0,      // 22ms RMS window
+      shape: 1.4,       // Progressive (vintage 6L6)
+      floor: 0.28,      // 28% minimum headroom
+      peakMix: 0.30     // Balanced peak/RMS
+    });
     
     // Presence control (NFB loop - post power amp)
     this.presence = audioContext.createBiquadFilter();
@@ -205,8 +210,12 @@ class FenderBassmanAmp extends BaseAmp {
     // ============================================
     this.tweedHonk.connect(this.volume);
     this.volume.connect(this.rectifierSag);
-    this.rectifierSag.connect(this.powerComp);
-    this.powerComp.connect(this.powerAmp);
+    if (this.powerSag) {
+      this.rectifierSag.connect(this.powerSag);
+      this.powerSag.connect(this.powerAmp);
+    } else {
+      this.rectifierSag.connect(this.powerAmp);
+    }
     this.powerAmp.connect(this.powerSaturation);
     
     // ============================================

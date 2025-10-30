@@ -11,14 +11,19 @@ class SoldanoSLO100Amp extends BaseAmp {
     // Influenced every high-gain amp that came after
     
     // ============================================
-    // NOISE GATE (before preamp, hi-gain essential)
+    // NOISE GATE - AUDIOWORKLET (before preamp, hi-gain essential)
     // ============================================
-    this.noiseGate = audioContext.createDynamicsCompressor();
-    this.noiseGate.threshold.value = -52; // dB
-    this.noiseGate.knee.value = 0;
-    this.noiseGate.ratio.value = 20; // High ratio for gating
-    this.noiseGate.attack.value = 0.001; // Fast attack
-    this.noiseGate.release.value = 0.08; // Discrete gate
+    // Production-grade gate for classic high-gain tones
+    this.noiseGate = this.createNoiseGate({
+      thOpen: -52,      // Open threshold (classic setting)
+      thClose: -60,     // Close threshold (TRUE HYSTERESIS)
+      attack: 0.0008,   // 0.8ms attack
+      release: 0.08,    // 80ms release (discrete, not too smooth)
+      rms: 0.015,       // 15ms RMS window
+      peakMix: 0.35,    // Balanced peak/RMS
+      floorDb: -72,     // Musical floor
+      holdMs: 10        // 10ms hold (classic feel)
+    });
     this.gateEnabled = true;
     
     // ============================================
@@ -108,13 +113,17 @@ class SoldanoSLO100Amp extends BaseAmp {
     this.powerSaturation.curve = this.makePowerAmpCurve();
     this.powerSaturation.oversample = '4x';
     
-    // Power amp compression
-    this.powerComp = audioContext.createDynamicsCompressor();
-    this.powerComp.threshold.value = -12;
-    this.powerComp.knee.value = 12;
-    this.powerComp.ratio.value = 4;
-    this.powerComp.attack.value = 0.006;
-    this.powerComp.release.value = 0.1;
+    // Power supply sag (tube rectifier typical for SLO-100)
+    this.powerSag = this.createSagProcessor('tube', {
+      depth: 0.12,      // 12% sag (tube-like, moderate)
+      att: 0.006,       // 6ms attack
+      relFast: 0.07,    // 70ms fast recovery
+      relSlow: 0.22,    // 220ms slow recovery
+      rmsMs: 20.0,      // 20ms RMS window (tube-like)
+      shape: 1.5,       // Progressive/tube-like curve
+      floor: 0.28,      // 28% minimum headroom
+      peakMix: 0.30     // Balanced peak/RMS
+    });
     
     // ============================================
     // DC BLOCKER (before cabinet IR)
@@ -263,9 +272,13 @@ class SoldanoSLO100Amp extends BaseAmp {
     this.smoothFilter.connect(this.prePowerLPF);
     this.prePowerLPF.connect(this.preampMaster);
     
-    // Power section
-    this.preampMaster.connect(this.powerComp);
-    this.powerComp.connect(this.powerAmp);
+    // Power section with sag
+    if (this.powerSag) {
+      this.preampMaster.connect(this.powerSag);
+      this.powerSag.connect(this.powerAmp);
+    } else {
+      this.preampMaster.connect(this.powerAmp);
+    }
     this.powerAmp.connect(this.powerSaturation);
     this.powerSaturation.connect(this.dcBlock);
     

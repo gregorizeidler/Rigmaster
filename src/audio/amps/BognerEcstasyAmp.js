@@ -143,13 +143,35 @@ class BognerEcstasyAmp extends BaseAmp {
     // ============================================
     // VARIAC (100V) - Sag Musical
     // ============================================
+    // NOISE GATE - AUDIOWORKLET (high-gain channels)
+    // ============================================
+    this.noiseGate = this.createNoiseGate({
+      thOpen: -54,      // Moderate threshold
+      thClose: -62,     // TRUE HYSTERESIS
+      attack: 0.0009,   // 0.9ms attack
+      release: 0.14,    // 140ms release
+      rms: 0.018,       // 18ms RMS window
+      peakMix: 0.32,    // Balanced peak/RMS
+      floorDb: -72,     // Musical floor
+      holdMs: 12        // 12ms hold
+    });
+    
+    // ============================================
     this.variac = false;
-    this.sagComp = audioContext.createDynamicsCompressor();
-    this.sagComp.threshold.value = -22;
-    this.sagComp.knee.value = 8;
-    this.sagComp.ratio.value = 3.5;
-    this.sagComp.attack.value = 0.006;
-    this.sagComp.release.value = 0.12;
+    
+    // POWER SUPPLY SAG - AUDIOWORKLET (tube rectifier)
+    // ============================================
+    // Bogner Ecstasy uses tube rectifier (EL34 or 6L6 power tubes)
+    this.powerSag = this.createSagProcessor('tube', {
+      depth: 0.13,      // 13% sag (tube rectifier)
+      att: 0.006,       // 6ms attack
+      relFast: 0.06,    // 60ms fast recovery
+      relSlow: 0.22,    // 220ms slow recovery
+      rmsMs: 22.0,      // 22ms RMS window
+      shape: 1.5,       // Progressive/tube-like
+      floor: 0.27,      // 27% minimum headroom
+      peakMix: 0.30     // Balanced peak/RMS
+    });
     
     // ============================================
     // POWER AMP (4x EL34 or 6L6)
@@ -158,14 +180,6 @@ class BognerEcstasyAmp extends BaseAmp {
     this.powerSaturation = audioContext.createWaveShaper();
     this.powerSaturation.curve = this.makePowerAmpCurve();
     this.powerSaturation.oversample = '4x';
-    
-    // Power amp compression
-    this.powerComp = audioContext.createDynamicsCompressor();
-    this.powerComp.threshold.value = -15;
-    this.powerComp.knee.value = 10;
-    this.powerComp.ratio.value = 4;
-    this.powerComp.attack.value = 0.005;
-    this.powerComp.release.value = 0.1;
     
     // ============================================
     // BOOST PER CHANNEL
@@ -276,7 +290,13 @@ class BognerEcstasyAmp extends BaseAmp {
     //          → bass → middle → treble → presence → depth → ch2LeadBump → nfbTilt
     //          → [FX Loop] → sagComp → powerComp → powerAmp → powerSat → channelMaster[1] → master → output
     
-    this.input.connect(this.channel1);
+    // Gate at input for high-gain channels
+    if (this.noiseGate) {
+      this.input.connect(this.noiseGate);
+      this.noiseGate.connect(this.channel1);
+    } else {
+      this.input.connect(this.channel1);
+    }
     this.channel1.connect(this.excursionFilter);
     this.excursionFilter.connect(this.preEQ);
     this.preEQ.connect(this.brightFilter);
@@ -311,7 +331,13 @@ class BognerEcstasyAmp extends BaseAmp {
     // CHANNEL 2 - Lead (3 gain stages)
     // Same routing as ch1 but with 3 stages and lead bump active
     
-    this.input.connect(this.channel2);
+    // Gate at input for high-gain channels
+    if (this.noiseGate) {
+      this.input.connect(this.noiseGate);
+      this.noiseGate.connect(this.channel2);
+    } else {
+      this.input.connect(this.channel2);
+    }
     this.channel2.connect(this.excursionFilter);
     this.excursionFilter.connect(this.preEQ);
     this.preEQ.connect(this.brightFilter);
@@ -347,7 +373,13 @@ class BognerEcstasyAmp extends BaseAmp {
     
     // CHANNEL 3 - Ultra Lead (4 gain stages)
     
-    this.input.connect(this.channel3);
+    // Gate at input for high-gain channels
+    if (this.noiseGate) {
+      this.input.connect(this.noiseGate);
+      this.noiseGate.connect(this.channel3);
+    } else {
+      this.input.connect(this.channel3);
+    }
     this.channel3.connect(this.excursionFilter);
     this.excursionFilter.connect(this.preEQ);
     this.preEQ.connect(this.brightFilter);
@@ -388,21 +420,22 @@ class BognerEcstasyAmp extends BaseAmp {
       source.connect(this.fxSendTrim);
       this.fxSendTrim.connect(this.fxSend);
       this.fxReturn.connect(this.fxReturnTrim);
-      this.fxDryTap.connect(this.sagComp);
+      this.fxDryTap.connect(this.powerSag || this.powerAmp);
       this.fxReturnTrim.connect(this.fxMix);
-      this.fxMix.connect(this.sagComp);
+      this.fxMix.connect(this.powerSag || this.powerAmp);
     } else if (this.fxLoop) {
       // Series FX Loop
       source.connect(this.fxSend);
-      this.fxReturn.connect(this.sagComp);
+      this.fxReturn.connect(this.powerSag || this.powerAmp);
     } else {
       // No FX Loop
-      source.connect(this.sagComp);
+      source.connect(this.powerSag || this.powerAmp);
     }
     
-    // Continue to power section
-    this.sagComp.connect(this.powerComp);
-    this.powerComp.connect(this.powerAmp);
+    // Continue to power section with sag
+    if (this.powerSag) {
+      this.powerSag.connect(this.powerAmp);
+    }
     this.powerAmp.connect(this.powerSaturation);
     this.powerSaturation.connect(this.channelMaster[this.activeChannel]);
   }

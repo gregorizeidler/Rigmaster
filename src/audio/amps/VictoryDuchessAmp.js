@@ -110,10 +110,18 @@ class VictoryDuchessAmp extends BaseAmp {
     this.sagEnv = audioContext.createGain();
     this.sagEnv.gain.value = 1.0; // multiplies signal pre-power
 
-    this.powerComp = audioContext.createDynamicsCompressor();
-    this.powerComp.threshold.value = -18;
-    this.powerComp.knee.value = 14;
-    this.powerComp.ratio.value = 3;
+    // POWER SUPPLY SAG - AUDIOWORKLET (tube rectifier)
+    // Victory Duchess uses EL34 tubes with tube rectifier
+    this.powerSag = this.createSagProcessor('tube', {
+      depth: 0.12,      // 12% sag (Victory character)
+      att: 0.007,       // 7ms attack
+      relFast: 0.07,    // 70ms fast recovery
+      relSlow: 0.24,    // 240ms slow recovery
+      rmsMs: 21.0,      // 21ms RMS window
+      shape: 1.5,       // Progressive (modern EL34)
+      floor: 0.27,      // 27% minimum headroom
+      peakMix: 0.30     // Balanced peak/RMS
+    });
     this.powerComp.attack.value = 0.007;
     this.powerComp.release.value = 0.11;
 
@@ -236,8 +244,12 @@ class VictoryDuchessAmp extends BaseAmp {
 
     // SAG (pre-power) & power comp/sat
     this.channelVolume.connect(this.sagEnv);
-    this.sagEnv.connect(this.powerComp);
-    this.powerComp.connect(this.powerGain);
+    if (this.powerSag) {
+      this.sagEnv.connect(this.powerSag);
+      this.powerSag.connect(this.powerGain);
+    } else {
+      this.sagEnv.connect(this.powerGain);
+    }
     this.powerGain.connect(this.powerSat);
 
     // DC block → cabinet → post-EQ → limiter → master

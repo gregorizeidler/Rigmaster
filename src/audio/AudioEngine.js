@@ -33,6 +33,21 @@ class AudioEngine {
       
       console.log(`🎸 AudioContext initialized at ${this.audioContext.sampleRate}Hz`);
       
+      // Load AudioWorklet processors (gate and sag)
+      try {
+        await this.audioContext.audioWorklet.addModule('gate-processor.js');
+        console.log('✅ Loaded gate-processor.js');
+      } catch (error) {
+        console.warn('⚠️ Failed to load gate-processor.js:', error);
+      }
+      
+      try {
+        await this.audioContext.audioWorklet.addModule('sag-processor.js');
+        console.log('✅ Loaded sag-processor.js');
+      } catch (error) {
+        console.warn('⚠️ Failed to load sag-processor.js:', error);
+      }
+      
       // Input from microphone/guitar interface with HIGH QUALITY settings
       const constraints = {
         audio: {

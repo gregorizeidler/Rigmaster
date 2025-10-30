@@ -93,13 +93,9 @@ class MesaDualRectifierAmp extends BaseAmp {
     
     // BOLD/SPONGY POWER SWITCH
     this.powerMode = 'bold'; // 'bold' or 'spongy'
-    this.powerSag = audioContext.createDynamicsCompressor();
     
     // RECTIFIER SELECT (TUBE/SILICON)
     this.rectifierMode = 'silicon'; // 'tube' or 'silicon'
-    this.rectifierSag = audioContext.createGain();
-    this.rectifierFilter = audioContext.createBiquadFilter(); // For tube/silicon feel
-    this.rectifierFilter.type = 'lowpass';
     
     // MULTI-WATT POWER (50W/100W/150W)
     this.wattage = 100; // 50, 100, or 150
@@ -115,15 +111,23 @@ class MesaDualRectifierAmp extends BaseAmp {
     this.variacGain = audioContext.createGain();
     
     // ============================================
-    // REAL SAG SYSTEM (envelope-based)
+    // POWER SUPPLY SAG - AUDIOWORKLET (tube rectifier simulation)
     // ============================================
-    this.supplyGain = audioContext.createGain(); // Sag affects headroom before power amp
-    this.levelProbe = audioContext.createAnalyser();
-    this.levelProbe.fftSize = 512;
-    this._sagDepth = 0.08; // Silicon default
-    this._sagAttack = 0.006;
-    this._sagRelease = 0.08;
-    this._lastRMS = 0;
+    // Replaces old DynamicsCompressor-based sag with production-grade processor
+    // Silicon rectifier (default) - tight, fast response
+    this.powerSag = this.createSagProcessor('silicon', {
+      depth: 0.08,      // 8% sag (tight)
+      att: 0.006,       // 6ms attack (fast droop)
+      relFast: 0.06,    // 60ms fast recovery
+      relSlow: 0.20,    // 200ms slow recovery (tube-like breathing)
+      rmsMs: 10.0,      // 10ms RMS window (silicon is fast)
+      shape: 1.0,       // Linear response
+      floor: 0.30,      // 30% minimum headroom
+      peakMix: 0.30     // Balanced peak/RMS
+    });
+    
+    // Store rectifier type for switching (see setRectifierMode method)
+    this._rectifierType = 'silicon';
     
     // ============================================
     // NFB (Negative Feedback) - Presence/Resonance
@@ -206,43 +210,30 @@ class MesaDualRectifierAmp extends BaseAmp {
     this.powerSaturation.oversample = '4x';
     
     // ============================================
-    // NOISE GATE (for CH2/CH3)
+    // NOISE GATE (for CH2/CH3) - AUDIOWORKLET
     // ============================================
-    // NOTE: Using DynamicsCompressor as gate (not ideal but functional)
-    // For true gate, implement AudioWorklet:
-    //
-    // await audioContext.audioWorklet.addModule('gate-processor.js');
-    // this.ch2NoiseGate = new AudioWorkletNode(audioContext, 'gate');
-    // this.ch3NoiseGate = new AudioWorkletNode(audioContext, 'gate');
-    // this.ch2NoiseGate.parameters.get('threshold').value = -52;
-    // this.ch2NoiseGate.parameters.get('attack').value = 0.002;
-    // this.ch2NoiseGate.parameters.get('release').value = 0.08;
-    //
-    // gate-processor.js would implement envelope follower + hysteresis
-    this.ch2NoiseGate = audioContext.createDynamicsCompressor();
-    this.ch3NoiseGate = audioContext.createDynamicsCompressor();
+    // Production-grade noise gates with true hysteresis, RMS/peak detection
+    this.ch2NoiseGate = this.createNoiseGate({
+      thOpen: -50,      // Open threshold (dB)
+      thClose: -58,     // Close threshold (dB) - TRUE HYSTERESIS
+      attack: 0.0005,   // Ultra-fast attack (0.5ms) - preserves pick transients
+      release: 0.15,    // Smooth release (150ms) - no chattering
+      rms: 0.015,       // 15ms RMS window
+      peakMix: 0.35,    // 35% peak, 65% RMS (balanced)
+      floorDb: -70,     // Gate floor (not digital silence)
+      holdMs: 8         // 8ms hold time prevents chattering
+    });
     
-    // IMPROVED GATE PARAMETERS (hysteresis-like behavior via soft knee)
-    // Threshold: -48dB (tight but musical)
-    // Ratio: 30:1 (hard gating, clean silence)
-    // Attack: 0.5ms (ultra-fast, preserves pick transients)
-    // Release: 150ms (smooth decay, no chattering)
-    // Knee: 6dB (soft transition simulates hysteresis open/close behavior)
-    this.ch2NoiseGate.threshold.value = -48;
-    this.ch2NoiseGate.ratio.value = 30;
-    this.ch2NoiseGate.attack.value = 0.0005;
-    this.ch2NoiseGate.release.value = 0.15;
-    this.ch2NoiseGate.knee.value = 6;
-    
-    this.ch3NoiseGate.threshold.value = -48;
-    this.ch3NoiseGate.ratio.value = 30;
-    this.ch3NoiseGate.attack.value = 0.0005;
-    this.ch3NoiseGate.release.value = 0.15;
-    this.ch3NoiseGate.knee.value = 6;
-    
-    // Note: The soft knee (6dB) provides pseudo-hysteresis:
-    // Opens gradually at -54dB, fully open at -42dB (simulates thresholdOpen/Close)
-    // For true hysteresis, implement AudioWorklet with separate open/close thresholds
+    this.ch3NoiseGate = this.createNoiseGate({
+      thOpen: -48,      // Slightly tighter for modern high-gain
+      thClose: -56,     // TRUE HYSTERESIS
+      attack: 0.0007,   // 0.7ms attack
+      release: 0.16,    // 160ms release (faster for palm mutes)
+      rms: 0.015,       // 15ms RMS window
+      peakMix: 0.35,    // Balanced peak/RMS
+      floorDb: -70,     // Musical floor
+      holdMs: 8         // Prevents chattering on fast riffs
+    });
     
     // ============================================
     // MODERN CHANNEL TIGHTENING & SCOOP
@@ -502,10 +493,13 @@ class MesaDualRectifierAmp extends BaseAmp {
     // CHANNEL 2 (VINTAGE) - COMPLETE CHAIN
     // ============================================
     this.input.connect(this.ch2Gain);
-    // BYPASSED: Noise gate blocks audio file playback
-    // this.ch2Gain.connect(this.ch2NoiseGate); // Noise gate for drive channel
-    // this.ch2NoiseGate.connect(this.ch2PreEmph);
-    this.ch2Gain.connect(this.ch2PreEmph); // Pre-emphasis (+6dB/oct)
+    // ENABLED: Production-grade AudioWorklet noise gate
+    if (this.ch2NoiseGate) {
+      this.ch2Gain.connect(this.ch2NoiseGate); // Noise gate for drive channel
+      this.ch2NoiseGate.connect(this.ch2PreEmph);
+    } else {
+      this.ch2Gain.connect(this.ch2PreEmph); // Fallback if gate unavailable
+    }
     this.ch2PreEmph.connect(this.ch2Saturation);
     this.ch2Saturation.connect(this.ch2DeEmph); // De-emphasis (-6dB/oct)
     this.ch2DeEmph.connect(this.ch2Bass);
@@ -519,12 +513,15 @@ class MesaDualRectifierAmp extends BaseAmp {
     // ============================================
     // CHANNEL 3 (MODERN) - COMPLETE CHAIN
     // ============================================
-    // Input → Gain → HPF → Bright Cap → Tone Stack (pre-clip) → AntiAlias → Saturation → Mid Scoop → Low Damping → AntiAlias → Master
+    // Input → Gain → Gate → HPF → Bright Cap → Tone Stack (pre-clip) → AntiAlias → Saturation → Mid Scoop → Low Damping → AntiAlias → Master
     this.input.connect(this.ch3Gain);
-    // BYPASSED: Noise gate blocks audio file playback
-    // this.ch3Gain.connect(this.ch3NoiseGate);
-    // this.ch3NoiseGate.connect(this.ch3TighteningFilter);
-    this.ch3Gain.connect(this.ch3TighteningFilter); // Pre-clip HPF (tight low-end)
+    // ENABLED: Production-grade AudioWorklet noise gate
+    if (this.ch3NoiseGate) {
+      this.ch3Gain.connect(this.ch3NoiseGate);
+      this.ch3NoiseGate.connect(this.ch3TighteningFilter);
+    } else {
+      this.ch3Gain.connect(this.ch3TighteningFilter); // Fallback if gate unavailable
+    }
     this.ch3TighteningFilter.connect(this.ch3BrightCap); // Bright cap (gain-dependent)
     
     // PASSIVE-STYLE TONE STACK (pre-clip, interactive)
@@ -576,15 +573,16 @@ class MesaDualRectifierAmp extends BaseAmp {
     // ============================================
     // POWER SECTION (COMMON TO ALL CHANNELS)
     // ============================================
-    // FX Loop Mix → Level Probe (for sag) → Power Sag → Rectifier → Variac → Power Amp → Supply Gain (sag control) → Power Saturation → NFB (Presence/Resonance) → Bias → Fizz → DC Block
-    this.fxLoopMix.connect(this.levelProbe); // Level probe for sag envelope
-    this.fxLoopMix.connect(this.powerSag);
-    this.powerSag.connect(this.rectifierSag);
-    this.rectifierSag.connect(this.rectifierFilter);
-    this.rectifierFilter.connect(this.variacGain);
+    // FX Loop Mix → Power Sag (AudioWorklet) → Variac → Power Amp → Power Saturation → NFB (Presence/Resonance) → Bias → Fizz → DC Block
+    // Power sag now uses AudioWorklet processor (sample-accurate, RMS/peak hybrid, dual release)
+    if (this.powerSag) {
+      this.fxLoopMix.connect(this.powerSag);
+      this.powerSag.connect(this.variacGain);
+    } else {
+      this.fxLoopMix.connect(this.variacGain); // Fallback if sag unavailable
+    }
     this.variacGain.connect(this.powerAmp);
-    this.powerAmp.connect(this.supplyGain); // Sag affects headroom here
-    this.supplyGain.connect(this.powerPreEmph); // Pre-emphasis (+4dB/oct)
+    this.powerAmp.connect(this.powerPreEmph); // Pre-emphasis (+4dB/oct)
     this.powerPreEmph.connect(this.powerSaturation);
     
     // NFB (Negative Feedback): Presence + Resonance after power saturation
@@ -1129,15 +1127,33 @@ class MesaDualRectifierAmp extends BaseAmp {
   
   setRectifier(type) {
     this.rectifierMode = type;
+    this._rectifierType = type;
     this._powerFactors.rectifier = (type === 'silicon') ? 1.0 : 0.92;
-    this.rectifierSag.gain.value = (type === 'silicon') ? 1.0 : 0.9;
     
-    // Update sag parameters for tube vs silicon
-    this._sagDepth = (type === 'tube') ? 0.18 : 0.08; // Tube sags more
-    this._sagAttack = (type === 'tube') ? 0.02 : 0.006; // Tube sags slower
-    this._sagRelease = (type === 'tube') ? 0.20 : 0.08; // Tube recovers slower
+    // Update sag processor parameters for tube vs silicon
+    if (this.powerSag && this.powerSag.parameters) {
+      if (type === 'tube') {
+        // Tube rectifier: Heavy sag, slow response, progressive curve
+        this.powerSag.parameters.get('depth').value = 0.15;      // 15% sag (heavy)
+        this.powerSag.parameters.get('att').value = 0.006;       // 6ms attack
+        this.powerSag.parameters.get('relFast').value = 0.06;    // 60ms fast recovery
+        this.powerSag.parameters.get('relSlow').value = 0.25;    // 250ms slow recovery
+        this.powerSag.parameters.get('rmsMs').value = 25.0;      // 25ms RMS window (slower)
+        this.powerSag.parameters.get('shape').value = 1.6;       // Progressive/tube-like
+        this.powerSag.parameters.get('floor').value = 0.25;      // 25% minimum headroom
+      } else {
+        // Silicon rectifier: Light sag, fast response, linear curve
+        this.powerSag.parameters.get('depth').value = 0.08;      // 8% sag (tight)
+        this.powerSag.parameters.get('att').value = 0.006;       // 6ms attack
+        this.powerSag.parameters.get('relFast').value = 0.06;    // 60ms fast recovery
+        this.powerSag.parameters.get('relSlow').value = 0.20;    // 200ms slow recovery
+        this.powerSag.parameters.get('rmsMs').value = 10.0;      // 10ms RMS window (faster)
+        this.powerSag.parameters.get('shape').value = 1.0;       // Linear
+        this.powerSag.parameters.get('floor').value = 0.30;      // 30% minimum headroom
+      }
+      console.log(`✅ Mesa Dual Rectifier: Switched to ${type.toUpperCase()} rectifier`);
+    }
     
-    this._recomputePowerEnv();
     this._recomputePowerGain();
   }
   

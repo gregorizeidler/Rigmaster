@@ -9,6 +9,20 @@ class MarshallJCM800Amp extends BaseAmp {
     // THE rock amp - AC/DC, Slash, Zakk Wylde
     
     // ============================================
+    // NOISE GATE - AUDIOWORKLET (high-gain input)
+    // ============================================
+    this.noiseGate = this.createNoiseGate({
+      thOpen: -52,      // Classic Marshall threshold
+      thClose: -60,     // TRUE HYSTERESIS
+      attack: 0.0008,   // 0.8ms attack
+      release: 0.10,    // 100ms release
+      rms: 0.016,       // 16ms RMS window
+      peakMix: 0.35,    // Balanced peak/RMS
+      floorDb: -72,     // Musical floor
+      holdMs: 10        // 10ms hold
+    });
+    
+    // ============================================
     // FRONT PANEL CONTROLS (Channel 1 - High Gain)
     // ============================================
     
@@ -74,6 +88,19 @@ class MarshallJCM800Amp extends BaseAmp {
     // BACK PANEL CONTROLS
     // ============================================
     
+    // POWER SUPPLY SAG - AUDIOWORKLET (tube rectifier)
+    // JCM800 uses EL34 tubes with tube rectifier
+    this.powerSag = this.createSagProcessor('tube', {
+      depth: 0.12,      // 12% sag (Marshall tube sag)
+      att: 0.006,       // 6ms attack
+      relFast: 0.07,    // 70ms fast recovery
+      relSlow: 0.23,    // 230ms slow recovery
+      rmsMs: 20.0,      // 20ms RMS window
+      shape: 1.5,       // Progressive/tube-like
+      floor: 0.27,      // 27% minimum headroom
+      peakMix: 0.30     // Balanced peak/RMS
+    });
+    
     // Power amp (EL34 x 4 tubes - 100W)
     this.powerAmp = audioContext.createGain();
     
@@ -120,7 +147,13 @@ class MarshallJCM800Amp extends BaseAmp {
     // ROUTING
     // ============================================
     
-    this.input.connect(this.inputGain);
+    // Gate at input for high-gain
+    if (this.noiseGate) {
+      this.input.connect(this.noiseGate);
+      this.noiseGate.connect(this.inputGain);
+    } else {
+      this.input.connect(this.inputGain);
+    }
     this.inputGain.connect(this.inputHPF);
     
     // 3-stage cascading preamp
@@ -139,9 +172,14 @@ class MarshallJCM800Amp extends BaseAmp {
     this.bass.connect(this.mid);
     this.mid.connect(this.treble);
     
-    // Master volume (will be reconfigured if FX loop is enabled)
+    // Master volume → sag → power amp
     this.treble.connect(this.masterVolume);
-    this.masterVolume.connect(this.powerAmp);
+    if (this.powerSag) {
+      this.masterVolume.connect(this.powerSag);
+      this.powerSag.connect(this.powerAmp);
+    } else {
+      this.masterVolume.connect(this.powerAmp);
+    }
     
     // Power amp with presence as NFB (BEFORE power saturation)
     this.powerAmp.connect(this.presence);
@@ -384,7 +422,11 @@ class MarshallJCM800Amp extends BaseAmp {
         
         // Route through FX loop
         this.masterVolume.connect(this.fxSend);
-        this.fxReturn.connect(this.powerAmp);
+        if (this.powerSag) {
+          this.fxReturn.connect(this.powerSag);
+        } else {
+          this.fxReturn.connect(this.powerAmp);
+        }
         
         // FX send/return gains
         this.fxSend.gain.value = 1.0;
@@ -396,7 +438,11 @@ class MarshallJCM800Amp extends BaseAmp {
         this.fxReturn.disconnect();
         
         // Direct connection
-        this.masterVolume.connect(this.powerAmp);
+        if (this.powerSag) {
+          this.masterVolume.connect(this.powerSag);
+        } else {
+          this.masterVolume.connect(this.powerAmp);
+        }
       }
     } catch (e) {
       console.warn('FX Loop routing error:', e);

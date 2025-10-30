@@ -128,13 +128,18 @@ class TwoRockClassicReverbAmp extends BaseAmp {
     this.powerSaturation.curve = this.makePowerAmpCurve();
     this.powerSaturation.oversample = '4x';
     
-    // Touch-sensitive compression
-    this.powerComp = audioContext.createDynamicsCompressor();
-    this.powerComp.threshold.value = -20;
-    this.powerComp.knee.value = 18;
-    this.powerComp.ratio.value = 2.5;
-    this.powerComp.attack.value = 0.01;
-    this.powerComp.release.value = 0.15;
+    // POWER SUPPLY SAG - AUDIOWORKLET (silicon rectifier)
+    // Two Rock uses tight silicon rectifier (boutique clean power)
+    this.powerSag = this.createSagProcessor('silicon', {
+      depth: 0.07,      // 7% sag (tight boutique)
+      att: 0.010,       // 10ms attack (touch-sensitive)
+      relFast: 0.08,    // 80ms fast recovery
+      relSlow: 0.25,    // 250ms slow recovery (musical)
+      rmsMs: 18.0,      // 18ms RMS window
+      shape: 1.1,       // Slightly progressive (boutique character)
+      floor: 0.33,      // 33% minimum headroom (high)
+      peakMix: 0.31     // Balanced peak/RMS
+    });
     
     // ============================================
     // CABINET SIMULATOR
@@ -235,8 +240,12 @@ class TwoRockClassicReverbAmp extends BaseAmp {
     this.reverbReturn.connect(this.outputMixer);
     
     // Power amp → Cabinet → Presence/Depth → Master
-    this.outputMixer.connect(this.powerComp);
-    this.powerComp.connect(this.powerAmp);
+    if (this.powerSag) {
+      this.outputMixer.connect(this.powerSag);
+      this.powerSag.connect(this.powerAmp);
+    } else {
+      this.outputMixer.connect(this.powerAmp);
+    }
     this.powerAmp.connect(this.powerSaturation);
     this.powerSaturation.connect(this.preCabinet);
     // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
@@ -272,8 +281,12 @@ class TwoRockClassicReverbAmp extends BaseAmp {
     this.reverbReturn.connect(this.outputMixer);
     
     // Power amp → Cabinet → Presence/Depth → Master
-    this.outputMixer.connect(this.powerComp);
-    this.powerComp.connect(this.powerAmp);
+    if (this.powerSag) {
+      this.outputMixer.connect(this.powerSag);
+      this.powerSag.connect(this.powerAmp);
+    } else {
+      this.outputMixer.connect(this.powerAmp);
+    }
     this.powerAmp.connect(this.powerSaturation);
     this.powerSaturation.connect(this.preCabinet);
     // preCabinet → cabinet → postCabinet (configured in recreateCabinet())

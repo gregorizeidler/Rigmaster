@@ -155,13 +155,18 @@ class MesaMarkVAmp extends BaseAmp {
     this.powerSaturation.curve = this.makePowerAmpCurve();
     this.powerSaturation.oversample = '4x';
     
-    // Simul-Class compression
-    this.powerComp = audioContext.createDynamicsCompressor();
-    this.powerComp.threshold.value = -12;
-    this.powerComp.knee.value = 10;
-    this.powerComp.ratio.value = 4;
-    this.powerComp.attack.value = 0.005;
-    this.powerComp.release.value = 0.08;
+    // POWER SUPPLY SAG - AUDIOWORKLET (silicon rectifier default)
+    // Mark V uses silicon rectifier by default (tight, responsive)
+    this.powerSag = this.createSagProcessor('silicon', {
+      depth: 0.09,      // 9% sag (tight Mesa sound)
+      att: 0.005,       // 5ms attack
+      relFast: 0.05,    // 50ms fast recovery
+      relSlow: 0.18,    // 180ms slow recovery
+      rmsMs: 12.0,      // 12ms RMS window
+      shape: 1.2,       // Slightly progressive
+      floor: 0.29,      // 29% minimum headroom
+      peakMix: 0.31     // Balanced peak/RMS
+    });
     
     // ============================================
     // CABINET & OUTPUT
@@ -191,14 +196,18 @@ class MesaMarkVAmp extends BaseAmp {
     this.presence.gain.value = 0;
     
     // ============================================
-    // NOISE GATE (for channel 3)
+    // NOISE GATE - AUDIOWORKLET (for channel 3 high-gain)
     // ============================================
-    this.noiseGate = audioContext.createDynamicsCompressor();
-    this.noiseGate.threshold.value = -52;
-    this.noiseGate.knee.value = 0;
-    this.noiseGate.ratio.value = 20;
-    this.noiseGate.attack.value = 0.001;
-    this.noiseGate.release.value = 0.08;
+    this.noiseGate = this.createNoiseGate({
+      thOpen: -52,      // Mark V standard threshold
+      thClose: -60,     // TRUE HYSTERESIS
+      attack: 0.0008,   // 0.8ms attack
+      release: 0.08,    // 80ms release
+      rms: 0.015,       // 15ms RMS window
+      peakMix: 0.35,    // Balanced peak/RMS
+      floorDb: -72,     // Musical floor
+      holdMs: 10        // 10ms hold
+    });
     
     // ============================================
     // MASTER SECTION
@@ -283,8 +292,12 @@ class MesaMarkVAmp extends BaseAmp {
     
     this.graphicEQ[4].connect(this.preLPF);
     this.preLPF.connect(this.channelMaster);
-    this.channelMaster.connect(this.powerComp);
-    this.powerComp.connect(this.powerAmp);
+    if (this.powerSag) {
+      this.channelMaster.connect(this.powerSag);
+      this.powerSag.connect(this.powerAmp);
+    } else {
+      this.channelMaster.connect(this.powerAmp);
+    }
     this.powerAmp.connect(this.powerSaturation);
     this.powerSaturation.connect(this.dcBlock);
     
@@ -325,8 +338,12 @@ class MesaMarkVAmp extends BaseAmp {
     
     this.graphicEQ[4].connect(this.preLPF);
     this.preLPF.connect(this.channelMaster);
-    this.channelMaster.connect(this.powerComp);
-    this.powerComp.connect(this.powerAmp);
+    if (this.powerSag) {
+      this.channelMaster.connect(this.powerSag);
+      this.powerSag.connect(this.powerAmp);
+    } else {
+      this.channelMaster.connect(this.powerAmp);
+    }
     this.powerAmp.connect(this.powerSaturation);
     this.powerSaturation.connect(this.dcBlock);
     
@@ -373,8 +390,12 @@ class MesaMarkVAmp extends BaseAmp {
     
     this.graphicEQ[4].connect(this.preLPF);
     this.preLPF.connect(this.channelMaster);
-    this.channelMaster.connect(this.powerComp);
-    this.powerComp.connect(this.powerAmp);
+    if (this.powerSag) {
+      this.channelMaster.connect(this.powerSag);
+      this.powerSag.connect(this.powerAmp);
+    } else {
+      this.channelMaster.connect(this.powerAmp);
+    }
     this.powerAmp.connect(this.powerSaturation);
     this.powerSaturation.connect(this.dcBlock);
     

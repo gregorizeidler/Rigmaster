@@ -137,13 +137,18 @@ class FenderTwinReverbAmp extends BaseAmp {
     this.powerSaturation.curve = this.makePowerAmpCurve();
     this.powerSaturation.oversample = '4x';
     
-    // Fender power amp compression (gentle)
-    this.powerComp = audioContext.createDynamicsCompressor();
-    this.powerComp.threshold.value = -24;
-    this.powerComp.knee.value = 12;
-    this.powerComp.ratio.value = 2.5;
-    this.powerComp.attack.value = 0.008;
-    this.powerComp.release.value = 0.15;
+    // POWER SUPPLY SAG - AUDIOWORKLET (silicon rectifier)
+    // Twin Reverb uses solid-state rectifier (very tight, minimal sag)
+    this.powerSag = this.createSagProcessor('silicon', {
+      depth: 0.06,      // 6% sag (very tight for Fender clean)
+      att: 0.008,       // 8ms attack (gentle)
+      relFast: 0.07,    // 70ms fast recovery
+      relSlow: 0.22,    // 220ms slow recovery
+      rmsMs: 15.0,      // 15ms RMS window
+      shape: 0.9,       // Almost linear (Fender clean transparency)
+      floor: 0.35,      // 35% minimum headroom (high)
+      peakMix: 0.32     // Balanced peak/RMS
+    });
     
     // ============================================
     // CABINET SIMULATOR
@@ -220,7 +225,7 @@ class FenderTwinReverbAmp extends BaseAmp {
       this.reverbSend, this.reverbHPF, this.reverbDelay1, this.reverbDelay2, 
       this.reverbDelay3, this.reverbFeedback, this.reverbLoopLPF,
       this.springResonance, this.reverbAllpass, this.reverbLPF, this.reverbReturn,
-      this.channelVolume, this.powerComp, this.powerAmp, this.powerSaturation,
+      this.channelVolume, this.powerSag, this.powerAmp, this.powerSaturation,
       this.dcBlock, this.cabinetSim, this.master
     ];
     
@@ -298,13 +303,18 @@ class FenderTwinReverbAmp extends BaseAmp {
     this.reverbLPF.connect(this.reverbReturn);
     
     // Mix dry + reverb
-    this.channelVolume.connect(this.powerComp); // dry
-    this.reverbReturn.connect(this.powerComp); // wet
+    if (this.powerSag) {
+      this.channelVolume.connect(this.powerSag); // dry
+      this.reverbReturn.connect(this.powerSag); // wet
+      this.powerSag.connect(this.powerAmp);
+    } else {
+      this.channelVolume.connect(this.powerAmp); // dry
+      this.reverbReturn.connect(this.powerAmp); // wet
+    }
     
     // ============================================
     // POWER AMP & OUTPUT
     // ============================================
-    this.powerComp.connect(this.powerAmp);
     this.powerAmp.connect(this.powerSaturation);
     this.powerSaturation.connect(this.dcBlock);
     

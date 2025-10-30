@@ -121,13 +121,18 @@ class MarshallJTM45Amp extends BaseAmp {
     this.powerSaturation.curve = this.makePowerAmpCurve();
     this.powerSaturation.oversample = '4x';
     
-    // KT66 compression
-    this.powerComp = audioContext.createDynamicsCompressor();
-    this.powerComp.threshold.value = -20;
-    this.powerComp.knee.value = 15;
-    this.powerComp.ratio.value = 3;
-    this.powerComp.attack.value = 0.01;
-    this.powerComp.release.value = 0.15;
+    // POWER SUPPLY SAG - AUDIOWORKLET (GZ34 tube rectifier)
+    // JTM45 uses GZ34 tube rectifier (vintage heavy sag)
+    this.powerSag = this.createSagProcessor('tube', {
+      depth: 0.14,      // 14% sag (GZ34 heavy vintage sag)
+      att: 0.010,       // 10ms attack (gentle vintage)
+      relFast: 0.09,    // 90ms fast recovery
+      relSlow: 0.28,    // 280ms slow recovery (vintage breathing)
+      rmsMs: 25.0,      // 25ms RMS window (slow/vintage)
+      shape: 1.6,       // Progressive (vintage character)
+      floor: 0.26,      // 26% minimum headroom
+      peakMix: 0.28     // More RMS-focused (vintage smooth)
+    });
     
     // ============================================
     // CABINET SIMULATOR
@@ -211,9 +216,13 @@ class MarshallJTM45Amp extends BaseAmp {
     this.middle.connect(this.treble);
     this.treble.connect(this.bluesbreaker);
     
-    // Power section
-    this.bluesbreaker.connect(this.powerComp);
-    this.powerComp.connect(this.rectifierSag);
+    // Power section with sag
+    if (this.powerSag) {
+      this.bluesbreaker.connect(this.powerSag);
+      this.powerSag.connect(this.rectifierSag);
+    } else {
+      this.bluesbreaker.connect(this.rectifierSag);
+    }
     this.rectifierSag.connect(this.presence);
     this.presence.connect(this.powerAmp);
     this.powerAmp.connect(this.powerSaturation);
@@ -263,9 +272,13 @@ class MarshallJTM45Amp extends BaseAmp {
     this.middle.connect(this.treble);
     this.treble.connect(this.bluesbreaker);
     
-    // Power section
-    this.bluesbreaker.connect(this.powerComp);
-    this.powerComp.connect(this.rectifierSag);
+    // Power section with sag
+    if (this.powerSag) {
+      this.bluesbreaker.connect(this.powerSag);
+      this.powerSag.connect(this.rectifierSag);
+    } else {
+      this.bluesbreaker.connect(this.rectifierSag);
+    }
     this.rectifierSag.connect(this.presence);
     this.presence.connect(this.powerAmp);
     this.powerAmp.connect(this.powerSaturation);

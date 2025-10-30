@@ -33,9 +33,7 @@ class VoxAC30Amp extends BaseAmp {
     this.gateVCA = audioContext.createGain();
     this.gateVCA.gain.value = 1.0;
 
-    // Independent analysers for SAG and GATE
-    this.sagAnalyser = this.audioContext.createAnalyser();
-    this.sagAnalyser.fftSize = 256;
+    // Independent analyser for GATE (SAG now handled by AudioWorklet)
     this.gateAnalyser = this.audioContext.createAnalyser();
     this.gateAnalyser.fftSize = 256;
 
@@ -152,14 +150,19 @@ class VoxAC30Amp extends BaseAmp {
     this.amTremGain = audioContext.createGain();
     this.amTremGain.gain.value = 1;
 
-    // ============== SAG (Class A supply) ==============
-    this.sagVCA = audioContext.createGain();
-    this.sagVCA.gain.value = 1.0;
-    this.sagDetector = this._makeRectifier();
-    this.sagLP = audioContext.createBiquadFilter();
-    this.sagLP.type = 'lowpass';
-    this.sagLP.frequency.value = 12; // slow-ish supply response
-    this.sagAmount = 0.08; // depth, set in params
+    // ============== SAG - AUDIOWORKLET (Class A supply with GZ34 tube rectifier) ==============
+    // AC30 is famous for its heavy sag due to GZ34 tube rectifier
+    this.powerSag = this.createSagProcessor('tube', {
+      depth: 0.16,      // 16% sag (AC30 signature heavy sag!)
+      att: 0.008,       // 8ms attack (slower for Class A feel)
+      relFast: 0.08,    // 80ms fast recovery
+      relSlow: 0.30,    // 300ms slow recovery (AC30 "spongy" feel)
+      rmsMs: 30.0,      // 30ms RMS window (slow, Class A character)
+      shape: 1.7,       // Very progressive (AC30 compression character)
+      floor: 0.22,      // 22% minimum headroom (heavy sag!)
+      peakMix: 0.28     // More RMS-focused (Class A smooth)
+    });
+    this.sagAmount = 0.16; // Keep for compatibility if used elsewhere
 
     // ============== Power Amp & Chime ==============
     this.powerAmp = audioContext.createGain();
@@ -321,20 +324,21 @@ class VoxAC30Amp extends BaseAmp {
     // Reverb send from vib output
     this.vibAP2.connect(this.revAP1);
 
-    // SAG detector tap from vib output
-    this.vibAP2.connect(this.sagDetector);
-    this.sagDetector.connect(this.sagLP);
-    this.sagLP.connect(this.sagAnalyser);
-
-    // Dry to power + reverb wet sum → power
-    this.vibAP2.connect(this.sagVCA);
-    this.revMix.connect(this.sagVCA);
+    // Power supply sag (AudioWorklet) - AC30 signature GZ34 tube rectifier
+    if (this.powerSag) {
+      this.vibAP2.connect(this.powerSag);
+      this.revMix.connect(this.powerSag);
+      this.powerSag.connect(this.powerAmp);
+    } else {
+      // Fallback if sag unavailable
+      this.vibAP2.connect(this.powerAmp);
+      this.revMix.connect(this.powerAmp);
+    }
 
     // Bias tremolo influences drive
     this.biasTremDepth.connect(this.powerDrive.gain);
 
     // Power & anti-alias
-    this.sagVCA.connect(this.powerAmp);
     this.powerAmp.connect(this.powerDrive);
     this.powerDrive.connect(this.powerSaturation);
     this.powerSaturation.connect(this.aaPower);
@@ -371,7 +375,7 @@ class VoxAC30Amp extends BaseAmp {
       this.channelBlend, this.sumMix, this.midHonk, this.interstageHPF, this.cutControl,
       this.topCut, this.vibAP1, this.vibAP2,
       this.revAP1, this.revAP2, this.revD1, this.revD2, this.revD3, this.revLP, this.revFB, this.revMix,
-      this.sagDetector, this.sagLP, this.sagAnalyser, this.sagVCA,
+      this.powerSag,
       this.powerAmp, this.powerDrive, this.powerSaturation, this.aaPower,
       this.chime, this.dcBlock, this.spkrResLo, this.spkrIndHi,
       this.preCabinet, this.postCabinet, this.amTremGain, this.softLimiter, this.master
@@ -599,20 +603,16 @@ class VoxAC30Amp extends BaseAmp {
 
   //===================== Automation Loops =====================
   _startAutomation() {
-    const sagBuf = new Uint8Array(this.sagAnalyser.frequencyBinCount);
     const gateBuf = new Uint8Array(this.gateAnalyser.frequencyBinCount);
 
     // vibrato modulation values
     let vibFreq = this.vibratoLFO.frequency.value; // we will read from param changes implicitly
 
     const tick = () => {
-      // --- SAG RMS (post-pre path) ---
-      this.sagAnalyser.getByteTimeDomainData(sagBuf);
-      let s=0; for (let i = 0; i < sagBuf.length; i++) { const v=(sagBuf[i]-128)/128; s+=v*v; }
-      const sagRms = Math.sqrt(s / sagBuf.length);
       const t = this.audioContext.currentTime;
-      const sagTarget = 1 - Math.min(0.4, sagRms * this.sagAmount * 2.2);
-      this.sagVCA.gain.setTargetAtTime(sagTarget, t, 0.04);
+      
+      // SAG is now handled automatically by AudioWorklet processor (powerSag)
+      // No manual automation needed - it's sample-accurate with dual release!
 
       // --- GATE RMS (input path) ---
       this.gateAnalyser.getByteTimeDomainData(gateBuf);

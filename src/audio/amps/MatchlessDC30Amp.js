@@ -99,6 +99,19 @@ class MatchlessDC30Amp extends BaseAmp {
     // ============================================
     // POWER AMP (4x EL84 - Class A)
     // ============================================
+    // POWER SUPPLY SAG - AUDIOWORKLET (tube rectifier)
+    // Matchless DC30 uses EZ81 tube rectifier with EL84 power tubes (Class A heavy sag)
+    this.powerSag = this.createSagProcessor('tube', {
+      depth: 0.15,      // 15% sag (Class A heavy sag)
+      att: 0.010,       // 10ms attack (Class A feel)
+      relFast: 0.09,    // 90ms fast recovery
+      relSlow: 0.30,    // 300ms slow recovery (Class A breathing)
+      rmsMs: 28.0,      // 28ms RMS window (slow/Class A)
+      shape: 1.7,       // Very progressive (Class A character)
+      floor: 0.24,      // 24% minimum headroom (heavy!)
+      peakMix: 0.27     // More RMS-focused (smooth Class A)
+    });
+    
     this.powerAmp = audioContext.createGain();
     this.powerSaturation = audioContext.createWaveShaper();
     this.powerSaturation.curve = this.makePowerAmpCurve();
@@ -202,7 +215,12 @@ class MatchlessDC30Amp extends BaseAmp {
     this.treble.connect(this.chime);
     this.chime.connect(this.cut);
     this.cut.connect(this.classAComp);
-    this.classAComp.connect(this.powerAmp);
+    if (this.powerSag) {
+      this.classAComp.connect(this.powerSag);
+      this.powerSag.connect(this.powerAmp);
+    } else {
+      this.classAComp.connect(this.powerAmp);
+    }
     this.powerAmp.connect(this.powerSaturation);
     this.powerSaturation.connect(this.dcBlock);
     

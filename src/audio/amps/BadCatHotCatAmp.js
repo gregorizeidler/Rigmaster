@@ -159,6 +159,19 @@ class BadCatHotCatAmp extends BaseAmp {
     // ============================================
     // POWER AMP (2x EL84 - Class A)
     // ============================================
+    // POWER SUPPLY SAG - AUDIOWORKLET (tube rectifier)
+    // Bad Cat Hot Cat uses tube rectifier with EL84 power tubes (Class A)
+    this.powerSag = this.createSagProcessor('tube', {
+      depth: 0.14,      // 14% sag (Class A EL84 sag)
+      att: 0.009,       // 9ms attack (Class A feel)
+      relFast: 0.08,    // 80ms fast recovery
+      relSlow: 0.27,    // 270ms slow recovery (Class A breathing)
+      rmsMs: 26.0,      // 26ms RMS window (Class A)
+      shape: 1.6,       // Progressive (Class A EL84)
+      floor: 0.25,      // 25% minimum headroom
+      peakMix: 0.28     // More RMS-focused (smooth)
+    });
+    
     this.powerAmp = audioContext.createGain();
     this.powerSaturation = audioContext.createWaveShaper();
     this.powerSaturation.curve = this.makePowerAmpCurve();
@@ -261,8 +274,13 @@ class BadCatHotCatAmp extends BaseAmp {
     this.classASag.connect(this.kMaster);    // dry path
     this.rvMix.connect(this.kMaster);        // wet return
     
-    // Power section with K-Master (PPIMV)
-    this.kMaster.connect(this.powerAmp);
+    // Power section with K-Master (PPIMV) and sag
+    if (this.powerSag) {
+      this.kMaster.connect(this.powerSag);
+      this.powerSag.connect(this.powerAmp);
+    } else {
+      this.kMaster.connect(this.powerAmp);
+    }
     this.powerAmp.connect(this.powerSaturation);
     this.powerSaturation.connect(this.outputLevel);
     this.outputLevel.connect(this.master);
@@ -312,8 +330,13 @@ class BadCatHotCatAmp extends BaseAmp {
     this.classASag.connect(this.kMaster);    // dry path
     this.rvMix.connect(this.kMaster);        // wet return
     
-    // Power section with K-Master (PPIMV)
-    this.kMaster.connect(this.powerAmp);
+    // Power section with K-Master (PPIMV) and sag
+    if (this.powerSag) {
+      this.kMaster.connect(this.powerSag);
+      this.powerSag.connect(this.powerAmp);
+    } else {
+      this.kMaster.connect(this.powerAmp);
+    }
     this.powerAmp.connect(this.powerSaturation);
     this.powerSaturation.connect(this.outputLevel);
     this.outputLevel.connect(this.master);

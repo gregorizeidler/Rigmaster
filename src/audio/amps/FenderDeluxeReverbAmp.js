@@ -126,6 +126,19 @@ class FenderDeluxeReverbAmp extends BaseAmp {
     // ============================================
     // POWER AMP (2x 6V6)
     // ============================================
+    // POWER SUPPLY SAG - AUDIOWORKLET (tube rectifier)
+    // Deluxe Reverb uses 5AR4/GZ34 tube rectifier with 6V6 power tubes
+    this.powerSag = this.createSagProcessor('tube', {
+      depth: 0.13,      // 13% sag (6V6 vintage sag)
+      att: 0.009,       // 9ms attack (gentle)
+      relFast: 0.08,    // 80ms fast recovery
+      relSlow: 0.26,    // 260ms slow recovery (vintage breathing)
+      rmsMs: 24.0,      // 24ms RMS window (vintage)
+      shape: 1.6,       // Progressive (vintage 6V6)
+      floor: 0.26,      // 26% minimum headroom
+      peakMix: 0.29     // More RMS-focused (vintage smooth)
+    });
+    
     this.powerAmp = audioContext.createGain();
     this.powerSaturation = audioContext.createWaveShaper();
     this.powerSaturation.curve = this.make6V6Curve();
@@ -211,9 +224,14 @@ class FenderDeluxeReverbAmp extends BaseAmp {
     this.sparkle.connect(this.reverbSum); // Dry
     this.reverbMix.connect(this.reverbSum); // Wet
     
-    // Power section
+    // Power section with sag
     this.reverbSum.connect(this.rectifierSag);
-    this.rectifierSag.connect(this.powerAmp);
+    if (this.powerSag) {
+      this.rectifierSag.connect(this.powerSag);
+      this.powerSag.connect(this.powerAmp);
+    } else {
+      this.rectifierSag.connect(this.powerAmp);
+    }
     this.powerAmp.connect(this.powerSaturation);
     
     // Cabinet routing with CabinetSimulator
@@ -257,9 +275,14 @@ class FenderDeluxeReverbAmp extends BaseAmp {
     this.sparkle.connect(this.reverbSum); // Dry
     this.reverbMix.connect(this.reverbSum); // Wet
     
-    // Power section
+    // Power section with sag
     this.reverbSum.connect(this.rectifierSag);
-    this.rectifierSag.connect(this.powerAmp);
+    if (this.powerSag) {
+      this.rectifierSag.connect(this.powerSag);
+      this.powerSag.connect(this.powerAmp);
+    } else {
+      this.rectifierSag.connect(this.powerAmp);
+    }
     this.powerAmp.connect(this.powerSaturation);
     
     // Cabinet routing with CabinetSimulator
