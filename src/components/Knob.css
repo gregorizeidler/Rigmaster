@@ -75,6 +75,46 @@
   z-index: 10;
 }
 
+.knob-numeric-input {
+  position: absolute;
+  width: 40px;
+  height: 20px;
+  background: var(--bg-elevated);
+  border: 2px solid var(--accent-primary);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  padding: 2px;
+  outline: none;
+  box-shadow: 
+    0 0 15px var(--accent-glow),
+    inset 0 1px 3px rgba(0, 0, 0, 0.5);
+  animation: inputPulse 0.3s ease-out;
+}
+
+@keyframes inputPulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.knob-numeric-input::-webkit-outer-spin-button,
+.knob-numeric-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.knob-numeric-input[type=number] {
+  -moz-appearance: textfield;
+}
+
 .knob-label-value {
   position: absolute;
   font-size: 10px;

@@ -1,23 +1,73 @@
 import React, { useState, useRef } from 'react';
+import Tooltip from './Tooltip';
 import './Knob.css';
 
-const Knob = ({ label, value, onChange, min = 0, max = 100, unit = '', color, pointerColor }) => {
+const Knob = ({ label, value, onChange, min = 0, max = 100, unit = '', color, pointerColor, defaultValue = 50, description }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [showInput, setShowInput] = useState(false);
+  const [inputValue, setInputValue] = useState('');
   const knobRef = useRef(null);
+  const inputRef = useRef(null);
   const startYRef = useRef(0);
   const startValueRef = useRef(0);
   const velocityRef = useRef(0);
   const lastYRef = useRef(0);
   const lastTimeRef = useRef(0);
   const momentumIntervalRef = useRef(null);
+  const lastClickTimeRef = useRef(0);
 
   const handleMouseDown = (e) => {
+    // Detect double-click
+    const currentTime = Date.now();
+    const timeSinceLastClick = currentTime - lastClickTimeRef.current;
+    
+    if (timeSinceLastClick < 300) {
+      // Double-click detected - show input
+      e.preventDefault();
+      setShowInput(true);
+      setInputValue(value.toString());
+      lastClickTimeRef.current = 0;
+      return;
+    }
+    
+    lastClickTimeRef.current = currentTime;
     setIsDragging(true);
     startYRef.current = e.clientY;
     startValueRef.current = value;
     e.preventDefault();
   };
+
+  const handleRightClick = (e) => {
+    e.preventDefault();
+    // Reset to default value
+    onChange(defaultValue);
+  };
+
+  const handleInputSubmit = () => {
+    const numValue = parseFloat(inputValue);
+    if (!isNaN(numValue)) {
+      const clampedValue = Math.max(min, Math.min(max, numValue));
+      onChange(Math.round(clampedValue));
+    }
+    setShowInput(false);
+  };
+
+  const handleInputKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleInputSubmit();
+    } else if (e.key === 'Escape') {
+      setShowInput(false);
+    }
+  };
+
+  // Auto-focus input when it appears
+  React.useEffect(() => {
+    if (showInput && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [showInput]);
 
   const handleMouseMove = React.useCallback((e) => {
     if (!isDragging) return;
@@ -91,7 +141,7 @@ const Knob = ({ label, value, onChange, min = 0, max = 100, unit = '', color, po
         window.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDragging, handleMouseMove]);
+  }, [isDragging, handleMouseMove, handleMouseUp]);
 
   // Cleanup momentum interval on unmount
   React.useEffect(() => {
@@ -103,7 +153,6 @@ const Knob = ({ label, value, onChange, min = 0, max = 100, unit = '', color, po
   }, []);
 
   const rotation = ((value - min) / (max - min)) * 270 - 135;
-  const percentage = ((value - min) / (max - min)) * 100;
 
   // Determine unit display
   const getUnitDisplay = () => {
@@ -120,46 +169,44 @@ const Knob = ({ label, value, onChange, min = 0, max = 100, unit = '', color, po
 
   return (
     <div className="knob-container">
-      <div
-        ref={knobRef}
-        className={`knob ${isDragging ? 'dragging' : ''}`}
-        onMouseDown={handleMouseDown}
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
-        style={{ 
-          '--rotation': `${rotation}deg`,
-          '--knob-color': color,
-          '--knob-pointer-color': pointerColor
-        }}
+      <Tooltip
+        content={label}
+        value={`${Math.round(value)}${displayUnit}`}
+        description={description || `Double-click for precise input • Right-click to reset (${defaultValue}${displayUnit})`}
+        visible={showTooltip && !showInput}
       >
-        <div className="knob-indicator"></div>
-        <div className="knob-label-value">{Math.round(value)}</div>
-        
-        {/* TOOLTIP */}
-        {showTooltip && (
-          <div className="knob-tooltip">
-            <div className="tooltip-header">
-              <span className="tooltip-icon">🎚️</span>
-              <span className="tooltip-title">{label}</span>
-            </div>
-            <div className="tooltip-divider"></div>
-            <div className="tooltip-value">
-              <span className="value-number">{Math.round(value)}</span>
-              <span className="value-unit">{displayUnit}</span>
-            </div>
-            <div className="tooltip-range">
-              <span className="range-label">Range:</span>
-              <span className="range-values">{min} - {max} {displayUnit}</span>
-            </div>
-            <div className="tooltip-bar">
-              <div 
-                className="tooltip-bar-fill" 
-                style={{ width: `${percentage}%` }}
-              ></div>
-            </div>
-          </div>
-        )}
-      </div>
+        <div
+          ref={knobRef}
+          className={`knob ${isDragging ? 'dragging' : ''}`}
+          onMouseDown={handleMouseDown}
+          onContextMenu={handleRightClick}
+          onMouseEnter={() => setShowTooltip(true)}
+          onMouseLeave={() => setShowTooltip(false)}
+          style={{ 
+            '--rotation': `${rotation}deg`,
+            '--knob-color': color,
+            '--knob-pointer-color': pointerColor
+          }}
+        >
+          <div className="knob-indicator"></div>
+          {!showInput ? (
+            <div className="knob-label-value">{Math.round(value)}</div>
+          ) : (
+            <input
+              ref={inputRef}
+              type="number"
+              className="knob-numeric-input"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onBlur={handleInputSubmit}
+              onKeyDown={handleInputKeyDown}
+              min={min}
+              max={max}
+              step={1}
+            />
+          )}
+        </div>
+      </Tooltip>
       <div className="knob-label">{label}</div>
     </div>
   );

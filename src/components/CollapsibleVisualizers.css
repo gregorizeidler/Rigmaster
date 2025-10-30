@@ -1,0 +1,112 @@
+.collapsible-visualizers {
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: var(--blur-md) saturate(150%);
+  border-bottom: 1px solid var(--border-subtle);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  transition: all var(--transition-base);
+}
+
+.collapsible-visualizers.collapsed {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.visualizers-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-md) var(--space-2xl);
+  cursor: pointer;
+  user-select: none;
+  transition: all var(--transition-fast);
+}
+
+.visualizers-header:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.visualizers-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-secondary);
+}
+
+.visualizers-count {
+  background: rgba(255, 107, 53, 0.15);
+  border: 1px solid rgba(255, 107, 53, 0.25);
+  border-radius: var(--radius-full);
+  padding: 4px 10px;
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--accent-secondary);
+  letter-spacing: 0.5px;
+}
+
+.visualizers-controls {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.visualizer-control-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 6px;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.visualizer-control-btn:hover {
+  background: rgba(255, 107, 53, 0.1);
+  border-color: var(--border-strong);
+  color: var(--accent-primary);
+  transform: scale(1.05);
+}
+
+.visualizer-control-btn:active {
+  transform: scale(0.95);
+}
+
+.visualizers-content {
+  display: flex;
+  gap: var(--space-lg);
+  padding: 0 var(--space-2xl) var(--space-lg);
+  overflow: hidden;
+  animation: slideDown var(--transition-base) ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    max-height: 500px;
+    transform: translateY(0);
+  }
+}
+
+.visualizers-content.minimized {
+  max-height: 80px;
+  padding: 0 var(--space-2xl) var(--space-sm);
+}
+
+.visualizers-content.minimized > * {
+  transform: scale(0.6);
+  transform-origin: top left;
+}
+
+.collapsible-visualizers.minimized {
+  background: rgba(0, 0, 0, 0.15);
+}
+
