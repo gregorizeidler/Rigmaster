@@ -194,6 +194,71 @@ class CabinetSimulator {
           { freq: 2600, gain: 1.5, Q: 1.0 },
           { freq: 4500, gain: 2, Q: 0.9 }
         ]
+      },
+      '1x10_open': {
+        name: '1x10" Open Back',
+        description: 'Fender Pro Junior style, warm and intimate',
+        resonanceFreq: 105,
+        resonanceQ: 2.8,
+        resonanceGain: 4,
+        lowpassFreq: 5500,
+        lowpassQ: 0.9,
+        breakupPeaks: [
+          { freq: 2900, gain: 2.5, Q: 1.1 },
+          { freq: 4800, gain: -1.2, Q: 0.7 }
+        ]
+      },
+      '3x10_open': {
+        name: '3x10" Open Back',
+        description: 'Fender Vibro-King style, rich and complex',
+        resonanceFreq: 92,
+        resonanceQ: 2.3,
+        resonanceGain: 3.2,
+        lowpassFreq: 5800,
+        lowpassQ: 0.65,
+        breakupPeaks: [
+          { freq: 2700, gain: 1.8, Q: 1.0 },
+          { freq: 4200, gain: 2.2, Q: 0.95 }
+        ]
+      },
+      '2x12_greenback': {
+        name: '2x12" Greenback',
+        description: 'Marshall JTM45 style, warm British crunch',
+        resonanceFreq: 105,
+        resonanceQ: 2.6,
+        resonanceGain: 3.8,
+        lowpassFreq: 4600,
+        lowpassQ: 0.95,
+        breakupPeaks: [
+          { freq: 2800, gain: 2.5, Q: 1.25 },
+          { freq: 4400, gain: -1.6, Q: 0.88 }
+        ]
+      },
+      '4x12_v30': {
+        name: '4x12" Vintage 30',
+        description: 'Modern high-gain, aggressive mids',
+        resonanceFreq: 115,
+        resonanceQ: 3.2,
+        resonanceGain: 4.5,
+        lowpassFreq: 5200,
+        lowpassQ: 1.1,
+        breakupPeaks: [
+          { freq: 2200, gain: 3.5, Q: 1.4 },
+          { freq: 4800, gain: 1.8, Q: 1.0 }
+        ]
+      },
+      '2x12_blue': {
+        name: '2x12" Blue',
+        description: 'Celestion Blue, detailed vintage tone',
+        resonanceFreq: 98,
+        resonanceQ: 2.4,
+        resonanceGain: 3.3,
+        lowpassFreq: 5100,
+        lowpassQ: 0.75,
+        breakupPeaks: [
+          { freq: 2600, gain: 2.2, Q: 1.15 },
+          { freq: 4100, gain: 1.5, Q: 0.9 }
+        ]
       }
     };
     

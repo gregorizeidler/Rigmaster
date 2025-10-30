@@ -24,6 +24,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       'metal': '4x12_vintage',
       
       // CLEAN/VINTAGE
+      'fender_twin_reverb': '2x12_open',
       'vox_ac30': '2x12_closed',
       'fender_deluxe': '1x12_open',
       'fender_vibro_king': '3x10_open',
@@ -35,6 +36,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       // CRUNCH/BRITISH
       'marshall_jcm800': '4x12_greenback',
       'orange_rockerverb': '2x12_closed',
+      'orange_tiny_terror': '1x12_closed',
       'hiwatt_dr103': '4x12_greenback',
       'marshall_jtm45': '2x12_greenback',
       'badcat_hotcat': '2x12_closed',
@@ -45,6 +47,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       'bogner_ecstasy': '4x12_vintage',
       'bogner_uberschall': '4x12_v30',
       'diezel_vh4': '4x12_vintage',
+      'engl_powerball': '4x12_v30',
       'friedman_be100': '4x12_greenback',
       'soldano_slo100': '4x12_vintage',
       
@@ -5727,9 +5730,12 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
               if (cabinetType.includes('1x10') || cabinetType.includes('1x12')) {
                 speakerCount = 1;
                 gridCols = 1;
-              } else if (cabinetType.includes('2x12')) {
+              } else if (cabinetType.includes('2x12') || cabinetType.includes('2x10')) {
                 speakerCount = 2;
                 gridCols = 2;
+              } else if (cabinetType.includes('3x10')) {
+                speakerCount = 3;
+                gridCols = 3; // 3 speakers in a row (Vibro-King style)
               } else if (cabinetType.includes('4x10') || cabinetType.includes('4x12')) {
                 speakerCount = 4;
                 gridCols = 2;
