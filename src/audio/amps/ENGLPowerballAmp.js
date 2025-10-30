@@ -49,7 +49,7 @@ class ENGLPowerballAmp extends BaseAmp {
     this.preamp5 = audioContext.createGain();
     this.preamp6 = audioContext.createGain();
     
-    // Saturation stages with ENGL's unique voicing
+    // Saturation stages with ENGL's unique voicing + pre/de-emphasis
     this.saturation1 = audioContext.createWaveShaper();
     this.saturation2 = audioContext.createWaveShaper();
     this.saturation3 = audioContext.createWaveShaper();
@@ -73,6 +73,53 @@ class ENGLPowerballAmp extends BaseAmp {
     this.saturation6.oversample = '4x';
     
     // ============================================
+    // PRE/DE-EMPHASIS (Anti-aliasing tilt filters)
+    // ============================================
+    // Pre-emphasis (before heavy stages 3-6)
+    this.preEmph3 = audioContext.createBiquadFilter();
+    this.preEmph4 = audioContext.createBiquadFilter();
+    this.preEmph5 = audioContext.createBiquadFilter();
+    this.preEmph6 = audioContext.createBiquadFilter();
+    
+    this.preEmph3.type = 'highshelf';
+    this.preEmph3.frequency.value = 1200;
+    this.preEmph3.gain.value = 5; // +5 dB
+    
+    this.preEmph4.type = 'highshelf';
+    this.preEmph4.frequency.value = 1200;
+    this.preEmph4.gain.value = 5;
+    
+    this.preEmph5.type = 'highshelf';
+    this.preEmph5.frequency.value = 1200;
+    this.preEmph5.gain.value = 5;
+    
+    this.preEmph6.type = 'highshelf';
+    this.preEmph6.frequency.value = 1200;
+    this.preEmph6.gain.value = 5;
+    
+    // De-emphasis (after heavy stages 3-6)
+    this.deEmph3 = audioContext.createBiquadFilter();
+    this.deEmph4 = audioContext.createBiquadFilter();
+    this.deEmph5 = audioContext.createBiquadFilter();
+    this.deEmph6 = audioContext.createBiquadFilter();
+    
+    this.deEmph3.type = 'highshelf';
+    this.deEmph3.frequency.value = 1200;
+    this.deEmph3.gain.value = -5; // -5 dB (compensates)
+    
+    this.deEmph4.type = 'highshelf';
+    this.deEmph4.frequency.value = 1200;
+    this.deEmph4.gain.value = -5;
+    
+    this.deEmph5.type = 'highshelf';
+    this.deEmph5.frequency.value = 1200;
+    this.deEmph5.gain.value = -5;
+    
+    this.deEmph6.type = 'highshelf';
+    this.deEmph6.frequency.value = 1200;
+    this.deEmph6.gain.value = -5;
+    
+    // ============================================
     // ENGL "SURGICAL" TIGHT FILTERS
     // ============================================
     // HPF after 2nd stage - removes sub-bass flub
@@ -86,6 +133,23 @@ class ENGLPowerballAmp extends BaseAmp {
     this.tightHPF2.type = 'highpass';
     this.tightHPF2.frequency.value = 100;
     this.tightHPF2.Q.value = 0.8;
+    
+    // ============================================
+    // SURGICAL NOTCHES (ENGL precision)
+    // ============================================
+    // Remove "boxiness" before 3rd/4th stage
+    this.boxinessNotch = audioContext.createBiquadFilter();
+    this.boxinessNotch.type = 'peaking';
+    this.boxinessNotch.frequency.value = 200; // 180-220 Hz
+    this.boxinessNotch.Q.value = 1.2;
+    this.boxinessNotch.gain.value = -1.5; // -1 to -2 dB
+    
+    // Remove "ice-pick" after last waveshaper
+    this.icePickNotch = audioContext.createBiquadFilter();
+    this.icePickNotch.type = 'peaking';
+    this.icePickNotch.frequency.value = 4800; // 4.5-5.2 kHz
+    this.icePickNotch.Q.value = 3;
+    this.icePickNotch.gain.value = -1.5; // -1 to -2 dB
     
     // ============================================
     // ENGL POWERBALL TONE STACK
@@ -188,16 +252,17 @@ class ENGLPowerballAmp extends BaseAmp {
     this.powerSaturation.oversample = '4x';
     
     // POWER SUPPLY SAG - AUDIOWORKLET
-    // ENGL uses tube rectifier in Powerball
-    this.powerSag = this.createSagProcessor('tube', {
-      depth: 0.13,      // 13% sag (ENGL heavy compression)
-      att: 0.006,       // 6ms attack
-      relFast: 0.07,    // 70ms fast recovery
-      relSlow: 0.28,    // 280ms slow recovery (ENGL spongy feel)
-      rmsMs: 22.0,      // 22ms RMS window
-      shape: 1.5,       // Progressive/tube-like
-      floor: 0.25,      // 25% minimum headroom
-      peakMix: 0.29     // Balanced peak/RMS
+    // ENGL Powerball II uses solid-state rectifier (silicon) by default
+    this.rectifierMode = 'silicon'; // 'silicon' or 'tube'
+    this.powerSag = this.createSagProcessor('silicon', {
+      depth: 0.06,      // 6% sag (tight silicon rectifier)
+      att: 0.004,       // 4ms attack (faster)
+      relFast: 0.05,    // 50ms fast recovery
+      relSlow: 0.18,    // 180ms slow recovery (punch alemão)
+      rmsMs: 12.0,      // 12ms RMS window
+      shape: 1.0,       // Linear (silicon)
+      floor: 0.30,      // 30% minimum headroom
+      peakMix: 0.25     // Peak-focused for attack
     });
     
     // Power compression (EL34 behavior)
@@ -227,6 +292,25 @@ class ENGLPowerballAmp extends BaseAmp {
     this.micPosition = 'edge';
     this.preCabinet = audioContext.createGain();
     this.postCabinet = audioContext.createGain();
+    
+    // ============================================
+    // FIZZ TAMER DINÂMICO (pós cabinet)
+    // ============================================
+    // LPF que responde ao gain: 10.5 kHz (gain baixo) → 8.8 kHz (gain alto)
+    this.fizzTamer = audioContext.createBiquadFilter();
+    this.fizzTamer.type = 'lowpass';
+    this.fizzTamer.frequency.value = 10500; // Base frequency
+    this.fizzTamer.Q.value = 0.707;
+    
+    // ============================================
+    // LIMITER FINAL DE SEGURANÇA
+    // ============================================
+    this.finalLimiter = audioContext.createDynamicsCompressor();
+    this.finalLimiter.threshold.value = -1; // -1 dBFS
+    this.finalLimiter.knee.value = 0; // Hard knee (brick limiter)
+    this.finalLimiter.ratio.value = 20; // Heavy limiting
+    this.finalLimiter.attack.value = 0.003; // 3ms
+    this.finalLimiter.release.value = 0.050; // 50ms
     
     // ============================================
     // MASTER SECTION
@@ -273,6 +357,7 @@ class ENGLPowerballAmp extends BaseAmp {
       // Switches
       bright: false,
       gate: true,
+      rectifier: 'silicon', // 'silicon' or 'tube'
       
       // Master
       master: 70,
@@ -382,18 +467,29 @@ class ENGLPowerballAmp extends BaseAmp {
       this.input.connect(this.channel3);
     }
     
+    // Stage 1-2 (sem pre/de-ênfase)
     this.channel3.connect(this.preamp1);
     this.preamp1.connect(this.saturation1);
     this.saturation1.connect(this.preamp2);
     this.preamp2.connect(this.saturation2);
     this.saturation2.connect(this.tightHPF1);
-    this.tightHPF1.connect(this.preamp3);
-    this.preamp3.connect(this.saturation3);
-    this.saturation3.connect(this.preamp4);
-    this.preamp4.connect(this.saturation4);
+    
+    // Stage 3 (com pre/de-ênfase + boxiness notch)
+    this.tightHPF1.connect(this.boxinessNotch);
+    this.boxinessNotch.connect(this.preamp3);
+    this.preamp3.connect(this.preEmph3);
+    this.preEmph3.connect(this.saturation3);
+    this.saturation3.connect(this.deEmph3);
+    
+    // Stage 4 (com pre/de-ênfase + ice-pick notch)
+    this.deEmph3.connect(this.preamp4);
+    this.preamp4.connect(this.preEmph4);
+    this.preEmph4.connect(this.saturation4);
+    this.saturation4.connect(this.deEmph4);
+    this.deEmph4.connect(this.icePickNotch);
     
     // Tone stack with contour
-    this.saturation4.connect(this.contourLoCut);
+    this.icePickNotch.connect(this.contourLoCut);
     this.contourLoCut.connect(this.bass);
     this.bass.connect(this.middle);
     this.middle.connect(this.contourMidScoop);
@@ -426,23 +522,42 @@ class ENGLPowerballAmp extends BaseAmp {
       this.input.connect(this.channel4);
     }
     
+    // Stage 1-2 (sem pre/de-ênfase)
     this.channel4.connect(this.preamp1);
     this.preamp1.connect(this.saturation1);
     this.saturation1.connect(this.preamp2);
     this.preamp2.connect(this.saturation2);
     this.saturation2.connect(this.tightHPF1);
-    this.tightHPF1.connect(this.preamp3);
-    this.preamp3.connect(this.saturation3);
-    this.saturation3.connect(this.preamp4);
-    this.preamp4.connect(this.saturation4);
-    this.saturation4.connect(this.tightHPF2); // Second tight filter!
+    
+    // Stage 3 (com pre/de-ênfase + boxiness notch)
+    this.tightHPF1.connect(this.boxinessNotch); // Remove boxiness
+    this.boxinessNotch.connect(this.preamp3);
+    this.preamp3.connect(this.preEmph3); // Pre-emphasis
+    this.preEmph3.connect(this.saturation3);
+    this.saturation3.connect(this.deEmph3); // De-emphasis
+    
+    // Stage 4 (com pre/de-ênfase)
+    this.deEmph3.connect(this.preamp4);
+    this.preamp4.connect(this.preEmph4);
+    this.preEmph4.connect(this.saturation4);
+    this.saturation4.connect(this.deEmph4);
+    this.deEmph4.connect(this.tightHPF2); // Second tight filter!
+    
+    // Stage 5 (com pre/de-ênfase)
     this.tightHPF2.connect(this.preamp5);
-    this.preamp5.connect(this.saturation5);
-    this.saturation5.connect(this.preamp6);
-    this.preamp6.connect(this.saturation6);
+    this.preamp5.connect(this.preEmph5);
+    this.preEmph5.connect(this.saturation5);
+    this.saturation5.connect(this.deEmph5);
+    
+    // Stage 6 (com pre/de-ênfase + ice-pick notch)
+    this.deEmph5.connect(this.preamp6);
+    this.preamp6.connect(this.preEmph6);
+    this.preEmph6.connect(this.saturation6);
+    this.saturation6.connect(this.deEmph6);
+    this.deEmph6.connect(this.icePickNotch); // Remove ice-pick
     
     // Tone stack with contour
-    this.saturation6.connect(this.contourLoCut);
+    this.icePickNotch.connect(this.contourLoCut);
     this.contourLoCut.connect(this.bass);
     this.bass.connect(this.middle);
     this.middle.connect(this.contourMidScoop);
@@ -495,9 +610,14 @@ class ENGLPowerballAmp extends BaseAmp {
     // Cabinet routing
     this.dcBlock.connect(this.preCabinet);
     // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
-    this.postCabinet.connect(this.master);
     
-    this.master.connect(this.output);
+    // Fizz tamer dinâmico (pós cabinet)
+    this.postCabinet.connect(this.fizzTamer);
+    
+    // Master e limiter final
+    this.fizzTamer.connect(this.master);
+    this.master.connect(this.finalLimiter);
+    this.finalLimiter.connect(this.output);
   }
   
   disconnectAll() {
@@ -520,8 +640,21 @@ class ENGLPowerballAmp extends BaseAmp {
       this.saturation5.disconnect();
       this.preamp6.disconnect();
       this.saturation6.disconnect();
+      // Pre/de-emphasis
+      this.preEmph3.disconnect();
+      this.preEmph4.disconnect();
+      this.preEmph5.disconnect();
+      this.preEmph6.disconnect();
+      this.deEmph3.disconnect();
+      this.deEmph4.disconnect();
+      this.deEmph5.disconnect();
+      this.deEmph6.disconnect();
+      // Surgical filters
       this.tightHPF1.disconnect();
       this.tightHPF2.disconnect();
+      this.boxinessNotch.disconnect();
+      this.icePickNotch.disconnect();
+      // Tone stack
       this.contourLoCut.disconnect();
       this.contourMidScoop.disconnect();
       this.contourHiBoost.disconnect();
@@ -534,20 +667,25 @@ class ENGLPowerballAmp extends BaseAmp {
       this.channelVolume.disconnect();
       this.presence.disconnect();
       this.depth.disconnect();
+      // FX loop
       this.fxDryTap.disconnect();
       this.fxSendLevel.disconnect();
       this.fxSend.disconnect();
       this.fxReturn.disconnect();
       this.fxReturnLevel.disconnect();
       this.fxMix.disconnect();
+      // Power section
       if (this.powerSag) this.powerSag.disconnect();
       this.powerComp.disconnect();
       this.powerAmp.disconnect();
       this.powerSaturation.disconnect();
       this.dcBlock.disconnect();
+      // Output chain
       this.preCabinet.disconnect();
       this.postCabinet.disconnect();
+      this.fizzTamer.disconnect();
       this.master.disconnect();
+      this.finalLimiter.disconnect();
     } catch (e) {}
   }
   
@@ -590,14 +728,20 @@ class ENGLPowerballAmp extends BaseAmp {
     const samples = 44100;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
-      const x = (i * 2) / samples - 1;
+      let x = (i * 2) / samples - 1;
+      
+      // BIAS SHIFT DINÂMICO: reduz centro conforme |x| aumenta (simula cathode rise)
+      const biasShift = -0.02 * Math.abs(x) * (stage / 6); // Aumenta com stage
+      x += biasShift;
       
       // ENGL "SURGICAL" PRECISION with high-gain aggression
       let y = Math.tanh(x * drive);
       
-      // TIGHT COMPRESSION (no flub!)
-      if (Math.abs(y) > 0.5) {
-        const compression = 1 - (Math.abs(y) - 0.5) * 0.42;
+      // TIGHT COMPRESSION with PROGRESSIVE KNEE (mais duro em stages altos)
+      const kneeStart = 0.5 - (stage * 0.02); // Knee mais cedo em stages altos
+      if (Math.abs(y) > kneeStart) {
+        const excess = Math.abs(y) - kneeStart;
+        const compression = 1 - excess * (0.40 + stage * 0.03); // Knee mais duro por stage
         y *= compression;
       }
       
@@ -607,8 +751,8 @@ class ENGLPowerballAmp extends BaseAmp {
       // BRUTAL AGGRESSION (high harmonics)
       y += 0.12 * Math.tanh(x * 8.5);
       
-      // Progressive hardness per stage
-      const stageHardness = 1 + (stage * 0.04);
+      // Progressive hardness per stage (aumenta mais rápido agora)
+      const stageHardness = 1 + (stage * 0.06);
       y = Math.tanh(y * stageHardness);
       
       // Asymmetry (varies per stage)
@@ -706,6 +850,11 @@ class ENGLPowerballAmp extends BaseAmp {
         this.preamp4.gain.setTargetAtTime(Math.max(1, g * 0.17), now, 0.01);
         this.preamp5.gain.setTargetAtTime(Math.max(1, g * 0.14), now, 0.01);
         this.preamp6.gain.setTargetAtTime(Math.max(1, g * 0.12), now, 0.01);
+        
+        // FIZZ TAMER DINÂMICO: 10.5 kHz (gain baixo) → 8.8 kHz (gain alto)
+        const fizzFreq = 10500 - ((value / 100) * 1700); // 10500 → 8800 Hz
+        this.fizzTamer.frequency.setTargetAtTime(fizzFreq, now, 0.01);
+        
         this.channelState[this.activeChannel].gain = value;
         break;
       }
@@ -742,13 +891,53 @@ class ENGLPowerballAmp extends BaseAmp {
         break;
       
       case 'contour': {
-        // Contour creates V-shape: cuts mids, boosts highs
+        // Contour creates V-shape: ENGL sutil (limita mid -6dB, hi +3dB)
         const amount = value / 100; // 0..1
-        this.contourMidScoop.gain.setTargetAtTime(-8 * amount, now, 0.01); // Up to -8dB mid cut
-        this.contourHiBoost.gain.setTargetAtTime(4 * amount, now, 0.01);   // Up to +4dB hi boost
+        this.contourMidScoop.gain.setTargetAtTime(-6 * amount, now, 0.01); // Up to -6dB mid cut
+        this.contourHiBoost.gain.setTargetAtTime(3 * amount, now, 0.01);   // Up to +3dB hi boost
         this.contourAmount = value;
         break;
       }
+      
+      case 'rectifier':
+        this.rectifierMode = value;
+        // Re-create sag processor with new mode
+        if (this.powerSag) {
+          try {
+            this.powerSag.disconnect();
+          } catch (e) {}
+        }
+        
+        if (value === 'silicon') {
+          this.powerSag = this.createSagProcessor('silicon', {
+            depth: 0.06,      // 6% sag (tight silicon rectifier)
+            att: 0.004,       // 4ms attack (faster)
+            relFast: 0.05,    // 50ms fast recovery
+            relSlow: 0.18,    // 180ms slow recovery (punch alemão)
+            rmsMs: 12.0,      // 12ms RMS window
+            shape: 1.0,       // Linear (silicon)
+            floor: 0.30,      // 30% minimum headroom
+            peakMix: 0.25     // Peak-focused for attack
+          });
+        } else { // 'tube'
+          this.powerSag = this.createSagProcessor('tube', {
+            depth: 0.13,      // 13% sag (ENGL heavy compression)
+            att: 0.006,       // 6ms attack
+            relFast: 0.07,    // 70ms fast recovery
+            relSlow: 0.28,    // 280ms slow recovery (ENGL spongy feel)
+            rmsMs: 22.0,      // 22ms RMS window
+            shape: 1.5,       // Progressive/tube-like
+            floor: 0.25,      // 25% minimum headroom
+            peakMix: 0.29     // Balanced peak/RMS
+          });
+        }
+        
+        // Re-route current channel to apply new sag
+        if (this.activeChannel === 1) this.setupChannel1();
+        else if (this.activeChannel === 2) this.setupChannel2();
+        else if (this.activeChannel === 3) this.setupChannel3();
+        else this.setupChannel4();
+        break;
       
       case 'bright':
         this.brightSwitch = !!value;
