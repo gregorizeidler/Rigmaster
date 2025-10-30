@@ -1669,6 +1669,234 @@
     inset 0 -1px 4px rgba(212, 175, 55, 0.1);
 }
 
+/* BOGNER ÜBERSCHALL - Matte Black/Gold Boutique */
+.amp-head.amp-bogner_uberschall {
+  background: 
+    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(212,175,55,0.08) 2px, rgba(212,175,55,0.08) 4px),
+    linear-gradient(180deg, #0f0f0f 0%, #0a0a0a 50%, #050505 100%);
+  border: 2px solid #1a1a1a;
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.9),
+    inset 0 2px 0 rgba(212, 175, 55, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.amp-head.amp-bogner_uberschall .amp-head-top {
+  background: linear-gradient(180deg, #0a0a0a 0%, #050505 100%);
+  border-bottom: 2px solid #1a1a1a;
+  box-shadow: inset 0 1px 0 rgba(212, 175, 55, 0.1);
+}
+
+.amp-head.amp-bogner_uberschall .brand-text {
+  color: #ffffff;
+  font-weight: 900;
+  letter-spacing: 4px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.amp-head.amp-bogner_uberschall .model-text {
+  color: #d4af37;
+  text-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
+  font-weight: 700;
+}
+
+.amp-head.amp-bogner_uberschall .amp-control-panel {
+  background: linear-gradient(180deg, #0a0a0a 0%, #050505 100%);
+  border-top: 1px solid #1a1a1a;
+}
+
+.amp-head.amp-bogner_uberschall ~ .amp-cabinet {
+  background: linear-gradient(180deg, #0f0f0f 0%, #0a0a0a 100%);
+  border: 2px solid #1a1a1a;
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.9),
+    inset 0 2px 0 rgba(212, 175, 55, 0.1);
+}
+
+.amp-head.amp-bogner_uberschall ~ .amp-cabinet .cabinet-config {
+  background: linear-gradient(180deg, #0a0a0a 0%, #050505 100%);
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.amp-head.amp-bogner_uberschall ~ .amp-cabinet .cabinet-config label {
+  color: #ffffff;
+  letter-spacing: 0.5px;
+}
+
+.amp-head.amp-bogner_uberschall ~ .amp-cabinet .config-row select {
+  background: linear-gradient(180deg, #1a1a1a, #0a0a0a);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  color: #ffffff;
+}
+
+.amp-head.amp-bogner_uberschall ~ .amp-cabinet .config-row select:hover {
+  background: linear-gradient(180deg, #2a2a2a, #1a1a1a);
+  border-color: #d4af37;
+  box-shadow:
+    0 3px 10px rgba(212, 175, 55, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.amp-head.amp-bogner_uberschall ~ .amp-cabinet .config-row select:focus {
+  border-color: #d4af37;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+}
+
+.amp-head.amp-bogner_uberschall ~ .amp-cabinet .config-row option {
+  background: #0a0a0a;
+  color: #ffffff;
+}
+
+.amp-head.amp-bogner_uberschall ~ .amp-cabinet .cabinet-speaker-grill {
+  background: radial-gradient(circle at 30% 30%, #1a1a1a 0%, #0f0f0f 50%, #0a0a0a 100%);
+}
+
+.amp-head.amp-bogner_uberschall ~ .amp-cabinet .speaker-cone {
+  background: radial-gradient(circle at 35% 35%, #1a1a1a, #0f0f0f, #0a0a0a);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  box-shadow:
+    0 1px 8px rgba(0, 0, 0, 0.9),
+    inset 0 1px 4px rgba(0, 0, 0, 0.8),
+    inset 0 -1px 4px rgba(212, 175, 55, 0.08);
+}
+
+.amp-head.amp-bogner_uberschall .amp-power-switch.active {
+  background: linear-gradient(135deg, #d4af37, #c9a959);
+  border-color: #d4af37;
+  box-shadow:
+    0 6px 20px rgba(212, 175, 55, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.amp-head.amp-bogner_uberschall .amp-type-selector {
+  background: linear-gradient(180deg, #1a1a1a, #0a0a0a);
+  border-color: rgba(212, 175, 55, 0.3);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.amp-head.amp-bogner_uberschall .amp-type-selector:hover {
+  background: linear-gradient(180deg, #2a2a2a, #1a1a1a);
+  border-color: #d4af37;
+  box-shadow:
+    0 3px 12px rgba(212, 175, 55, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* ENGL POWERBALL - Matte Black/Metallic Modern */
+.amp-head.amp-engl_powerball {
+  background: 
+    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(176,176,176,0.08) 2px, rgba(176,176,176,0.08) 4px),
+    linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 50%, #0a0a0a 100%);
+  border: 2px solid #2a2a2a;
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.9),
+    inset 0 2px 0 rgba(176, 176, 176, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.amp-head.amp-engl_powerball .amp-head-top {
+  background: linear-gradient(180deg, #0f0f0f 0%, #0a0a0a 100%);
+  border-bottom: 2px solid #2a2a2a;
+  box-shadow: inset 0 1px 0 rgba(176, 176, 176, 0.1);
+}
+
+.amp-head.amp-engl_powerball .brand-text {
+  color: #ffffff;
+  font-weight: 900;
+  letter-spacing: 4px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.amp-head.amp-engl_powerball .model-text {
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(176, 176, 176, 0.5);
+  font-weight: 700;
+}
+
+.amp-head.amp-engl_powerball .amp-control-panel {
+  background: linear-gradient(180deg, #0f0f0f 0%, #0a0a0a 100%);
+  border-top: 1px solid #1a1a1a;
+}
+
+.amp-head.amp-engl_powerball ~ .amp-cabinet {
+  background: linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 100%);
+  border: 2px solid #2a2a2a;
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.9),
+    inset 0 2px 0 rgba(176, 176, 176, 0.1);
+}
+
+.amp-head.amp-engl_powerball ~ .amp-cabinet .cabinet-config {
+  background: linear-gradient(180deg, #0f0f0f 0%, #0a0a0a 100%);
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.amp-head.amp-engl_powerball ~ .amp-cabinet .cabinet-config label {
+  color: #ffffff;
+  letter-spacing: 0.5px;
+}
+
+.amp-head.amp-engl_powerball ~ .amp-cabinet .config-row select {
+  background: linear-gradient(180deg, #1a1a1a, #0a0a0a);
+  border: 1px solid rgba(176, 176, 176, 0.3);
+  color: #ffffff;
+}
+
+.amp-head.amp-engl_powerball ~ .amp-cabinet .config-row select:hover {
+  background: linear-gradient(180deg, #2a2a2a, #1a1a1a);
+  border-color: #b0b0b0;
+  box-shadow:
+    0 3px 10px rgba(176, 176, 176, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.amp-head.amp-engl_powerball ~ .amp-cabinet .config-row select:focus {
+  border-color: #b0b0b0;
+  box-shadow: 0 0 0 3px rgba(176, 176, 176, 0.15);
+}
+
+.amp-head.amp-engl_powerball ~ .amp-cabinet .config-row option {
+  background: #0a0a0a;
+  color: #ffffff;
+}
+
+.amp-head.amp-engl_powerball ~ .amp-cabinet .cabinet-speaker-grill {
+  background: radial-gradient(circle at 30% 30%, #1a1a1a 0%, #0f0f0f 50%, #0a0a0a 100%);
+}
+
+.amp-head.amp-engl_powerball ~ .amp-cabinet .speaker-cone {
+  background: radial-gradient(circle at 35% 35%, #2a2a2a, #1a1a1a, #0f0f0f);
+  border: 1px solid rgba(176, 176, 176, 0.3);
+  box-shadow:
+    0 1px 8px rgba(0, 0, 0, 0.9),
+    inset 0 1px 4px rgba(0, 0, 0, 0.8),
+    inset 0 -1px 4px rgba(176, 176, 176, 0.08);
+}
+
+.amp-head.amp-engl_powerball .amp-power-switch.active {
+  background: linear-gradient(135deg, #b0b0b0, #909090);
+  border-color: #b0b0b0;
+  box-shadow:
+    0 6px 20px rgba(176, 176, 176, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.amp-head.amp-engl_powerball .amp-type-selector {
+  background: linear-gradient(180deg, #1a1a1a, #0a0a0a);
+  border-color: rgba(176, 176, 176, 0.3);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.amp-head.amp-engl_powerball .amp-type-selector:hover {
+  background: linear-gradient(180deg, #2a2a2a, #1a1a1a);
+  border-color: #b0b0b0;
+  box-shadow:
+    0 3px 12px rgba(176, 176, 176, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
 /* DIEZEL VH4 - Industrial Silver/Black */
 .amp-head.amp-diezel_vh4 {
   background: 

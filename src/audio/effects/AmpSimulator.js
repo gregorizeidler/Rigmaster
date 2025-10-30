@@ -16,6 +16,7 @@ import HiwattDR103Amp from '../amps/HiwattDR103Amp';
 import MarshallJTM45Amp from '../amps/MarshallJTM45Amp';
 import BadCatHotCatAmp from '../amps/BadCatHotCatAmp';
 import BognerEcstasyAmp from '../amps/BognerEcstasyAmp';
+import BognerUberschallAmp from '../amps/BognerUberschallAmp';
 import DiezelVH4Amp from '../amps/DiezelVH4Amp';
 import FriedmanBE100Amp from '../amps/FriedmanBE100Amp';
 import SoldanoSLO100Amp from '../amps/SoldanoSLO100Amp';
@@ -325,7 +326,7 @@ class AmpSimulator extends BaseEffect {
   }
 
   initializeDedicatedAmp(ampType) {
-    // Map ALL amp types to their dedicated classes (21 professional amps)
+    // Map ALL amp types to their dedicated classes (22 professional amps)
     const ampClasses = {
       // Professional amps only
       'peavey_5150': Peavey5150Amp,
@@ -342,6 +343,7 @@ class AmpSimulator extends BaseEffect {
       'marshall_jtm45': MarshallJTM45Amp,
       'badcat_hotcat': BadCatHotCatAmp,
       'bogner_ecstasy': BognerEcstasyAmp,
+      'bogner_uberschall': BognerUberschallAmp,
       'diezel_vh4': DiezelVH4Amp,
       'friedman_be100': FriedmanBE100Amp,
       'soldano_slo100': SoldanoSLO100Amp,

@@ -41,6 +41,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       'peavey_5150': '4x12_vintage',
       'mesa_dual_rectifier': '4x12_vintage',
       'bogner_ecstasy': '4x12_vintage',
+      'bogner_uberschall': '4x12_v30',
       'diezel_vh4': '4x12_vintage',
       'friedman_be100': '4x12_greenback',
       'soldano_slo100': '4x12_vintage',
@@ -181,6 +182,13 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
         logo: 'Ecstasy',
         brand: 'BOGNER'
       },
+      bogner_uberschall: {
+        color: '#0a0a0a',      // Preto fosco boutique
+        accent: '#d4af37',     // Dourado (detalhes boutique)
+        grill: '#1a1a1a',      // Grade escura
+        logo: 'ÜBERSCHALL',
+        brand: 'BOGNER'
+      },
       diezel_vh4: {
         color: '#4a4a4a',     // Chassi metálico prateado
         accent: '#c0c0c0',    // Detalhes prateados
@@ -291,6 +299,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       metal: ['presence', 'resonance'],
       peavey_5150: ['peavey_5150_controls'],
       bogner_ecstasy: ['bogner_ecstasy_controls'],
+      bogner_uberschall: ['bogner_uberschall_controls'],
       diezel_vh4: ['diezel_vh4_controls'],
       engl_powerball: ['engl_powerball_controls'],
       friedman_be100: ['friedman_channel', 'friedman_depth', 'friedman_tight', 'friedman_fat', 'friedman_sat', 'friedman_bright', 'friedman_cabinet'],
@@ -2979,6 +2988,350 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
         );
       
       // ============================================
+      // BOGNER ÜBERSCHALL - COMPLETE CONTROLS
+      // ============================================
+      case 'bogner_uberschall_controls':
+        const uberschallChannel = amp.params?.channel || 3;
+        return (
+          <div key="bogner_uberschall_controls" className="bogner-uberschall-full-controls" style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '5px',
+            padding: '6px 8px',
+            background: 'repeating-radial-gradient(circle at 2px 2px, rgba(20,20,20,0.6) 0px, transparent 1px), linear-gradient(135deg, #0f0f0f 0%, #050505 100%)',
+            backgroundSize: '4px 4px, 100% 100%',
+            borderRadius: '4px',
+            border: '2px solid #1a1a1a',
+            boxShadow: 'inset 0 1px 0 rgba(212,175,55,0.15), inset 0 2px 4px rgba(0,0,0,0.8), 0 2px 8px rgba(0,0,0,0.6)',
+            maxWidth: '900px',
+            alignItems: 'center'
+          }}>
+            {/* LINHA SUPERIOR - KNOBS PRINCIPAIS */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'row',
+              gap: '5px',
+              flexWrap: 'nowrap',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}>
+              {/* GAIN + CHANNEL VOLUME */}
+              <div style={{
+                display: 'flex',
+                gap: '6px',
+                padding: '4px 6px',
+                background: 'rgba(0,0,0,0.6)',
+                borderRadius: '4px',
+                border: '1px solid rgba(212,175,55,0.3)'
+              }}>
+                <Knob 
+                  label="GAIN" 
+                  value={amp.params?.gain || 85} 
+                  onChange={handleKnobChange('gain')} 
+                  size={30} 
+                  color="#2a2a2a" 
+                />
+                <Knob 
+                  label="CH VOL" 
+                  value={amp.params?.channel_volume || 75} 
+                  onChange={handleKnobChange('channel_volume')} 
+                  size={28} 
+                  color="#2a2a2a" 
+                />
+              </div>
+
+              {/* TONE STACK */}
+              <div style={{
+                display: 'flex',
+                gap: '6px',
+                padding: '4px 6px',
+                background: 'rgba(0,0,0,0.6)',
+                borderRadius: '4px',
+                border: '1px solid rgba(212,175,55,0.3)'
+              }}>
+                <Knob label="BASS" value={amp.params?.bass || 70} onChange={handleKnobChange('bass')} size={26} color="#2a2a2a" />
+                <Knob label="MID" value={amp.params?.middle || 42} onChange={handleKnobChange('middle')} size={26} color="#2a2a2a" />
+                <Knob label="TREB" value={amp.params?.treble || 72} onChange={handleKnobChange('treble')} size={26} color="#2a2a2a" />
+              </div>
+
+              {/* PRESENCE + DEPTH + MASTER */}
+              <div style={{ 
+                display: 'flex', 
+                gap: '6px',
+                padding: '4px 6px',
+                background: 'rgba(0,0,0,0.6)',
+                borderRadius: '4px',
+                border: '1px solid rgba(212,175,55,0.3)'
+              }}>
+                <Knob label="PRES" value={amp.params?.presence || 68} onChange={handleKnobChange('presence')} size={26} color="#2a2a2a" />
+                <Knob label="DEPTH" value={amp.params?.depth || 68} onChange={handleKnobChange('depth')} size={26} color="#2a2a2a" />
+                <Knob label="MSTR" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={30} color="#2a2a2a" />
+              </div>
+            </div>
+
+            {/* LINHA INFERIOR - CHANNEL SELECTOR + SWITCHES */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'row',
+              gap: '6px',
+              flexWrap: 'nowrap',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}>
+              {/* CHANNEL SELECTOR COM LEDs */}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'row',
+                gap: '4px',
+                padding: '4px 8px',
+                background: 'rgba(0,0,0,0.7)',
+                borderRadius: '4px',
+                border: '1px solid rgba(212,175,55,0.4)',
+                alignItems: 'center'
+              }}>
+                <label style={{ fontSize: '8px', color: '#ffffff', fontWeight: 'bold', marginRight: '4px', letterSpacing: '0.5px' }}>CHANNEL</label>
+
+                <button
+                  onClick={() => onUpdate(amp.id, 'channel', 1)}
+                  style={{
+                    padding: '6px 10px',
+                    fontSize: '9px',
+                    fontWeight: 'bold',
+                    borderRadius: '3px',
+                    border: uberschallChannel === 1 ? '2px solid #00ff00' : '1px solid rgba(192,192,192,0.3)',
+                    background: uberschallChannel === 1 ? 'rgba(0,255,0,0.2)' : 'rgba(0,0,0,0.4)',
+                    color: uberschallChannel === 1 ? '#00ff00' : '#888',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    boxShadow: uberschallChannel === 1 ? '0 0 8px rgba(0,255,0,0.6), inset 0 0 6px rgba(0,255,0,0.3)' : 'inset 0 1px 2px rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                >
+                  {uberschallChannel === 1 && <span style={{ 
+                    width: '6px', 
+                    height: '6px', 
+                    borderRadius: '50%', 
+                    background: '#00ff00',
+                    boxShadow: '0 0 6px #00ff00',
+                    animation: 'pulse 1.5s ease-in-out infinite'
+                  }}></span>}
+                  CLN
+                </button>
+
+                <button
+                  onClick={() => onUpdate(amp.id, 'channel', 2)}
+                  style={{
+                    padding: '6px 10px',
+                    fontSize: '9px',
+                    fontWeight: 'bold',
+                    borderRadius: '3px',
+                    border: uberschallChannel === 2 ? '2px solid #ff8800' : '1px solid rgba(192,192,192,0.3)',
+                    background: uberschallChannel === 2 ? 'rgba(255,136,0,0.2)' : 'rgba(0,0,0,0.4)',
+                    color: uberschallChannel === 2 ? '#ff8800' : '#888',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    boxShadow: uberschallChannel === 2 ? '0 0 8px rgba(255,136,0,0.6), inset 0 0 6px rgba(255,136,0,0.3)' : 'inset 0 1px 2px rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                >
+                  {uberschallChannel === 2 && <span style={{ 
+                    width: '6px', 
+                    height: '6px', 
+                    borderRadius: '50%', 
+                    background: '#ff8800',
+                    boxShadow: '0 0 6px #ff8800',
+                    animation: 'pulse 1.5s ease-in-out infinite'
+                  }}></span>}
+                  CRN
+                </button>
+
+                <button
+                  onClick={() => onUpdate(amp.id, 'channel', 3)}
+                  style={{
+                    padding: '6px 10px',
+                    fontSize: '9px',
+                    fontWeight: 'bold',
+                    borderRadius: '3px',
+                    border: uberschallChannel === 3 ? '2px solid #ff0000' : '1px solid rgba(192,192,192,0.3)',
+                    background: uberschallChannel === 3 ? 'rgba(255,0,0,0.2)' : 'rgba(0,0,0,0.4)',
+                    color: uberschallChannel === 3 ? '#ff0000' : '#888',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    boxShadow: uberschallChannel === 3 ? '0 0 8px rgba(255,0,0,0.6), inset 0 0 6px rgba(255,0,0,0.3)' : 'inset 0 1px 2px rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                >
+                  {uberschallChannel === 3 && <span style={{ 
+                    width: '6px', 
+                    height: '6px', 
+                    borderRadius: '50%', 
+                    background: '#ff0000',
+                    boxShadow: '0 0 6px #ff0000',
+                    animation: 'pulse 1.5s ease-in-out infinite'
+                  }}></span>}
+                  ÜBR
+                </button>
+              </div>
+
+              {/* SWITCHES - BRIGHT, MID SHIFT, GAIN BOOST, GATE */}
+              <div style={{
+                display: 'flex',
+                gap: '5px',
+                padding: '4px 6px',
+                background: 'rgba(0,0,0,0.7)',
+                borderRadius: '4px',
+                border: '1px solid rgba(212,175,55,0.4)'
+              }}>
+                <button
+                  onClick={() => onUpdate(amp.id, 'bright', !amp.params?.bright)}
+                  style={{
+                    padding: '4px 6px',
+                    fontSize: '9px',
+                    fontWeight: 'bold',
+                    borderRadius: '3px',
+                    border: amp.params?.bright ? '1px solid #d4af37' : '1px solid rgba(212,175,55,0.2)',
+                    background: amp.params?.bright ? 'rgba(212,175,55,0.3)' : 'rgba(0,0,0,0.4)',
+                    color: amp.params?.bright ? '#d4af37' : '#999',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    letterSpacing: '0.3px'
+                  }}
+                >BRT</button>
+
+                <button
+                  onClick={() => onUpdate(amp.id, 'mid_shift', !amp.params?.mid_shift)}
+                  style={{
+                    padding: '4px 6px',
+                    fontSize: '9px',
+                    fontWeight: 'bold',
+                    borderRadius: '3px',
+                    border: amp.params?.mid_shift ? '1px solid #d4af37' : '1px solid rgba(212,175,55,0.2)',
+                    background: amp.params?.mid_shift ? 'rgba(212,175,55,0.3)' : 'rgba(0,0,0,0.4)',
+                    color: amp.params?.mid_shift ? '#d4af37' : '#999',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    letterSpacing: '0.3px'
+                  }}
+                >MID ↓</button>
+
+                <button
+                  onClick={() => onUpdate(amp.id, 'gain_boost', !amp.params?.gain_boost)}
+                  style={{
+                    padding: '4px 6px',
+                    fontSize: '9px',
+                    fontWeight: 'bold',
+                    borderRadius: '3px',
+                    border: amp.params?.gain_boost ? '1px solid #d4af37' : '1px solid rgba(212,175,55,0.2)',
+                    background: amp.params?.gain_boost ? 'rgba(212,175,55,0.3)' : 'rgba(0,0,0,0.4)',
+                    color: amp.params?.gain_boost ? '#d4af37' : '#999',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    letterSpacing: '0.3px'
+                  }}
+                >BST</button>
+
+                <button
+                  onClick={() => onUpdate(amp.id, 'gate', !amp.params?.gate)}
+                  style={{
+                    padding: '4px 6px',
+                    fontSize: '9px',
+                    fontWeight: 'bold',
+                    borderRadius: '3px',
+                    border: amp.params?.gate ? '1px solid #00ff00' : '1px solid rgba(0,255,0,0.2)',
+                    background: amp.params?.gate ? 'rgba(0,255,0,0.25)' : 'rgba(0,0,0,0.4)',
+                    color: amp.params?.gate ? '#00ff00' : '#999',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    letterSpacing: '0.3px'
+                  }}
+                >GATE</button>
+              </div>
+
+              {/* RECTIFIER SWITCH */}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '2px',
+                padding: '4px 6px',
+                background: 'rgba(0,0,0,0.7)',
+                borderRadius: '4px',
+                border: '1px solid rgba(212,175,55,0.4)',
+                alignItems: 'center'
+              }}>
+                <label style={{ fontSize: '7px', color: '#ffffff', fontWeight: 'bold', letterSpacing: '0.5px' }}>RECTIFIER</label>
+                <div style={{ display: 'flex', gap: '3px' }}>
+                  <button
+                    onClick={() => onUpdate(amp.id, 'rectifier', 'silicon')}
+                    style={{
+                      padding: '3px 5px',
+                      fontSize: '8px',
+                      fontWeight: 'bold',
+                      borderRadius: '2px',
+                      border: amp.params?.rectifier === 'silicon' ? '1px solid #ffffff' : '1px solid rgba(255,255,255,0.2)',
+                      background: amp.params?.rectifier === 'silicon' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.4)',
+                      color: amp.params?.rectifier === 'silicon' ? '#ffffff' : '#999',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      letterSpacing: '0.3px'
+                    }}
+                  >SI</button>
+                  <button
+                    onClick={() => onUpdate(amp.id, 'rectifier', 'tube')}
+                    style={{
+                      padding: '3px 5px',
+                      fontSize: '8px',
+                      fontWeight: 'bold',
+                      borderRadius: '2px',
+                      border: amp.params?.rectifier === 'tube' ? '1px solid #d4af37' : '1px solid rgba(212,175,55,0.2)',
+                      background: amp.params?.rectifier === 'tube' ? 'rgba(212,175,55,0.3)' : 'rgba(0,0,0,0.4)',
+                      color: amp.params?.rectifier === 'tube' ? '#d4af37' : '#999',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      letterSpacing: '0.3px'
+                    }}
+                  >TUBE</button>
+                </div>
+              </div>
+
+              {/* CABINET ON/OFF */}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '2px',
+                padding: '4px 6px',
+                background: 'rgba(0,0,0,0.7)',
+                borderRadius: '4px',
+                border: '1px solid rgba(212,175,55,0.4)',
+                alignItems: 'center'
+              }}>
+                <label style={{ fontSize: '7px', color: '#ffffff', fontWeight: 'bold', letterSpacing: '0.5px' }}>CAB</label>
+                <button
+                  onClick={() => onUpdate(amp.id, 'cabinet_enabled', !amp.params?.cabinet_enabled)}
+                  style={{
+                    padding: '4px 6px',
+                    fontSize: '9px',
+                    fontWeight: 'bold',
+                    borderRadius: '3px',
+                    border: amp.params?.cabinet_enabled !== false ? '1px solid #ffffff' : '1px solid rgba(255,255,255,0.2)',
+                    background: amp.params?.cabinet_enabled !== false ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.4)',
+                    color: amp.params?.cabinet_enabled !== false ? '#ffffff' : '#999',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    letterSpacing: '0.3px'
+                  }}
+                >ON</button>
+              </div>
+            </div>
+          </div>
+        );
+      
+      // ============================================
       // DIEZEL VH4 - COMPLETE CONTROLS
       // ============================================
       case 'diezel_vh4_controls':
@@ -4079,6 +4432,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
               <option value="peavey_5150">Peavey 5150</option>
               <option value="mesa_dual_rectifier">Mesa Dual Rectifier</option>
               <option value="bogner_ecstasy">Bogner Ecstasy</option>
+              <option value="bogner_uberschall">Bogner Überschall</option>
               <option value="diezel_vh4">Diezel VH4</option>
               <option value="engl_powerball">ENGL Powerball</option>
               <option value="friedman_be100">Friedman BE-100</option>
@@ -4681,6 +5035,9 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
               <div style={{ display: 'none' }}></div>
             ) : amp.ampType === 'bogner_ecstasy' ? (
               /* BOGNER ECSTASY - Controls handled in custom section below */
+              <div style={{ display: 'none' }}></div>
+            ) : amp.ampType === 'bogner_uberschall' ? (
+              /* BOGNER ÜBERSCHALL - Controls handled in custom section below */
               <div style={{ display: 'none' }}></div>
             ) : amp.ampType === 'diezel_vh4' ? (
               /* DIEZEL VH4 - Controls handled in custom section below */
