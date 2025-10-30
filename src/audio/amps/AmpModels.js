@@ -31,6 +31,21 @@ export const AmpModels = {
     description: 'Warm bluesy cleans with breakup'
   },
   
+  'vibro-king': {
+    name: 'Vibro-King',
+    type: 'clean',
+    color: '#000000',
+    grill: '#silver',
+    preGain: 2.2,
+    saturationAmount: 0.35,
+    bass: 3,
+    mid: 1,
+    treble: 4,
+    presence: 4500,
+    master: 0.9,
+    description: 'Boutique Fender with lush reverb and vibrato'
+  },
+  
   // MARSHALL STYLE AMPS
   'plexi': {
     name: 'Plexi Lead',
