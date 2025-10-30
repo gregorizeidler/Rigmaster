@@ -222,7 +222,7 @@ class ENGLPowerballAmp extends BaseAmp {
     this.cabinetSimulator = new CabinetSimulator(audioContext);
     this.cabinet = null;
     this.cabinetEnabled = true;
-    this.cabinetType = '4x12_v30';
+    this.cabinetType = '4x12_vintage';
     this.micType = 'sm57';
     this.micPosition = 'edge';
     this.preCabinet = audioContext.createGain();
@@ -285,7 +285,7 @@ class ENGLPowerballAmp extends BaseAmp {
       
       // Cabinet
       cabinet_enabled: true,
-      cabinet: '4x12_v30',
+      cabinet: '4x12_vintage',
       microphone: 'sm57',
       micPosition: 'edge'
     };
@@ -540,6 +540,7 @@ class ENGLPowerballAmp extends BaseAmp {
       this.fxReturn.disconnect();
       this.fxReturnLevel.disconnect();
       this.fxMix.disconnect();
+      if (this.powerSag) this.powerSag.disconnect();
       this.powerComp.disconnect();
       this.powerAmp.disconnect();
       this.powerSaturation.disconnect();
