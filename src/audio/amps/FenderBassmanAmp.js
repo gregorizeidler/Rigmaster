@@ -104,6 +104,14 @@ class FenderBassmanAmp extends BaseAmp {
       peakMix: 0.30     // Balanced peak/RMS
     });
     
+    // Power compression
+    this.powerComp = audioContext.createDynamicsCompressor();
+    this.powerComp.threshold.value = -18;
+    this.powerComp.knee.value = 6;
+    this.powerComp.ratio.value = 3;
+    this.powerComp.attack.value = 0.008;
+    this.powerComp.release.value = 0.10;
+    
     // Presence control (NFB loop - post power amp)
     this.presence = audioContext.createBiquadFilter();
     this.presence.type = 'highshelf';

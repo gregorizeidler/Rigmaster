@@ -173,6 +173,14 @@ class BognerEcstasyAmp extends BaseAmp {
       peakMix: 0.30     // Balanced peak/RMS
     });
     
+    // Power compression
+    this.powerComp = audioContext.createDynamicsCompressor();
+    this.powerComp.threshold.value = -18;
+    this.powerComp.knee.value = 6;
+    this.powerComp.ratio.value = 3;
+    this.powerComp.attack.value = 0.006;
+    this.powerComp.release.value = 0.10;
+    
     // ============================================
     // POWER AMP (4x EL34 or 6L6)
     // ============================================

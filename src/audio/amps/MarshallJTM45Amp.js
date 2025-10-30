@@ -134,6 +134,14 @@ class MarshallJTM45Amp extends BaseAmp {
       peakMix: 0.28     // More RMS-focused (vintage smooth)
     });
     
+    // Power compression
+    this.powerComp = audioContext.createDynamicsCompressor();
+    this.powerComp.threshold.value = -18;
+    this.powerComp.knee.value = 6;
+    this.powerComp.ratio.value = 3;
+    this.powerComp.attack.value = 0.010;
+    this.powerComp.release.value = 0.10;
+    
     // ============================================
     // CABINET SIMULATOR
     // ============================================

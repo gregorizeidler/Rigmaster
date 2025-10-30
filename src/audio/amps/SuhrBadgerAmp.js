@@ -122,8 +122,23 @@ class SuhrBadgerAmp extends BaseAmp {
       floor: 0.28,      // 28% minimum headroom
       peakMix: 0.30     // Balanced peak/RMS
     });
+    
+    // Power compression (fallback if sag unavailable)
+    this.powerComp = audioContext.createDynamicsCompressor();
+    this.powerComp.threshold.value = -18;
+    this.powerComp.knee.value = 6;
+    this.powerComp.ratio.value = 3;
     this.powerComp.attack.value = 0.006;
     this.powerComp.release.value = 0.1;
+    
+    // DC blocker
+    this.dcBlock = audioContext.createBiquadFilter();
+    this.dcBlock.type = 'highpass';
+    this.dcBlock.frequency.value = 20;
+    this.dcBlock.Q.value = 0.707;
+    
+    // Cabinet IR convolver
+    this.cabIR = audioContext.createConvolver();
     
     // ============================================
     // CABINET SIMULATOR
@@ -179,6 +194,7 @@ class SuhrBadgerAmp extends BaseAmp {
     // ============================================
     this.setupBothChannels();
     this.applyInitialSettings();
+    this.loadDefaultCabinetIR();
     this.recreateCabinet();
   }
   
@@ -261,13 +277,12 @@ class SuhrBadgerAmp extends BaseAmp {
     
     // Power amp
     this.powerAmp.connect(this.powerSaturation);
+    this.powerSaturation.connect(this.powerComp);
     
     // DC block + Cabinet IR
-    this.powerSaturation.connect(this.dcBlock);
+    this.powerComp.connect(this.dcBlock);
     this.dcBlock.connect(this.cabIR);
-    
-    // Power amp → Cabinet → Presence → Master
-    this.powerComp.connect(this.preCabinet);
+    this.cabIR.connect(this.preCabinet);
     // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
     this.postCabinet.connect(this.variacToneLPF);
     this.variacToneLPF.connect(this.presence);
@@ -317,11 +332,14 @@ class SuhrBadgerAmp extends BaseAmp {
       this.channelVolume.disconnect();
       this.variacPower.disconnect();
       this.variacToneLPF.disconnect();
+      if (this.powerSag) this.powerSag.disconnect();
       this.powerComp.disconnect();
       this.powerAmp.disconnect();
       this.powerSaturation.disconnect();
       this.dcBlock.disconnect();
       this.cabIR.disconnect();
+      this.preCabinet.disconnect();
+      this.postCabinet.disconnect();
       this.presence.disconnect();
       this.master.disconnect();
     } catch (e) {}
@@ -637,11 +655,20 @@ class SuhrBadgerAmp extends BaseAmp {
     this.channelVolume.disconnect();
     this.variacPower.disconnect();
     this.variacToneLPF.disconnect();
+    if (this.powerSag) this.powerSag.disconnect();
     this.powerComp.disconnect();
     this.powerAmp.disconnect();
     this.powerSaturation.disconnect();
     this.dcBlock.disconnect();
     this.cabIR.disconnect();
+    this.preCabinet.disconnect();
+    this.postCabinet.disconnect();
+    if (this.cabinet && this.cabinet.input) {
+      this.cabinet.input.disconnect();
+    }
+    if (this.cabinet && this.cabinet.output) {
+      this.cabinet.output.disconnect();
+    }
     this.presence.disconnect();
     this.master.disconnect();
   }

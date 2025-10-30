@@ -24,10 +24,6 @@ class OrangeRockerverbAmp extends BaseAmp {
       floorDb: -73,     // Musical floor
       holdMs: 12        // 12ms hold
     });
-    this.noiseGate.knee.value = 0;
-    this.noiseGate.ratio.value = 20;
-    this.noiseGate.attack.value = 0.001;
-    this.noiseGate.release.value = 0.08;
     
     // ============================================
     // 2 CHANNELS with CROSSFADE (pop-free switching)
@@ -333,7 +329,7 @@ class OrangeRockerverbAmp extends BaseAmp {
       this.revAP2.disconnect();
       this.reverbReturn.disconnect();
       this.outputMixer.disconnect();
-      this.powerComp.disconnect();
+      if (this.powerSag) this.powerSag.disconnect();
       this.powerAmp.disconnect();
       this.powerSaturation.disconnect();
       this.dcBlock.disconnect();
@@ -550,7 +546,7 @@ class OrangeRockerverbAmp extends BaseAmp {
     this.reverbFeedback.disconnect();
     this.reverbLPF.disconnect();
     this.outputMixer.disconnect();
-    this.powerComp.disconnect();
+    if (this.powerSag) this.powerSag.disconnect();
     this.powerAmp.disconnect();
     this.powerSaturation.disconnect();
     this.dcBlock.disconnect();

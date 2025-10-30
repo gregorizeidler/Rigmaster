@@ -97,6 +97,12 @@ class MesaDualRectifierAmp extends BaseAmp {
     // RECTIFIER SELECT (TUBE/SILICON)
     this.rectifierMode = 'silicon'; // 'tube' or 'silicon'
     
+    // Rectifier filter (affects high-end response)
+    this.rectifierFilter = audioContext.createBiquadFilter();
+    this.rectifierFilter.type = 'lowpass';
+    this.rectifierFilter.frequency.value = 11000; // Silicon default
+    this.rectifierFilter.Q.value = 0.707;
+    
     // MULTI-WATT POWER (50W/100W/150W)
     this.wattage = 100; // 50, 100, or 150
     this.powerAmp = audioContext.createGain();
@@ -591,7 +597,8 @@ class MesaDualRectifierAmp extends BaseAmp {
     this.nfbHi.connect(this.nfbLo); // Resonance (low shelf)
     this.nfbLo.connect(this.biasFilter);
     
-    this.biasFilter.connect(this.fizzTaming);
+    this.biasFilter.connect(this.rectifierFilter);
+    this.rectifierFilter.connect(this.fizzTaming);
     this.fizzTaming.connect(this.dcBlock);
     
     // ============================================
@@ -883,43 +890,44 @@ class MesaDualRectifierAmp extends BaseAmp {
   }
   
   _recomputePowerEnv() {
-    // Centralized power/sag envelope computation (avoids "last setter wins")
-    // Defaults: bold + silicon + normal
-    let attack = 0.001, release = 0.06, knee = 0, ratio = 2, threshold = -10;
+    // Centralized power/sag envelope computation
+    // powerSag is an AudioWorkletNode, not a DynamicsCompressor
+    // Update its parameters based on mode settings
     
-    // Apply BOLD/SPONGY modifications
-    if (this.powerMode === 'spongy') {
-      threshold = -20;
-      ratio = 4;
-      attack = 0.005;
-      release = 0.2;
+    if (!this.powerSag || !this.powerSag.parameters) {
+      // Fallback if AudioWorklet not available
+      return;
     }
     
-    // Apply RECTIFIER modifications (cumulative with above)
+    const now = this.audioContext.currentTime;
+    
+    // Apply RECTIFIER modifications
     if (this.rectifierMode === 'tube') {
-      attack = Math.max(attack, 0.003);
-      release = Math.max(release, 0.12);
+      // Tube rectifier: Heavy sag, slow response
+      this.powerSag.parameters.get('depth').setValueAtTime(0.15, now);
+      this.powerSag.parameters.get('relSlow').setValueAtTime(0.25, now);
       this.rectifierFilter.frequency.value = 9500;
     } else {
+      // Silicon: Light sag, fast response
+      this.powerSag.parameters.get('depth').setValueAtTime(0.08, now);
+      this.powerSag.parameters.get('relSlow').setValueAtTime(0.20, now);
       this.rectifierFilter.frequency.value = 11000;
     }
     
-    // Apply VARIAC modifications (cumulative with above)
-    if (this.variacMode) {
-      attack = Math.max(attack, 0.004);
-      release = Math.max(release, 0.15);
+    // Apply BOLD/SPONGY modifications
+    if (this.powerMode === 'spongy') {
+      const currentDepth = this.powerSag.parameters.get('depth').value;
+      this.powerSag.parameters.get('depth').setValueAtTime(currentDepth * 1.3, now);
+      this.powerSag.parameters.get('relSlow').setValueAtTime(0.30, now);
     }
     
-    // Apply all computed values atomically
-    const now = this.audioContext.currentTime;
-    const n = this.powerSag;
-    n.threshold.setValueAtTime(threshold, now);
-    n.knee.setValueAtTime(knee, now);
-    n.ratio.setValueAtTime(ratio, now);
-    n.attack.setValueAtTime(attack, now);
-    n.release.setValueAtTime(release, now);
+    // Apply VARIAC modifications
+    if (this.variacMode) {
+      const currentDepth = this.powerSag.parameters.get('depth').value;
+      this.powerSag.parameters.get('depth').setValueAtTime(currentDepth * 1.15, now);
+    }
     
-    console.log(`Mesa Power Env: threshold=${threshold}dB, ratio=${ratio}:1, attack=${attack}s, release=${release}s`);
+    console.log(`Mesa Power Sag updated: mode=${this.powerMode}, rectifier=${this.rectifierMode}, variac=${this.variacMode}`);
   }
   
   // ============================================
@@ -1573,13 +1581,13 @@ class MesaDualRectifierAmp extends BaseAmp {
       this.reverbReturn.disconnect();
       
       // Power section
-      this.levelProbe.disconnect();
-      this.powerSag.disconnect();
-      this.rectifierSag.disconnect();
+      if (this.levelProbe) this.levelProbe.disconnect();
+      if (this.powerSag) this.powerSag.disconnect();
+      if (this.rectifierSag) this.rectifierSag.disconnect();
       this.rectifierFilter.disconnect();
       this.variacGain.disconnect();
       this.powerAmp.disconnect();
-      this.supplyGain.disconnect();
+      if (this.supplyGain) this.supplyGain.disconnect();
       this.powerPreEmph.disconnect();
       this.powerSaturation.disconnect();
       this.powerDeEmph.disconnect();

@@ -141,6 +141,14 @@ class TwoRockClassicReverbAmp extends BaseAmp {
       peakMix: 0.31     // Balanced peak/RMS
     });
     
+    // Power compression (used for dynamics control)
+    this.powerComp = audioContext.createDynamicsCompressor();
+    this.powerComp.threshold.value = -22;
+    this.powerComp.knee.value = 6;
+    this.powerComp.ratio.value = 2.5;
+    this.powerComp.attack.value = 0.010;
+    this.powerComp.release.value = 0.12;
+    
     // ============================================
     // CABINET SIMULATOR
     // ============================================

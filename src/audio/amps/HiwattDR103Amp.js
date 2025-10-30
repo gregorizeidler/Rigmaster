@@ -114,6 +114,14 @@ class HiwattDR103Amp extends BaseAmp {
       peakMix: 0.35     // Balanced peak/RMS
     });
     
+    // Power compression
+    this.powerComp = audioContext.createDynamicsCompressor();
+    this.powerComp.threshold.value = -20;
+    this.powerComp.knee.value = 6;
+    this.powerComp.ratio.value = 2.5;
+    this.powerComp.attack.value = 0.001;
+    this.powerComp.release.value = 0.12;
+    
     // ============================================
     // CABINET SIMULATOR
     // ============================================

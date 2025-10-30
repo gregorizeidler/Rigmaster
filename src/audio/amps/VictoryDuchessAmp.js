@@ -122,6 +122,12 @@ class VictoryDuchessAmp extends BaseAmp {
       floor: 0.27,      // 27% minimum headroom
       peakMix: 0.30     // Balanced peak/RMS
     });
+    
+    // Power compression (fallback/additional dynamics)
+    this.powerComp = audioContext.createDynamicsCompressor();
+    this.powerComp.threshold.value = -20;
+    this.powerComp.knee.value = 6;
+    this.powerComp.ratio.value = 3;
     this.powerComp.attack.value = 0.007;
     this.powerComp.release.value = 0.11;
 
@@ -246,10 +252,11 @@ class VictoryDuchessAmp extends BaseAmp {
     this.channelVolume.connect(this.sagEnv);
     if (this.powerSag) {
       this.sagEnv.connect(this.powerSag);
-      this.powerSag.connect(this.powerGain);
+      this.powerSag.connect(this.powerComp);
     } else {
-      this.sagEnv.connect(this.powerGain);
+      this.sagEnv.connect(this.powerComp);
     }
+    this.powerComp.connect(this.powerGain);
     this.powerGain.connect(this.powerSat);
 
     // DC block → cabinet → post-EQ → limiter → master
@@ -261,11 +268,8 @@ class VictoryDuchessAmp extends BaseAmp {
     this.resonance.connect(this.outLimiter);
     this.outLimiter.connect(this.master);
 
-    // Dry/Wet to output (BaseAmp provides dry/wet)
-    this.master.connect(this.wetGain);
-    this.wetGain.connect(this.output);
-    this.input.connect(this.dryGain);
-    this.dryGain.connect(this.output);
+    // Output
+    this.master.connect(this.output);
   }
 
   // ==========================================
@@ -576,10 +580,12 @@ class VictoryDuchessAmp extends BaseAmp {
         this.ch2_sat2, this.ch2_pre3, this.ch2_sat3,
         this.mixer, this.brightCap, this.voicingFilter,
         this.bass, this.middle, this.treble, this.channelVolume,
-        this.sagEnv, this.powerComp, this.powerGain, this.powerSat,
+        this.sagEnv, this.powerGain, this.powerSat,
         this.dcBlock, this.preCabinet, this.postCabinet, this.presence,
         this.resonance, this.outLimiter, this.master
       ].forEach(n => { try { n.disconnect(); } catch(e){} });
+      if (this.powerSag) this.powerSag.disconnect();
+      if (this.powerComp) this.powerComp.disconnect();
       if (this.cabinet && this.cabinet.input) {
         this.cabinet.input.disconnect();
       }

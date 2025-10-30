@@ -168,6 +168,14 @@ class MesaMarkVAmp extends BaseAmp {
       peakMix: 0.31     // Balanced peak/RMS
     });
     
+    // Power compression (used with variac power control)
+    this.powerComp = audioContext.createDynamicsCompressor();
+    this.powerComp.threshold.value = -12;
+    this.powerComp.knee.value = 6;
+    this.powerComp.ratio.value = 3;
+    this.powerComp.attack.value = 0.005;
+    this.powerComp.release.value = 0.08;
+    
     // ============================================
     // CABINET & OUTPUT
     // ============================================
