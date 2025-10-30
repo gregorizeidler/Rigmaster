@@ -51,6 +51,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       'tworock_classic': '2x12_open',
       'dumble_ods': '1x12_open',
       'mesa_mark_v': '4x12_vintage',
+      'mesa_transatlantic_ta30': '2x12_blue',
       'suhr_badger': '2x12_closed',
       'victory_duchess': '2x12_closed'
     };
@@ -247,6 +248,13 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
         logo: 'Mark V',
         brand: 'MESA'
       },
+      mesa_transatlantic_ta30: {
+        color: '#1a1a1a',
+        accent: '#ffa500',
+        grill: '#2a2a2a',
+        logo: 'TransAtlantic TA-30',
+        brand: 'MESA'
+      },
       suhr_badger: {
         color: '#1a1a1a',
         accent: '#4a9eff',
@@ -300,6 +308,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       lead: ['presence', 'graphiceq'],
       mesa_mark_v: ['mesa_mark_v_controls'],
       mesa_dual_rectifier: ['mesa_dual_rectifier_controls'],
+      mesa_transatlantic_ta30: ['mesa_transatlantic_ta30_controls'],
       
       // ORANGE - Full Rockerverb Controls
       orange_rockerverb: ['orange_channel', 'channel_volume', 'reverb', 'cabinet_enabled'],
@@ -1872,6 +1881,355 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
               </div>
             </div>
           </div>
+        );
+      
+      // ============================================
+      // MESA TRANSATLANTIC TA-30 - COMPLETE CONTROLS
+      // ============================================
+      case 'mesa_transatlantic_ta30_controls':
+        const ta30CurrentChannel = amp.params?.channel || 2;
+        const ta30Ch1Mode = amp.params?.mode || 'clean';
+        const ta30Ch2Mode = amp.params?.mode || 'hi1';
+        return (
+          <div key="mesa_transatlantic_ta30_controls" className="mesa-ta30-full-controls" style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '4px',
+            padding: '5px 6px',
+            background: 'repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(255,165,0,0.03) 1px, rgba(255,165,0,0.03) 2px), linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%)',
+            borderRadius: '4px',
+            border: '2px solid #ffa500',
+            boxShadow: 'inset 0 1px 0 rgba(255,165,0,0.2), inset 0 2px 4px rgba(0,0,0,0.4)',
+            maxWidth: '850px',
+            alignItems: 'center'
+          }}>
+            {/* LINHA SUPERIOR - KNOBS */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'row',
+              gap: '5px',
+              flexWrap: 'nowrap',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}>
+            {/* CHANNEL KNOBS - INLINE */}
+            <div style={{
+              display: 'flex',
+              gap: '6px',
+              padding: '4px 6px',
+              background: 'rgba(0,0,0,0.3)',
+              borderRadius: '4px',
+              border: '1px solid rgba(255,165,0,0.4)',
+              alignItems: 'center'
+            }}>
+              <div style={{ fontSize: '7px', color: '#ffa500', fontWeight: 'bold', writingMode: 'vertical-rl', transform: 'rotate(180deg)', letterSpacing: '1px' }}>
+                {ta30CurrentChannel === 1 ? `CH1-${ta30Ch1Mode.toUpperCase()}` : `CH2-${ta30Ch2Mode.toUpperCase()}`}
+              </div>
+              {ta30CurrentChannel === 1 && (
+                <>
+                  <Knob label="GAIN" value={amp.params?.ch1_gain || 35} onChange={handleKnobChange('ch1_gain')} size={28} color="#ffa500" />
+                  <Knob label="BASS" value={amp.params?.ch1_bass || 60} onChange={handleKnobChange('ch1_bass')} size={26} color="#e0e0e0" />
+                  <Knob label="TREB" value={amp.params?.ch1_treble || 65} onChange={handleKnobChange('ch1_treble')} size={26} color="#e0e0e0" />
+                  <Knob label="CUT" value={amp.params?.ch1_cut || 50} onChange={handleKnobChange('ch1_cut')} size={26} color="#e0e0e0" />
+                  <Knob label="MSTR" value={amp.params?.ch1_master || 65} onChange={handleKnobChange('ch1_master')} size={28} color="#ffa500" />
+                </>
+              )}
+              {ta30CurrentChannel === 2 && (
+                <>
+                  <Knob label="GAIN" value={amp.params?.ch2_gain || 70} onChange={handleKnobChange('ch2_gain')} size={28} color="#ffa500" />
+                  <Knob label="BASS" value={amp.params?.ch2_bass || 58} onChange={handleKnobChange('ch2_bass')} size={26} color="#e0e0e0" />
+                  <Knob label="MID" value={amp.params?.ch2_middle || 48} onChange={handleKnobChange('ch2_middle')} size={26} color="#e0e0e0" />
+                  <Knob label="TREB" value={amp.params?.ch2_treble || 68} onChange={handleKnobChange('ch2_treble')} size={26} color="#e0e0e0" />
+                  <Knob label="PRES" value={amp.params?.ch2_presence || 62} onChange={handleKnobChange('ch2_presence')} size={26} color="#e0e0e0" />
+                  <Knob label="MSTR" value={amp.params?.ch2_master || 70} onChange={handleKnobChange('ch2_master')} size={28} color="#ffa500" />
+                </>
+              )}
+            </div>
+            
+            {/* GLOBAL CONTROLS */}
+            <div style={{
+              display: 'flex',
+              gap: '6px',
+              padding: '4px 6px',
+              background: 'rgba(0,0,0,0.3)',
+              borderRadius: '4px',
+              border: '1px solid rgba(255,165,0,0.4)'
+            }}>
+              <Knob label="OUTPUT" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={30} color="#ffa500" />
+              <Knob label="REVERB" value={amp.params?.reverb || 0} onChange={handleKnobChange('reverb')} size={24} color="#e0e0e0" />
+            </div>
+            </div>
+            
+            {/* LINHA INFERIOR - CHANNEL + MODE + BACK PANEL */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'row',
+              gap: '5px',
+              flexWrap: 'nowrap',
+              justifyContent: 'center',
+              alignItems: 'flex-start'
+          }}>
+            {/* CHANNEL SELECTOR */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'row',
+              gap: '3px',
+              padding: '4px 6px',
+              background: 'rgba(0,0,0,0.5)',
+              borderRadius: '4px',
+              border: '1px solid rgba(255,165,0,0.5)',
+              alignItems: 'center'
+            }}>
+              <label style={{ fontSize: '7px', color: '#ffa500', fontWeight: 'bold', letterSpacing: '0.5px', marginRight: '3px' }}>CH</label>
+                  <button 
+                    onClick={() => onUpdate(amp.id, 'channel', 1)}
+                    style={{
+                  padding: '3px 8px',
+                  background: ta30CurrentChannel === 1 ? 'linear-gradient(135deg, #ffa500 0%, #ff8c00 100%)' : 'rgba(0,0,0,0.7)',
+                  border: '1px solid ' + (ta30CurrentChannel === 1 ? '#ffa500' : '#555'),
+                  color: ta30CurrentChannel === 1 ? '#000' : '#ffa500',
+                  borderRadius: '2px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                  fontSize: '7px',
+                  position: 'relative'
+                }}
+              >
+                1
+                {ta30CurrentChannel === 1 && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '1px',
+                    right: '1px',
+                    width: '3px',
+                    height: '3px',
+                    borderRadius: '50%',
+                    background: '#00ff00',
+                    boxShadow: '0 0 6px #00ff00, 0 0 12px rgba(0,255,0,0.6)',
+                    animation: 'pulse 1.5s infinite'
+                  }}></div>
+                )}
+              </button>
+                  <button 
+                    onClick={() => onUpdate(amp.id, 'channel', 2)}
+                    style={{
+                  padding: '3px 8px',
+                  background: ta30CurrentChannel === 2 ? 'linear-gradient(135deg, #ffa500 0%, #ff8c00 100%)' : 'rgba(0,0,0,0.7)',
+                  border: '1px solid ' + (ta30CurrentChannel === 2 ? '#ffa500' : '#555'),
+                  color: ta30CurrentChannel === 2 ? '#000' : '#ffa500',
+                  borderRadius: '2px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                  fontSize: '7px',
+                  position: 'relative'
+                }}
+              >
+                2
+                {ta30CurrentChannel === 2 && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '1px',
+                    right: '1px',
+                    width: '3px',
+                    height: '3px',
+                    borderRadius: '50%',
+                    background: '#00ff00',
+                    boxShadow: '0 0 6px #00ff00, 0 0 12px rgba(0,255,0,0.6)',
+                    animation: 'pulse 1.5s infinite'
+                  }}></div>
+                )}
+              </button>
+            </div>
+            
+            {/* MODE SELECTOR */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'row',
+              gap: '3px',
+              padding: '4px 6px',
+              background: 'rgba(0,0,0,0.5)',
+              borderRadius: '4px',
+              border: '1px solid rgba(255,165,0,0.5)',
+              alignItems: 'center'
+            }}>
+              <label style={{ fontSize: '7px', color: '#ffa500', fontWeight: 'bold', letterSpacing: '0.5px', marginRight: '2px' }}>MODE</label>
+              {ta30CurrentChannel === 1 ? (
+                <>
+                  <button 
+                    onClick={() => onUpdate(amp.id, 'mode', 'clean')}
+                    style={{
+                      padding: '3px 6px',
+                      background: ta30Ch1Mode === 'clean' ? 'linear-gradient(135deg, #ffa500 0%, #ff8c00 100%)' : 'rgba(0,0,0,0.7)',
+                      border: '1px solid ' + (ta30Ch1Mode === 'clean' ? '#ffa500' : '#555'),
+                      color: ta30Ch1Mode === 'clean' ? '#000' : '#ffa500',
+                      borderRadius: '2px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '6px'
+                    }}
+                  >
+                    CLN
+                  </button>
+                  <button 
+                    onClick={() => onUpdate(amp.id, 'mode', 'edge')}
+                    style={{
+                      padding: '3px 6px',
+                      background: ta30Ch1Mode === 'edge' ? 'linear-gradient(135deg, #ffa500 0%, #ff8c00 100%)' : 'rgba(0,0,0,0.7)',
+                      border: '1px solid ' + (ta30Ch1Mode === 'edge' ? '#ffa500' : '#555'),
+                      color: ta30Ch1Mode === 'edge' ? '#000' : '#ffa500',
+                      borderRadius: '2px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '6px'
+                    }}
+                  >
+                    EDG
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button 
+                    onClick={() => onUpdate(amp.id, 'mode', 'tweed')}
+                    style={{
+                      padding: '3px 5px',
+                      background: ta30Ch2Mode === 'tweed' ? 'linear-gradient(135deg, #ffa500 0%, #ff8c00 100%)' : 'rgba(0,0,0,0.7)',
+                      border: '1px solid ' + (ta30Ch2Mode === 'tweed' ? '#ffa500' : '#555'),
+                      color: ta30Ch2Mode === 'tweed' ? '#000' : '#ffa500',
+                      borderRadius: '2px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '6px'
+                    }}
+                  >
+                    TWD
+                  </button>
+                  <button 
+                    onClick={() => onUpdate(amp.id, 'mode', 'hi1')}
+                    style={{
+                      padding: '3px 5px',
+                      background: ta30Ch2Mode === 'hi1' ? 'linear-gradient(135deg, #ffa500 0%, #ff8c00 100%)' : 'rgba(0,0,0,0.7)',
+                      border: '1px solid ' + (ta30Ch2Mode === 'hi1' ? '#ffa500' : '#555'),
+                      color: ta30Ch2Mode === 'hi1' ? '#000' : '#ffa500',
+                      borderRadius: '2px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '6px'
+                    }}
+                  >
+                    HI1
+                  </button>
+                  <button 
+                    onClick={() => onUpdate(amp.id, 'mode', 'hi2')}
+                    style={{
+                      padding: '3px 5px',
+                      background: ta30Ch2Mode === 'hi2' ? 'linear-gradient(135deg, #ffa500 0%, #ff8c00 100%)' : 'rgba(0,0,0,0.7)',
+                      border: '1px solid ' + (ta30Ch2Mode === 'hi2' ? '#ffa500' : '#555'),
+                      color: ta30Ch2Mode === 'hi2' ? '#000' : '#ffa500',
+                      borderRadius: '2px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '6px'
+                    }}
+                  >
+                    HI2
+                  </button>
+                </>
+              )}
+            </div>
+            
+            {/* BACK PANEL CONTROLS */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'row',
+              gap: '4px',
+              padding: '4px 6px',
+              background: 'rgba(0,0,0,0.5)',
+              borderRadius: '4px',
+              border: '1px solid rgba(255,165,0,0.4)',
+              alignItems: 'center',
+              flexWrap: 'wrap'
+            }}>
+              <label style={{ fontSize: '6px', color: '#ffa500', fontWeight: 'bold', marginRight: '2px' }}>🔧 BACK</label>
+              
+              {/* VOICE */}
+              <select 
+                value={amp.params?.voice || 'american'}
+                onChange={(e) => onUpdate(amp.id, 'voice', e.target.value)}
+                style={{
+                  padding: '1px 3px',
+                  background: 'rgba(0,0,0,0.7)',
+                  border: '1px solid #ffa500',
+                  color: '#ffa500',
+                  borderRadius: '2px',
+                  fontSize: '7px',
+                  fontWeight: 'bold'
+                }}
+              >
+                <option value="american">AMER</option>
+                <option value="british">BRIT</option>
+              </select>
+              
+              {/* WATTAGE */}
+              <select 
+                value={amp.params?.wattage || 30}
+                onChange={(e) => onUpdate(amp.id, 'wattage', parseInt(e.target.value))}
+                style={{
+                  padding: '1px 3px',
+                  background: 'rgba(0,0,0,0.7)',
+                  border: '1px solid #ffa500',
+                  color: '#ffa500',
+                  borderRadius: '2px',
+                  fontSize: '7px',
+                  fontWeight: 'bold'
+                }}
+              >
+                <option value="5">5W</option>
+                <option value="15">15W</option>
+                <option value="30">30W</option>
+              </select>
+              
+              {/* RECTIFIER */}
+              <select 
+                value={amp.params?.rectifier || 'silicon'}
+                onChange={(e) => onUpdate(amp.id, 'rectifier', e.target.value)}
+                style={{
+                  padding: '1px 3px',
+                  background: 'rgba(0,0,0,0.7)',
+                  border: '1px solid #ffa500',
+                  color: '#ffa500',
+                  borderRadius: '2px',
+                  fontSize: '7px',
+                  fontWeight: 'bold'
+                }}
+              >
+                <option value="silicon">SILI</option>
+                <option value="tube">TUBE</option>
+              </select>
+              
+              {/* GATE TOGGLE */}
+              <div className="toggle-switch" style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                <label style={{ fontSize: '6px', color: '#ffa500', fontWeight: 'bold' }}>GATE</label>
+                <input 
+                  type="checkbox" 
+                  checked={amp.params?.gate || false}
+                  onChange={(e) => onUpdate(amp.id, 'gate', e.target.checked)}
+                  style={{ transform: 'scale(0.7)' }}
+                />
+              </div>
+              
+              {/* CABINET TOGGLE */}
+              <div className="toggle-switch" style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                <label style={{ fontSize: '6px', color: '#ffa500', fontWeight: 'bold' }}>CAB</label>
+                <input 
+                  type="checkbox" 
+                  checked={amp.params?.cabinet_enabled !== false}
+                  onChange={(e) => onUpdate(amp.id, 'cabinet_enabled', e.target.checked)}
+                  style={{ transform: 'scale(0.7)' }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
         );
       
       // ============================================
@@ -4453,6 +4811,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
               <option value="tworock_classic">Two-Rock Classic</option>
               <option value="dumble_ods">Dumble ODS</option>
               <option value="mesa_mark_v">Mesa Mark V</option>
+              <option value="mesa_transatlantic_ta30">Mesa TransAtlantic TA-30</option>
               <option value="suhr_badger">Suhr Badger</option>
               <option value="victory_duchess">Victory Duchess</option>
             </optgroup>
@@ -5051,6 +5410,9 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
               </div>
             ) : amp.ampType === 'mesa_mark_v' ? (
               /* MESA MARK V - Custom layout only (no standard knobs) */
+              <></>
+            ) : amp.ampType === 'mesa_transatlantic_ta30' ? (
+              /* MESA TRANSATLANTIC TA-30 - Custom layout only (no standard knobs) */
               <></>
             ) : amp.ampType === 'marshall_jtm45' ? (
               /* MARSHALL JTM45 - Controls handled in custom section below */

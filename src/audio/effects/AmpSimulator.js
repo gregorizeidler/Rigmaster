@@ -22,6 +22,7 @@ import FriedmanBE100Amp from '../amps/FriedmanBE100Amp';
 import SoldanoSLO100Amp from '../amps/SoldanoSLO100Amp';
 import TwoRockClassicReverbAmp from '../amps/TwoRockClassicReverbAmp';
 import MesaMarkVAmp from '../amps/MesaMarkVAmp';
+import MesaTransAtlanticTA30Amp from '../amps/MesaTransAtlanticTA30Amp';
 import SuhrBadgerAmp from '../amps/SuhrBadgerAmp';
 import VictoryDuchessAmp from '../amps/VictoryDuchessAmp';
 import FenderTwinReverbAmp from '../amps/FenderTwinReverbAmp';
@@ -350,6 +351,7 @@ class AmpSimulator extends BaseEffect {
       'soldano_slo100': SoldanoSLO100Amp,
       'tworock_classic': TwoRockClassicReverbAmp,
       'mesa_mark_v': MesaMarkVAmp,
+      'mesa_transatlantic_ta30': MesaTransAtlanticTA30Amp,
       'suhr_badger': SuhrBadgerAmp,
       'victory_duchess': VictoryDuchessAmp,
       'fender_twin_reverb': FenderTwinReverbAmp,
