@@ -108,6 +108,21 @@ export const AmpModels = {
     description: 'Versatile high-gain lead'
   },
   
+  'triple-crown': {
+    name: 'Triple Crown',
+    type: 'lead',
+    color: '#000000',
+    grill: '#beige',
+    preGain: 11,
+    saturationAmount: 7,
+    bass: 5,
+    mid: 7,
+    treble: 7,
+    presence: 3000,
+    master: 0.6,
+    description: 'British-voiced high-gain with EL34 power'
+  },
+  
   // VOX STYLE
   'ac30': {
     name: 'AC30',
