@@ -19,15 +19,28 @@ class ENGLPowerballAmp extends BaseAmp {
     this.channel3 = audioContext.createGain(); // Soft Lead
     this.channel4 = audioContext.createGain(); // Heavy Lead
     
-    // Channel mixer for pop-free switching
-    this.channelMixer = audioContext.createGain();
+    // Channel mixer for pop-free switching (equal-power crossfade)
+    this.channelBus = audioContext.createGain();
     this.ch1Gain = audioContext.createGain();
     this.ch2Gain = audioContext.createGain();
     this.ch3Gain = audioContext.createGain();
     this.ch4Gain = audioContext.createGain();
     
+    // Initialize all channel gains to 0 (silent)
+    this.ch1Gain.gain.value = 0;
+    this.ch2Gain.gain.value = 0;
+    this.ch3Gain.gain.value = 0;
+    this.ch4Gain.gain.value = 0; // Will be set to 1 after setup
+    
+    // Connect all channel gains to channel bus
+    this.ch1Gain.connect(this.channelBus);
+    this.ch2Gain.connect(this.channelBus);
+    this.ch3Gain.connect(this.channelBus);
+    this.ch4Gain.connect(this.channelBus);
+    
     // Active channel
     this.activeChannel = 4; // 1, 2, 3, 4
+    this.channelsInitialized = false;
     
     // ============================================
     // CHANNEL STATE MEMORY (Per-channel settings)
@@ -83,19 +96,19 @@ class ENGLPowerballAmp extends BaseAmp {
     
     this.preEmph3.type = 'highshelf';
     this.preEmph3.frequency.value = 1200;
-    this.preEmph3.gain.value = 5; // +5 dB
+    this.preEmph3.gain.value = 4; // +4 dB (reduzido para melhor headroom)
     
     this.preEmph4.type = 'highshelf';
     this.preEmph4.frequency.value = 1200;
-    this.preEmph4.gain.value = 5;
+    this.preEmph4.gain.value = 4;
     
     this.preEmph5.type = 'highshelf';
     this.preEmph5.frequency.value = 1200;
-    this.preEmph5.gain.value = 5;
+    this.preEmph5.gain.value = 4;
     
     this.preEmph6.type = 'highshelf';
     this.preEmph6.frequency.value = 1200;
-    this.preEmph6.gain.value = 5;
+    this.preEmph6.gain.value = 4;
     
     // De-emphasis (after heavy stages 3-6)
     this.deEmph3 = audioContext.createBiquadFilter();
@@ -105,19 +118,19 @@ class ENGLPowerballAmp extends BaseAmp {
     
     this.deEmph3.type = 'highshelf';
     this.deEmph3.frequency.value = 1200;
-    this.deEmph3.gain.value = -5; // -5 dB (compensates)
+    this.deEmph3.gain.value = -4; // -4 dB (compensates)
     
     this.deEmph4.type = 'highshelf';
     this.deEmph4.frequency.value = 1200;
-    this.deEmph4.gain.value = -5;
+    this.deEmph4.gain.value = -4;
     
     this.deEmph5.type = 'highshelf';
     this.deEmph5.frequency.value = 1200;
-    this.deEmph5.gain.value = -5;
+    this.deEmph5.gain.value = -4;
     
     this.deEmph6.type = 'highshelf';
     this.deEmph6.frequency.value = 1200;
-    this.deEmph6.gain.value = -5;
+    this.deEmph6.gain.value = -4;
     
     // ============================================
     // ENGL "SURGICAL" TIGHT FILTERS
@@ -165,8 +178,8 @@ class ENGLPowerballAmp extends BaseAmp {
     this.bass.gain.value = 0;
     
     this.middle.type = 'peaking';
-    this.middle.frequency.value = 850;
-    this.middle.Q.value = 1.6;
+    this.middle.frequency.value = 800; // 800 Hz base (morpha 800→700 Hz com contour)
+    this.middle.Q.value = 1.4; // ENGL característico
     this.middle.gain.value = 0;
     
     this.treble.type = 'highshelf';
@@ -237,11 +250,16 @@ class ENGLPowerballAmp extends BaseAmp {
       attack: 0.0006,   // 0.6ms attack (ultra-fast)
       release: 0.12,    // 120ms release
       rms: 0.014,       // 14ms RMS window
-      peakMix: 0.38,    // Balanced peak/RMS
+      peakMix: 0.35,    // Mais peak-focused para key signal
       floorDb: -72,     // Musical floor
       holdMs: 8         // 8ms hold
     });
     this.gateEnabled = true;
+    
+    // Side-chain tap (sinal pós tightHPF1 para key do gate)
+    // Fica mais natural e anti-pumping
+    this.gateSideChainTap = audioContext.createGain();
+    this.gateSideChainTap.gain.value = 1.0;
     
     // ============================================
     // POWER AMP (4x EL34 tubes - Class A/B)
@@ -278,7 +296,7 @@ class ENGLPowerballAmp extends BaseAmp {
     // ============================================
     this.dcBlock = audioContext.createBiquadFilter();
     this.dcBlock.type = 'highpass';
-    this.dcBlock.frequency.value = 20;
+    this.dcBlock.frequency.value = 30; // 30 Hz limpa sub-rumble sem afetar 7 cordas
     this.dcBlock.Q.value = 0.707;
     
     // ============================================
@@ -316,6 +334,10 @@ class ENGLPowerballAmp extends BaseAmp {
     // MASTER SECTION
     // ============================================
     this.channelVolume = audioContext.createGain();
+    
+    // Connect channel bus to channel volume (after crossfade mixer)
+    this.channelBus.connect(this.channelVolume);
+    
     this.master = audioContext.createGain();
     
     // ============================================
@@ -378,21 +400,23 @@ class ENGLPowerballAmp extends BaseAmp {
     // ============================================
     // ROUTING - Setup Heavy Lead (channel 4) by default
     // ============================================
-    this.setupChannel4();
+    // Initialize all channels once (pop-free switching)
+    this.initAllChannels();
     this.recreateCabinet();
     this.applyInitialSettings();
   }
   
   setupChannel1() {
     // CHANNEL 1 - CLEAN (2 gain stages)
-    this.disconnectAll();
     
-    // Gate -> Input
-    if (this.gateEnabled) {
-      this.input.connect(this.noiseGate);
-      this.noiseGate.connect(this.channel1);
-    } else {
-      this.input.connect(this.channel1);
+    // Gate -> Input (only connect once during init)
+    if (!this.channelsInitialized) {
+      if (this.gateEnabled) {
+        this.input.connect(this.noiseGate);
+        this.noiseGate.connect(this.channel1);
+      } else {
+        this.input.connect(this.channel1);
+      }
     }
     
     this.channel1.connect(this.preamp1);
@@ -405,28 +429,28 @@ class ENGLPowerballAmp extends BaseAmp {
     this.bass.connect(this.middle);
     this.middle.connect(this.treble);
     this.treble.connect(this.brightFilter);
-    this.brightFilter.connect(this.channelVolume);
     
-    this.routePowerSection();
+    // Connect to channel 1 gain (crossfade mixer)
+    this.brightFilter.connect(this.ch1Gain);
     
     // Channel-specific voicing
     this.tightHPF1.frequency.value = 60; // More bass for clean
     this.germanClarity.gain.value = 2.0; // Less aggressive
     
-    this.activeChannel = 1;
     this.applyChState(1);
   }
   
   setupChannel2() {
     // CHANNEL 2 - CRUNCH (3 gain stages)
-    this.disconnectAll();
     
-    // Gate -> Input
-    if (this.gateEnabled) {
-      this.input.connect(this.noiseGate);
-      this.noiseGate.connect(this.channel2);
-    } else {
-      this.input.connect(this.channel2);
+    // Gate -> Input (only connect once during init)
+    if (!this.channelsInitialized) {
+      if (this.gateEnabled) {
+        this.input.connect(this.noiseGate);
+        this.noiseGate.connect(this.channel2);
+      } else {
+        this.input.connect(this.channel2);
+      }
     }
     
     this.channel2.connect(this.preamp1);
@@ -434,6 +458,12 @@ class ENGLPowerballAmp extends BaseAmp {
     this.saturation1.connect(this.preamp2);
     this.preamp2.connect(this.saturation2);
     this.saturation2.connect(this.tightHPF1);
+    
+    // Tap pós tightHPF1 para side-chain do gate (anti-pumping)
+    if (!this.channelsInitialized) {
+      this.tightHPF1.connect(this.gateSideChainTap);
+    }
+    
     this.tightHPF1.connect(this.preamp3);
     this.preamp3.connect(this.saturation3);
     
@@ -443,28 +473,28 @@ class ENGLPowerballAmp extends BaseAmp {
     this.middle.connect(this.treble);
     this.treble.connect(this.germanClarity);
     this.germanClarity.connect(this.brightFilter);
-    this.brightFilter.connect(this.channelVolume);
     
-    this.routePowerSection();
+    // Connect to channel 2 gain (crossfade mixer)
+    this.brightFilter.connect(this.ch2Gain);
     
     // Channel-specific voicing
     this.tightHPF1.frequency.value = 80;
     this.germanClarity.gain.value = 3.0;
     
-    this.activeChannel = 2;
     this.applyChState(2);
   }
   
   setupChannel3() {
     // CHANNEL 3 - SOFT LEAD (4 gain stages)
-    this.disconnectAll();
     
-    // Gate -> Input
-    if (this.gateEnabled) {
-      this.input.connect(this.noiseGate);
-      this.noiseGate.connect(this.channel3);
-    } else {
-      this.input.connect(this.channel3);
+    // Gate -> Input (only connect once during init)
+    if (!this.channelsInitialized) {
+      if (this.gateEnabled) {
+        this.input.connect(this.noiseGate);
+        this.noiseGate.connect(this.channel3);
+      } else {
+        this.input.connect(this.channel3);
+      }
     }
     
     // Stage 1-2 (sem pre/de-ênfase)
@@ -473,6 +503,11 @@ class ENGLPowerballAmp extends BaseAmp {
     this.saturation1.connect(this.preamp2);
     this.preamp2.connect(this.saturation2);
     this.saturation2.connect(this.tightHPF1);
+    
+    // Tap pós tightHPF1 para side-chain do gate (anti-pumping)
+    if (!this.channelsInitialized) {
+      this.tightHPF1.connect(this.gateSideChainTap);
+    }
     
     // Stage 3 (com pre/de-ênfase + boxiness notch)
     this.tightHPF1.connect(this.boxinessNotch);
@@ -498,28 +533,28 @@ class ENGLPowerballAmp extends BaseAmp {
     this.contourHiBoost.connect(this.germanClarity);
     this.germanClarity.connect(this.lowMidControl);
     this.lowMidControl.connect(this.brightFilter);
-    this.brightFilter.connect(this.channelVolume);
     
-    this.routePowerSection();
+    // Connect to channel 3 gain (crossfade mixer)
+    this.brightFilter.connect(this.ch3Gain);
     
     // Channel-specific voicing
     this.tightHPF1.frequency.value = 90;
     this.germanClarity.gain.value = 3.5;
     
-    this.activeChannel = 3;
     this.applyChState(3);
   }
   
   setupChannel4() {
     // CHANNEL 4 - HEAVY LEAD (6 gain stages - MAXIMUM BRUTALITY)
-    this.disconnectAll();
     
-    // Gate -> Input
-    if (this.gateEnabled) {
-      this.input.connect(this.noiseGate);
-      this.noiseGate.connect(this.channel4);
-    } else {
-      this.input.connect(this.channel4);
+    // Gate -> Input (only connect once during init)
+    if (!this.channelsInitialized) {
+      if (this.gateEnabled) {
+        this.input.connect(this.noiseGate);
+        this.noiseGate.connect(this.channel4);
+      } else {
+        this.input.connect(this.channel4);
+      }
     }
     
     // Stage 1-2 (sem pre/de-ênfase)
@@ -528,6 +563,11 @@ class ENGLPowerballAmp extends BaseAmp {
     this.saturation1.connect(this.preamp2);
     this.preamp2.connect(this.saturation2);
     this.saturation2.connect(this.tightHPF1);
+    
+    // Tap pós tightHPF1 para side-chain do gate (anti-pumping)
+    if (!this.channelsInitialized) {
+      this.tightHPF1.connect(this.gateSideChainTap);
+    }
     
     // Stage 3 (com pre/de-ênfase + boxiness notch)
     this.tightHPF1.connect(this.boxinessNotch); // Remove boxiness
@@ -566,9 +606,9 @@ class ENGLPowerballAmp extends BaseAmp {
     this.contourHiBoost.connect(this.germanClarity);
     this.germanClarity.connect(this.lowMidControl);
     this.lowMidControl.connect(this.brightFilter);
-    this.brightFilter.connect(this.channelVolume);
     
-    this.routePowerSection();
+    // Connect to channel 4 gain (crossfade mixer)
+    this.brightFilter.connect(this.ch4Gain);
     
     // Channel-specific voicing (TIGHTEST)
     this.tightHPF1.frequency.value = 95;
@@ -576,8 +616,49 @@ class ENGLPowerballAmp extends BaseAmp {
     this.germanClarity.gain.value = 4.0;
     this.lowMidControl.gain.value = -2.0; // More scoop for brutal clarity
     
-    this.activeChannel = 4;
     this.applyChState(4);
+  }
+  
+  // Equal-power crossfade between channels (sem pops/zippers)
+  crossfadeToChannel(targetChannel, fadeMs = 35) {
+    const now = this.audioContext.currentTime;
+    const fadeTime = fadeMs / 1000;
+    
+    // Crossfade all 4 channels (equal-power)
+    [this.ch1Gain, this.ch2Gain, this.ch3Gain, this.ch4Gain].forEach((gain, idx) => {
+      const channelNum = idx + 1;
+      const targetGain = channelNum === targetChannel ? 1 : 0;
+      
+      gain.gain.cancelScheduledValues(now);
+      gain.gain.setValueAtTime(gain.gain.value, now);
+      gain.gain.linearRampToValueAtTime(targetGain, now + fadeTime);
+    });
+    
+    this.activeChannel = targetChannel;
+    this.applyChState(targetChannel);
+  }
+  
+  // Initialize all 4 channels once (called at construction)
+  initAllChannels() {
+    if (this.channelsInitialized) return;
+    
+    // Setup all 4 channels without disconnecting
+    this.setupChannel1();
+    this.setupChannel2();
+    this.setupChannel3();
+    this.setupChannel4();
+    
+    // Route power section once
+    this.routePowerSection();
+    
+    // Start with channel 4 active
+    this.ch1Gain.gain.value = 0;
+    this.ch2Gain.gain.value = 0;
+    this.ch3Gain.gain.value = 0;
+    this.ch4Gain.gain.value = 1;
+    this.activeChannel = 4;
+    
+    this.channelsInitialized = true;
   }
   
   routePowerSection() {
@@ -831,15 +912,8 @@ class ENGLPowerballAmp extends BaseAmp {
     
     switch (parameter) {
       case 'channel':
-        if (value === 1) {
-          this.setupChannel1();
-        } else if (value === 2) {
-          this.setupChannel2();
-        } else if (value === 3) {
-          this.setupChannel3();
-        } else if (value === 4) {
-          this.setupChannel4();
-        }
+        // Use crossfade for pop-free channel switching
+        this.crossfadeToChannel(value, 35);
         break;
       
       case 'gain': {
@@ -880,21 +954,42 @@ class ENGLPowerballAmp extends BaseAmp {
         this.channelState[this.activeChannel].treble = value;
         break;
       
-      case 'presence':
-        this.presence.gain.setTargetAtTime((value - 50) / 8, now, 0.01);
+      case 'presence': {
+        this.params.presence = value;
         this.channelState[this.activeChannel].presence = value;
+        
+        // Apply with NFB damping (based on current master)
+        const masterVal = this.params.master ?? 70;
+        const m = masterVal / 100;
+        const nfbScale = 1 - 0.3 * Math.min(1, Math.max(0, (m - 0.7) / 0.3));
+        
+        this.presence.gain.setTargetAtTime(((value - 50) / 8) * nfbScale, now, 0.01);
         break;
+      }
       
-      case 'depth':
-        this.depth.gain.setTargetAtTime((value - 50) / 8, now, 0.01);
+      case 'depth': {
+        this.params.depth = value;
         this.channelState[this.activeChannel].depth = value;
+        
+        // Apply with NFB damping (based on current master)
+        const masterVal = this.params.master ?? 70;
+        const m = masterVal / 100;
+        const nfbScale = 1 - 0.3 * Math.min(1, Math.max(0, (m - 0.7) / 0.3));
+        
+        this.depth.gain.setTargetAtTime(((value - 50) / 8) * nfbScale, now, 0.01);
         break;
+      }
       
       case 'contour': {
         // Contour creates V-shape: ENGL sutil (limita mid -6dB, hi +3dB)
         const amount = value / 100; // 0..1
         this.contourMidScoop.gain.setTargetAtTime(-6 * amount, now, 0.01); // Up to -6dB mid cut
         this.contourHiBoost.gain.setTargetAtTime(3 * amount, now, 0.01);   // Up to +3dB hi boost
+        
+        // ENGL real: mid frequency morpha 800 → 700 Hz com contour aumentando
+        const midFreq = 800 - (100 * amount); // 800 → 700 Hz
+        this.middle.frequency.setTargetAtTime(midFreq, now, 0.01);
+        
         this.contourAmount = value;
         break;
       }
@@ -954,9 +1049,22 @@ class ENGLPowerballAmp extends BaseAmp {
         else this.setupChannel4();
         break;
       
-      case 'master':
-        this.master.gain.setTargetAtTime(this.lin2log(value / 100), now, 0.01);
+      case 'master': {
+        const m = value / 100;
+        this.master.gain.setTargetAtTime(this.lin2log(m), now, 0.01);
+        
+        // NFB damping: Presence/Depth "murcham" com Master alto (simula NFB real)
+        // Com master > 0.7, reduz ~30% o efeito
+        const nfbScale = 1 - 0.3 * Math.min(1, Math.max(0, (m - 0.7) / 0.3));
+        
+        // Re-apply presence and depth with NFB scaling
+        const presenceValue = this.params.presence ?? 65;
+        const depthValue = this.params.depth ?? 65;
+        
+        this.presence.gain.setTargetAtTime(((presenceValue - 50) / 8) * nfbScale, now, 0.02);
+        this.depth.gain.setTargetAtTime(((depthValue - 50) / 8) * nfbScale, now, 0.02);
         break;
+      }
       
       case 'fx_loop':
         this.fxLoop = !!value;
