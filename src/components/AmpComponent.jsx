@@ -37,7 +37,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       'marshall_jcm800': '4x12_greenback',
       'orange_rockerverb': '2x12_closed',
       'orange_tiny_terror': '1x12_closed',
-      'hiwatt_dr103': '4x12_fane',
+      'hiwatt_dr103': '4x12_greenback',
       'marshall_jtm45': '4x12_greenback',
       'badcat_hotcat': '2x12_closed',
       
@@ -49,16 +49,17 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       'diezel_vh4': '4x12_v30',
       'engl_powerball': '4x12_vintage',
       'friedman_be100': '4x12_v30',
-      'soldano_slo100': '4x12_v30',
+      'soldano_slo100': '4x12_vintage',
       
       // BOUTIQUE/MODERN
-      'tworock_classic': '1x12_open',
+      'tworock_classic': '2x12_open',
       'dumble_ods': '1x12_open',
-      'mesa_mark_v': '4x12_v30',
+      'mesa_mark_v': '4x12_vintage',
       'mesa_triple_crown': '4x12_greenback',
       'mesa_transatlantic_ta30': '2x12_blue',
       'suhr_badger': '2x12_greenback',
-      'victory_duchess': '2x12_closed'
+      'victory_duchess': '2x12_closed',
+      'carvin_v3m': '4x12_v30'
     };
     
     return cabinetMap[ampType] || '2x12_closed';
@@ -282,6 +283,14 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
         logo: 'TransAtlantic TA-30',
         brand: 'MESA'
       },
+      carvin_v3m: {
+        color: '#b8b8b8', // Alumínio escovado prateado
+        accent: '#4a90e2', // Azul para LEDs e detalhes
+        grill: '#2a2a2a',
+        logo: 'CARVIN V3M',
+        brand: '',
+        textColor: '#ffffff' // Letras brancas
+      },
       suhr_badger: {
         color: '#1a1a1a',
         accent: '#4a9eff',
@@ -338,6 +347,9 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       mesa_dual_rectifier: ['mesa_dual_rectifier_controls'],
       mesa_triple_crown: ['mesa_triple_crown_controls'],
       mesa_transatlantic_ta30: ['mesa_transatlantic_ta30_controls'],
+      
+      // CARVIN - Modern High-Gain
+      carvin_v3m: ['carvin_v3m_controls'],
       
       // ORANGE - Full Rockerverb Controls
       orange_rockerverb: ['orange_channel', 'channel_volume', 'reverb', 'cabinet_enabled'],
@@ -2278,6 +2290,278 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                 {/* CABINET TOGGLE */}
               <div className="toggle-switch" style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
                 <label style={{ fontSize: '6px', color: '#d0d0d0', fontWeight: 'bold' }}>CAB</label>
+                    <input 
+                      type="checkbox" 
+                      checked={amp.params?.cabinet_enabled !== false}
+                      onChange={(e) => onUpdate(amp.id, 'cabinet_enabled', e.target.checked)}
+                  style={{ transform: 'scale(0.7)' }}
+                    />
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      
+      // ============================================
+      // CARVIN V3M - COMPLETE CONTROLS
+      // ============================================
+      case 'carvin_v3m_controls':
+        const v3mCurrentChannel = amp.params?.channel || 3;
+        return (
+          <div key="carvin_v3m_controls" className="carvin-v3m-full-controls" style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '4px',
+            padding: '5px 6px',
+            background: 'repeating-linear-gradient(90deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 1px, rgba(200,200,200,0.1) 1px, rgba(200,200,200,0.1) 2px), linear-gradient(135deg, #c8c8c8 0%, #a8a8a8 50%, #c8c8c8 100%)', // Alumínio escovado
+            borderRadius: '4px',
+            border: '2px solid #909090',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3), inset 0 2px 6px rgba(0,0,0,0.2), 0 2px 4px rgba(0,0,0,0.3)',
+            maxWidth: '850px',
+            alignItems: 'center'
+          }}>
+            {/* LOGOTIPO CARVIN V3M */}
+            <div style={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'flex-start',
+              padding: '2px 8px',
+              marginBottom: '-2px'
+            }}>
+              <div style={{
+                fontSize: '10px',
+                fontWeight: 'bold',
+                color: '#ffffff',
+                textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+                letterSpacing: '2px',
+                fontFamily: 'Arial, sans-serif'
+              }}>
+                CARVIN V3M
+              </div>
+            </div>
+            
+            {/* LINHA SUPERIOR - KNOBS */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'row',
+              gap: '5px',
+              flexWrap: 'nowrap',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}>
+            {/* CHANNEL KNOBS - INLINE */}
+            <div style={{
+              display: 'flex',
+              gap: '6px',
+              padding: '4px 6px',
+              background: 'rgba(0,0,0,0.3)',
+              borderRadius: '4px',
+              border: '1px solid rgba(144,144,144,0.5)',
+              alignItems: 'center'
+            }}>
+              <div style={{ fontSize: '7px', color: '#ffffff', fontWeight: 'bold', writingMode: 'vertical-rl', transform: 'rotate(180deg)', letterSpacing: '1px' }}>
+                {v3mCurrentChannel === 1 ? 'CH1-CLEAN' : v3mCurrentChannel === 2 ? 'CH2-CRUNCH' : 'CH3-LEAD'}
+              </div>
+              {v3mCurrentChannel === 1 && (
+                <>
+                  <Knob label="GAIN" value={amp.params?.ch1_gain || 30} onChange={handleKnobChange('ch1_gain')} size={28} color="#e0e0e0" />
+                  <Knob label="BASS" value={amp.params?.ch1_bass || 52} onChange={handleKnobChange('ch1_bass')} size={26} color="#e0e0e0" />
+                  <Knob label="MID" value={amp.params?.ch1_middle || 48} onChange={handleKnobChange('ch1_middle')} size={26} color="#e0e0e0" />
+                  <Knob label="TREB" value={amp.params?.ch1_treble || 58} onChange={handleKnobChange('ch1_treble')} size={26} color="#e0e0e0" />
+                  <Knob label="MSTR" value={amp.params?.ch1_master || 68} onChange={handleKnobChange('ch1_master')} size={28} color="#c0c0c0" />
+                </>
+              )}
+              {v3mCurrentChannel === 2 && (
+                <>
+                  <Knob label="GAIN" value={amp.params?.ch2_gain || 62} onChange={handleKnobChange('ch2_gain')} size={28} color="#e0e0e0" />
+                  <Knob label="BASS" value={amp.params?.ch2_bass || 60} onChange={handleKnobChange('ch2_bass')} size={26} color="#e0e0e0" />
+                  <Knob label="MID" value={amp.params?.ch2_middle || 52} onChange={handleKnobChange('ch2_middle')} size={26} color="#e0e0e0" />
+                  <Knob label="TREB" value={amp.params?.ch2_treble || 66} onChange={handleKnobChange('ch2_treble')} size={26} color="#e0e0e0" />
+                  <Knob label="MSTR" value={amp.params?.ch2_master || 58} onChange={handleKnobChange('ch2_master')} size={28} color="#c0c0c0" />
+                </>
+              )}
+              {v3mCurrentChannel === 3 && (
+                <>
+                  <Knob label="GAIN" value={amp.params?.ch3_gain || 72} onChange={handleKnobChange('ch3_gain')} size={28} color="#e0e0e0" />
+                  <Knob label="BASS" value={amp.params?.ch3_bass || 62} onChange={handleKnobChange('ch3_bass')} size={26} color="#e0e0e0" />
+                  <Knob label="MID" value={amp.params?.ch3_middle || 50} onChange={handleKnobChange('ch3_middle')} size={26} color="#e0e0e0" />
+                  <Knob label="TREB" value={amp.params?.ch3_treble || 70} onChange={handleKnobChange('ch3_treble')} size={26} color="#e0e0e0" />
+                  <Knob label="PRES" value={amp.params?.ch3_presence || 60} onChange={handleKnobChange('ch3_presence')} size={26} color="#e0e0e0" />
+                  <Knob label="MSTR" value={amp.params?.ch3_master || 68} onChange={handleKnobChange('ch3_master')} size={28} color="#c0c0c0" />
+                </>
+              )}
+            </div>
+            
+            {/* GLOBAL CONTROLS */}
+            <div style={{
+              display: 'flex',
+              gap: '6px',
+              padding: '4px 6px',
+              background: 'rgba(0,0,0,0.3)',
+              borderRadius: '4px',
+              border: '1px solid rgba(144,144,144,0.5)'
+            }}>
+              <Knob label="OUTPUT" value={amp.params?.output_master || 68} onChange={handleKnobChange('output_master')} size={30} color="#c0c0c0" />
+              <Knob label="DEPTH" value={amp.params?.depth || 52} onChange={handleKnobChange('depth')} size={24} color="#e0e0e0" />
+            </div>
+            </div>
+            
+            {/* LINHA INFERIOR - CHANNEL SELECTOR + BACK PANEL */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'row',
+              gap: '5px',
+              flexWrap: 'nowrap',
+              justifyContent: 'center',
+              alignItems: 'flex-start'
+          }}>
+            {/* CHANNEL SELECTOR */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'row',
+              gap: '3px',
+              padding: '4px 6px',
+              background: 'rgba(0,0,0,0.5)',
+              borderRadius: '4px',
+              border: '1px solid rgba(144,144,144,0.6)',
+              alignItems: 'center'
+            }}>
+              <label style={{ fontSize: '7px', color: '#ffffff', fontWeight: 'bold', letterSpacing: '0.5px', marginRight: '3px' }}>CH</label>
+                  <button 
+                    onClick={() => onUpdate(amp.id, 'channel', 1)}
+                    style={{
+                  padding: '3px 8px',
+                  background: v3mCurrentChannel === 1 ? 'linear-gradient(135deg, #c0c0c0 0%, #a0a0a0 100%)' : 'rgba(0,0,0,0.7)',
+                  border: '1px solid ' + (v3mCurrentChannel === 1 ? '#d0d0d0' : '#555'),
+                  color: v3mCurrentChannel === 1 ? '#000' : '#c0c0c0',
+                  borderRadius: '2px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                  fontSize: '7px',
+                  position: 'relative'
+                }}
+              >
+                1
+                {v3mCurrentChannel === 1 && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '1px',
+                    right: '1px',
+                    width: '3px',
+                    height: '3px',
+                    borderRadius: '50%',
+                    background: '#4a90e2',
+                    boxShadow: '0 0 6px #4a90e2, 0 0 12px rgba(74,144,226,0.6)',
+                    animation: 'pulse 1.5s infinite'
+                  }}></div>
+                )}
+              </button>
+                  <button 
+                    onClick={() => onUpdate(amp.id, 'channel', 2)}
+                    style={{
+                  padding: '3px 8px',
+                  background: v3mCurrentChannel === 2 ? 'linear-gradient(135deg, #c0c0c0 0%, #a0a0a0 100%)' : 'rgba(0,0,0,0.7)',
+                  border: '1px solid ' + (v3mCurrentChannel === 2 ? '#d0d0d0' : '#555'),
+                  color: v3mCurrentChannel === 2 ? '#000' : '#c0c0c0',
+                  borderRadius: '2px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                  fontSize: '7px',
+                  position: 'relative'
+                }}
+              >
+                2
+                {v3mCurrentChannel === 2 && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '1px',
+                    right: '1px',
+                    width: '3px',
+                    height: '3px',
+                    borderRadius: '50%',
+                    background: '#4a90e2',
+                    boxShadow: '0 0 6px #4a90e2, 0 0 12px rgba(74,144,226,0.6)',
+                    animation: 'pulse 1.5s infinite'
+                  }}></div>
+                )}
+              </button>
+                  <button 
+                    onClick={() => onUpdate(amp.id, 'channel', 3)}
+                    style={{
+                  padding: '3px 8px',
+                  background: v3mCurrentChannel === 3 ? 'linear-gradient(135deg, #c0c0c0 0%, #a0a0a0 100%)' : 'rgba(0,0,0,0.7)',
+                  border: '1px solid ' + (v3mCurrentChannel === 3 ? '#d0d0d0' : '#555'),
+                  color: v3mCurrentChannel === 3 ? '#000' : '#c0c0c0',
+                  borderRadius: '2px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                  fontSize: '7px',
+                  position: 'relative'
+                }}
+              >
+                3
+                {v3mCurrentChannel === 3 && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '1px',
+                    right: '1px',
+                    width: '3px',
+                    height: '3px',
+                    borderRadius: '50%',
+                    background: '#4a90e2',
+                    boxShadow: '0 0 6px #4a90e2, 0 0 12px rgba(74,144,226,0.6)',
+                    animation: 'pulse 1.5s infinite'
+                  }}></div>
+                )}
+              </button>
+            </div>
+            
+            {/* BACK PANEL CONTROLS */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'row',
+              gap: '4px',
+              padding: '4px 6px',
+              background: 'rgba(0,0,0,0.5)',
+              borderRadius: '4px',
+              border: '1px solid rgba(144,144,144,0.5)',
+              alignItems: 'center',
+              flexWrap: 'wrap'
+            }}>
+              <label style={{ fontSize: '6px', color: '#ffffff', fontWeight: 'bold', marginRight: '2px' }}>🔧 BACK</label>
+              
+                {/* VOICING */}
+                  <select 
+                    value={amp.params?.voicing || 'modern'}
+                    onChange={(e) => onUpdate(amp.id, 'voicing', e.target.value)}
+                    style={{
+                  padding: '1px 3px',
+                      background: 'rgba(0,0,0,0.7)',
+                  border: '1px solid #909090',
+                  color: '#ffffff',
+                  borderRadius: '2px',
+                  fontSize: '7px',
+                  fontWeight: 'bold'
+                    }}
+                  >
+                    <option value="modern">MODERN</option>
+                    <option value="vintage">VINTAGE</option>
+                  </select>
+                
+                {/* BOOST */}
+              <div className="toggle-switch" style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                <label style={{ fontSize: '6px', color: '#ffffff', fontWeight: 'bold' }}>BOOST</label>
+                    <input 
+                      type="checkbox" 
+                      checked={amp.params?.boost || false}
+                      onChange={(e) => onUpdate(amp.id, 'boost', e.target.checked)}
+                  style={{ transform: 'scale(0.7)' }}
+                    />
+                </div>
+                
+                {/* CABINET TOGGLE */}
+              <div className="toggle-switch" style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                <label style={{ fontSize: '6px', color: '#ffffff', fontWeight: 'bold' }}>CAB</label>
                     <input 
                       type="checkbox" 
                       checked={amp.params?.cabinet_enabled !== false}
@@ -5222,6 +5506,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
               <option value="mesa_mark_v">Mesa Mark V</option>
               <option value="mesa_triple_crown">Mesa Triple Crown</option>
               <option value="mesa_transatlantic_ta30">Mesa TransAtlantic TA-30</option>
+              <option value="carvin_v3m">Carvin V3M</option>
               <option value="suhr_badger">Suhr Badger</option>
               <option value="victory_duchess">Victory Duchess</option>
             </optgroup>
@@ -5849,6 +6134,9 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
             ) : amp.ampType === 'mesa_transatlantic_ta30' ? (
               /* MESA TRANSATLANTIC TA-30 - Custom layout only (no standard knobs) */
               <></>
+            ) : amp.ampType === 'carvin_v3m' ? (
+              /* CARVIN V3M - Custom layout only (no standard knobs) */
+              <></>
             ) : amp.ampType === 'marshall_jtm45' ? (
               /* MARSHALL JTM45 - Controls handled in custom section below */
               <div style={{ display: 'none' }}></div>
@@ -5937,14 +6225,22 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
               {(() => {
                 const originalCab = getOriginalCabinet(amp.ampType);
                 const cabinets = [
+                  { value: '1x10_open', label: '1x10" Open' },
+                  { value: '1x10_tweed', label: '1x10" Tweed' },
                   { value: '1x12_open', label: '1x12" Open' },
                   { value: '1x12_closed', label: '1x12" Closed' },
                   { value: '2x12_open', label: '2x12" Open' },
                   { value: '2x12_closed', label: '2x12" Closed' },
+                  { value: '2x12_greenback', label: '2x12" Greenback' },
+                  { value: '2x12_blue', label: '2x12" Blue' },
+                  { value: '3x10_open', label: '3x10" Open' },
+                  { value: '4x10_bass', label: '4x10" Bass' },
+                  { value: '4x10_bassman', label: '4x10" Bassman' },
                   { value: '4x12_vintage', label: '4x12" V30' },
-                  { value: '4x12_greenback', label: '4x12" GB' },
-                  { value: '1x10_tweed', label: '1x10" Tweed' },
-                  { value: '4x10_bassman', label: '4x10" Bass' }
+                  { value: '4x12_v30', label: '4x12" V30 Alt' },
+                  { value: '4x12_greenback', label: '4x12" Greenback' },
+                  { value: '4x12_fane', label: '4x12" Fane' },
+                  { value: '4x12_sheffield', label: '4x12" Sheffield' }
                 ];
                 
                 return cabinets.map(cab => (

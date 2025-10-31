@@ -31,6 +31,7 @@ import FenderTwinReverbAmp from '../amps/FenderTwinReverbAmp';
 import ENGLPowerballAmp from '../amps/ENGLPowerballAmp';
 import FenderProJuniorAmp from '../amps/FenderProJuniorAmp';
 import FenderVibroKingAmp from '../amps/FenderVibroKingAmp';
+import CarvinV3MAmp from '../amps/CarvinV3MAmp';
 
 class AmpSimulator extends BaseEffect {
   constructor(audioContext, id, ampType = 'clean') {
@@ -362,7 +363,8 @@ class AmpSimulator extends BaseEffect {
       'fender_twin_reverb': FenderTwinReverbAmp,
       'engl_powerball': ENGLPowerballAmp,
       'fender_pro_junior': FenderProJuniorAmp,
-      'fender_vibro_king': FenderVibroKingAmp
+      'fender_vibro_king': FenderVibroKingAmp,
+      'carvin_v3m': CarvinV3MAmp
     };
     
     const AmpClass = ampClasses[ampType];

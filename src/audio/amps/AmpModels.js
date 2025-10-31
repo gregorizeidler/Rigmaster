@@ -232,6 +232,22 @@ export const AmpModels = {
     presence: 2800,
     master: 0.45,
     description: 'Ultra-tight modern metal'
+  },
+  
+  // CARVIN STYLE
+  'carvin-v3m': {
+    name: 'Carvin V3M',
+    type: 'lead',
+    color: '#2c2c2c',
+    grill: '#silver',
+    preGain: 10,
+    saturationAmount: 7,
+    bass: 5,
+    mid: 6,
+    treble: 7,
+    presence: 3000,
+    master: 0.55,
+    description: '50W EL34 modern high-gain with 3-channel versatility'
   }
 };
 
