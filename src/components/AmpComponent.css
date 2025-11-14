@@ -888,6 +888,261 @@
   color: #c0c0c0;
 }
 
+/* ========================================
+   MARSHALL PLEXI SUPER LEAD 100JH
+   ======================================== */
+.amp-head.amp-marshall_plexi_super_lead {
+  background: 
+    repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(0,0,0,0.2) 1px, rgba(0,0,0,0.2) 2px),
+    linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+  border: 3px solid #8b6f47;
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.9),
+    inset 0 2px 0 rgba(139, 111, 71, 0.2),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.8);
+  position: relative;
+}
+
+.amp-head.amp-marshall_plexi_super_lead::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.1) 3px, rgba(0,0,0,0.1) 6px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.amp-head.amp-marshall_plexi_super_lead > * {
+  position: relative;
+  z-index: 1;
+}
+
+.amp-head.amp-marshall_plexi_super_lead .amp-head-top {
+  background: linear-gradient(180deg, #c9a961 0%, #b8996f 50%, #a88858 100%);
+  border-bottom: 3px solid #7a6847;
+  box-shadow: 
+    inset 0 2px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+}
+
+.amp-head.amp-marshall_plexi_super_lead .brand-text {
+  color: #ffffff;
+  font-weight: 900;
+  letter-spacing: 5px;
+  font-family: serif;
+  text-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.8),
+    0 0 8px rgba(0, 0, 0, 0.5);
+}
+
+.amp-head.amp-marshall_plexi_super_lead .model-text {
+  color: #000000;
+  text-shadow: 
+    0 1px 2px rgba(255, 255, 255, 0.4),
+    0 0 5px rgba(201, 169, 97, 0.6);
+  font-size: 18px;
+  font-weight: 900;
+  font-family: serif;
+}
+
+.amp-head.amp-marshall_plexi_super_lead .amp-control-panel {
+  background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+  border-top: 1px solid #1a1a1a;
+}
+
+.amp-head.amp-marshall_plexi_super_lead:hover {
+  box-shadow:
+    0 15px 50px rgba(201, 169, 97, 0.5),
+    inset 0 2px 0 rgba(139, 111, 71, 0.3),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.8);
+  border-color: #c9a961;
+}
+
+.amp-head.amp-marshall_plexi_super_lead .amp-type-selector {
+  background: linear-gradient(180deg, #c9a961, #b8996f);
+  border-color: #7a6847;
+  color: #000000;
+  font-weight: 800;
+  font-family: serif;
+}
+
+.amp-head.amp-marshall_plexi_super_lead .amp-type-selector:hover {
+  background: linear-gradient(180deg, #d9b971, #c9a961);
+}
+
+/* Marshall Plexi Cabinet - Black tolex with basketweave */
+.amp-head.amp-marshall_plexi_super_lead ~ .amp-cabinet {
+  background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+  border: 3px solid #8b6f47;
+}
+
+.amp-head.amp-marshall_plexi_super_lead ~ .amp-cabinet .cabinet-config {
+  background: linear-gradient(180deg, #1a1a10 0%, #0f0a05 100%);
+  border-bottom: 2px solid #7a6847;
+}
+
+.amp-head.amp-marshall_plexi_super_lead ~ .amp-cabinet .config-row label {
+  color: #c9a961;
+  font-family: serif;
+}
+
+.amp-head.amp-marshall_plexi_super_lead ~ .amp-cabinet .cabinet-speaker-grill {
+  background: 
+    repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(139, 111, 71, 0.15) 4px, rgba(139, 111, 71, 0.15) 8px),
+    radial-gradient(circle at 30% 30%, #3a2a1a 0%, #2a1a10 50%, #1a0a05 100%);
+}
+
+.amp-head.amp-marshall_plexi_super_lead ~ .amp-cabinet .speaker-cone {
+  background: linear-gradient(135deg, #8b6f47, #654321);
+  border: 2px solid #7a6847;
+  box-shadow: 
+    0 2px 5px rgba(0, 0, 0, 0.9),
+    0 0 12px rgba(201, 169, 97, 0.2),
+    inset 0 0 15px rgba(139, 111, 71, 0.2);
+}
+
+/* ========================================
+   VOX NIGHT TRAIN NT50H-G2
+   ======================================== */
+.amp-head.amp-vox_nighttrain_nt50 {
+  background: 
+    repeating-radial-gradient(circle at 50% 50%, transparent 0px, transparent 2px, rgba(140, 140, 140, 0.15) 2px, rgba(140, 140, 140, 0.15) 4px),
+    linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 50%, #0a0a0a 100%);
+  border: 2px solid #8c8c8c;
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.8),
+    inset 0 1px 0 rgba(196, 30, 58, 0.3),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.8),
+    0 0 20px rgba(140, 140, 140, 0.2);
+  position: relative;
+}
+
+.amp-head.amp-vox_nighttrain_nt50::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    repeating-linear-gradient(90deg, transparent, transparent 10px, rgba(140, 140, 140, 0.1) 10px, rgba(140, 140, 140, 0.1) 11px),
+    repeating-linear-gradient(0deg, transparent, transparent 10px, rgba(140, 140, 140, 0.1) 10px, rgba(140, 140, 140, 0.1) 11px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.5;
+}
+
+.amp-head.amp-vox_nighttrain_nt50::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(196, 30, 58, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.amp-head.amp-vox_nighttrain_nt50 > * {
+  position: relative;
+  z-index: 1;
+}
+
+.amp-head.amp-vox_nighttrain_nt50 .amp-head-top {
+  background: linear-gradient(180deg, #000000 0%, #0a0a0a 50%, #000000 100%);
+  border-bottom: 2px solid #c41e3a;
+  box-shadow: 
+    inset 0 1px 0 rgba(140, 140, 140, 0.3),
+    inset 0 -1px 0 rgba(196, 30, 58, 0.5);
+}
+
+.amp-head.amp-vox_nighttrain_nt50 .brand-text {
+  color: #ffffff;
+  font-weight: 900;
+  letter-spacing: 4px;
+  text-shadow: 
+    0 0 10px rgba(255, 255, 255, 0.6),
+    0 2px 4px rgba(0, 0, 0, 0.9);
+}
+
+.amp-head.amp-vox_nighttrain_nt50 .model-text {
+  color: #c41e3a;
+  text-shadow: 
+    0 0 15px rgba(196, 30, 58, 0.8),
+    0 0 25px rgba(196, 30, 58, 0.4),
+    0 2px 4px rgba(0, 0, 0, 0.9);
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.amp-head.amp-vox_nighttrain_nt50 .amp-control-panel {
+  background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+  border-top: 1px solid #1a1a1a;
+}
+
+.amp-head.amp-vox_nighttrain_nt50:hover {
+  box-shadow:
+    0 15px 50px rgba(196, 30, 58, 0.4),
+    inset 0 1px 0 rgba(140, 140, 140, 0.4),
+    inset 0 -1px 0 rgba(196, 30, 58, 0.6),
+    0 0 30px rgba(140, 140, 140, 0.3);
+  border-color: #c41e3a;
+}
+
+.amp-head.amp-vox_nighttrain_nt50 .amp-type-selector {
+  background: linear-gradient(180deg, #1a1a1a, #000000);
+  border-color: #8c8c8c;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.amp-head.amp-vox_nighttrain_nt50 .amp-type-selector:hover {
+  background: linear-gradient(180deg, #2a2a2a, #1a1a1a);
+  border-color: #c41e3a;
+}
+
+/* Vox Night Train Cabinet - Chrome metal with dark grill */
+.amp-head.amp-vox_nighttrain_nt50 ~ .amp-cabinet {
+  background: 
+    repeating-radial-gradient(circle at 50% 50%, transparent 0px, transparent 2px, rgba(140, 140, 140, 0.1) 2px, rgba(140, 140, 140, 0.1) 4px),
+    linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
+  border: 2px solid #8c8c8c;
+  box-shadow: 
+    0 0 20px rgba(140, 140, 140, 0.2);
+}
+
+.amp-head.amp-vox_nighttrain_nt50 ~ .amp-cabinet .cabinet-config {
+  background: linear-gradient(180deg, #000000 0%, #0a0a0a 100%);
+  border-bottom: 2px solid #c41e3a;
+}
+
+.amp-head.amp-vox_nighttrain_nt50 ~ .amp-cabinet .config-row label {
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.amp-head.amp-vox_nighttrain_nt50 ~ .amp-cabinet .cabinet-speaker-grill {
+  background: 
+    repeating-linear-gradient(90deg, transparent, transparent 8px, rgba(140, 140, 140, 0.1) 8px, rgba(140, 140, 140, 0.1) 9px),
+    repeating-linear-gradient(0deg, transparent, transparent 8px, rgba(140, 140, 140, 0.1) 8px, rgba(140, 140, 140, 0.1) 9px),
+    radial-gradient(circle at 30% 30%, #3a3a3a 0%, #2a2a2a 50%, #1a1a1a 100%);
+}
+
+.amp-head.amp-vox_nighttrain_nt50 ~ .amp-cabinet .speaker-cone {
+  background: linear-gradient(135deg, #5a5a5a, #2a2a2a);
+  border: 2px solid #8c8c8c;
+  box-shadow: 
+    0 2px 5px rgba(0, 0, 0, 0.9),
+    0 0 12px rgba(196, 30, 58, 0.3),
+    inset 0 0 15px rgba(140, 140, 140, 0.1);
+}
+
 /* Knobs - Inherit amp type accent colors */
 .amp-head.amp-clean .knob-container {
   --knob-accent: #e0e0e0;
@@ -895,6 +1150,14 @@
 
 .amp-head.amp-crunch .knob-container {
   --knob-accent: #d4af37;
+}
+
+.amp-head.amp-marshall_plexi_super_lead .knob-container {
+  --knob-accent: #c9a961;
+}
+
+.amp-head.amp-vox_nighttrain_nt50 .knob-container {
+  --knob-accent: #c41e3a;
 }
 
 .amp-head.amp-lead .knob-container {

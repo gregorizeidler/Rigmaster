@@ -26,6 +26,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       // CLEAN/VINTAGE
       'fender_twin_reverb': '2x12_open',
       'vox_ac30': '2x12_closed',
+      'vox_nighttrain_nt50': '2x12_greenback',
       'fender_deluxe': '1x12_open',
       'fender_vibro_king': '3x10_open',
       'fender_bassman': '4x10_bass',
@@ -35,6 +36,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       
       // CRUNCH/BRITISH
       'marshall_jcm800': '4x12_greenback',
+      'marshall_plexi_super_lead': '4x12_greenback',
       'orange_rockerverb': '2x12_closed',
       'orange_tiny_terror': '1x12_closed',
       'hiwatt_dr103': '4x12_greenback',
@@ -96,13 +98,23 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
         logo: 'High Gain',
         brand: 'ENGL'
       },
-      // CLEAN/VINTAGE (5)
+      // CLEAN/VINTAGE (6)
       vox_ac30: {
         color: '#2b1810',
         accent: '#d4af37',
         grill: '#8b7355',
         logo: 'AC30 Top Boost',
         brand: 'VOX'
+      },
+      vox_nighttrain_nt50: {
+        color: '#8c8c8c',       // Chrome metal perforated (cage structure)
+        accent: '#000000',      // Black panel
+        grill: '#5a5a5a',       // Metal grill/cage
+        logo: 'NIGHT TRAIN',
+        brand: 'VOX',
+        textColor: '#ffffff',   // White VOX text
+        logoColor: '#c41e3a',   // Metallic red for "NIGHT TRAIN"
+        ledColor: '#ff8c00'     // Amber/orange LED
       },
       fender_deluxe: {
         color: '#000000',
@@ -147,13 +159,23 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
         logo: 'DC-30',
         brand: 'MATCHLESS'
       },
-      // CRUNCH/BRITISH (5)
+      // CRUNCH/BRITISH (6)
       marshall_jcm800: {
         color: '#000000',
         accent: '#d4af37',
         grill: '#3a3a3a',
         logo: 'JCM800',
         brand: 'MARSHALL'
+      },
+      marshall_plexi_super_lead: {
+        color: '#000000',      // Black tolex chassis (real amp)
+        accent: '#b8996f',     // Brushed brass gold (painel frontal)
+        grill: '#8b6f47',      // Basketweave brown/tan
+        logo: 'SUPER LEAD 100',
+        brand: 'MARSHALL',
+        textColor: '#ffffff',  // White MARSHALL text (serifed)
+        panelColor: '#b8996f', // Brushed brass gold panel
+        panelText: '#000000'   // Black text on gold panel
       },
       orange_rockerverb: {
         color: '#ff8c00',
@@ -5472,6 +5494,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
             <optgroup label="🎵 CLEAN/VINTAGE">
               <option value="fender_twin_reverb">Fender Twin Reverb</option>
               <option value="vox_ac30">Vox AC30</option>
+              <option value="vox_nighttrain_nt50">Vox Night Train NT50H-G2</option>
               <option value="fender_deluxe">Fender Deluxe Reverb</option>
               <option value="fender_vibro_king">Fender Vibro-King</option>
               <option value="fender_bassman">Fender Bassman</option>
@@ -5482,6 +5505,7 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
             
             <optgroup label="🔥 CRUNCH/BRITISH">
               <option value="marshall_jcm800">Marshall JCM800</option>
+              <option value="marshall_plexi_super_lead">Marshall Plexi Super Lead 100</option>
               <option value="orange_rockerverb">Orange Rockerverb</option>
               <option value="orange_tiny_terror">Orange Tiny Terror</option>
               <option value="hiwatt_dr103">Hiwatt DR103</option>
@@ -5573,6 +5597,108 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                     <Knob label="MASTER" value={amp.params?.master || 70} onChange={handleKnobChange('master')} size={28} />
                   </>
                 )}
+              </div>
+            ) : amp.ampType === 'vox_nighttrain_nt50' ? (
+              /* VOX NIGHT TRAIN NT50H-G2 - Modern boutique 2-channel */
+              <div className="vox-nighttrain-knobs-layout" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center', background: 'linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%)', padding: '12px', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.6), inset 0 1px 0 rgba(140,140,140,0.3)' }}>
+                {/* Channel Selector */}
+                <div className="knob-group" style={{ display: 'flex', gap: '8px', flexDirection: 'column', alignItems: 'center', padding: '8px', background: 'rgba(140,140,140,0.15)', borderRadius: '6px', border: '1px solid rgba(196,30,58,0.4)', backdropFilter: 'blur(5px)' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#ffffff', textTransform: 'uppercase', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>Channel</span>
+                  <select
+                    value={amp.params?.channel || 0}
+                    onChange={(e) => onUpdate(amp.id, 'channel', parseInt(e.target.value))}
+                    style={{ 
+                      padding: '6px 12px', 
+                      borderRadius: '4px', 
+                      background: '#000000', 
+                      color: '#ffffff',
+                      border: '1px solid #8c8c8c',
+                      fontSize: '12px',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    <option value={0}>CLEAN</option>
+                    <option value={1}>OVERDRIVE</option>
+                  </select>
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ff8c00', boxShadow: '0 0 10px #ff8c00', marginTop: '4px' }} title="Power LED (Amber)"></div>
+                </div>
+                
+                {/* Clean Channel Controls */}
+                {amp.params?.channel === 0 && (
+                  <div className="knob-group" style={{ display: 'flex', gap: '8px', flexDirection: 'column', alignItems: 'center', padding: '8px', background: 'rgba(140,140,140,0.15)', borderRadius: '6px', border: '1px solid rgba(196,30,58,0.4)', backdropFilter: 'blur(5px)' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#ffffff', textTransform: 'uppercase', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>Clean Channel</span>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <Knob label="Volume" value={amp.params?.clean_volume || 50} onChange={handleKnobChange('clean_volume')} size={36} color="#2a2a2a" />
+                      <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', fontSize: '9px', color: '#ffffff', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={amp.params?.clean_bright || false}
+                          onChange={(e) => onUpdate(amp.id, 'clean_bright', e.target.checked)}
+                          style={{ accentColor: '#c41e3a' }}
+                        />
+                        <span>BRIGHT</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Overdrive Channel Controls */}
+                {amp.params?.channel === 1 && (
+                  <div className="knob-group" style={{ display: 'flex', gap: '8px', flexDirection: 'column', alignItems: 'center', padding: '8px', background: 'rgba(140,140,140,0.15)', borderRadius: '6px', border: '1px solid rgba(196,30,58,0.4)', backdropFilter: 'blur(5px)' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#c41e3a', textTransform: 'uppercase', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>Overdrive Channel</span>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <Knob label="Gain" value={amp.params?.od_gain || 60} onChange={handleKnobChange('od_gain')} size={36} color="#2a2a2a" />
+                      <Knob label="Volume" value={amp.params?.od_volume || 50} onChange={handleKnobChange('od_volume')} size={36} color="#2a2a2a" />
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '9px', color: '#ffffff', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
+                          <input 
+                            type="radio" 
+                            name="voice"
+                            checked={amp.params?.od_voice === 0}
+                            onChange={() => onUpdate(amp.id, 'od_voice', 0)}
+                            style={{ accentColor: '#c41e3a' }}
+                          />
+                          <span>BRIGHT</span>
+                        </label>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '9px', color: '#ffffff', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
+                          <input 
+                            type="radio" 
+                            name="voice"
+                            checked={amp.params?.od_voice === 1}
+                            onChange={() => onUpdate(amp.id, 'od_voice', 1)}
+                            style={{ accentColor: '#c41e3a' }}
+                          />
+                          <span>THICK</span>
+                        </label>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '9px', color: '#ffffff', marginTop: '2px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={amp.params?.od_boost || false}
+                            onChange={(e) => onUpdate(amp.id, 'od_boost', e.target.checked)}
+                            style={{ accentColor: '#c41e3a' }}
+                          />
+                          <span>BOOST</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Shared Tone Stack */}
+                <div className="knob-group" style={{ display: 'flex', gap: '8px', flexDirection: 'column', alignItems: 'center', padding: '8px', background: 'rgba(140,140,140,0.15)', borderRadius: '6px', border: '1px solid rgba(196,30,58,0.4)', backdropFilter: 'blur(5px)' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#ffffff', textTransform: 'uppercase', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>Tone Stack</span>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <Knob label="Bass" value={amp.params?.bass || 50} onChange={handleKnobChange('bass')} size={36} color="#2a2a2a" />
+                    <Knob label="Middle" value={amp.params?.middle || 50} onChange={handleKnobChange('middle')} size={36} color="#2a2a2a" />
+                    <Knob label="Treble" value={amp.params?.treble || 60} onChange={handleKnobChange('treble')} size={36} color="#2a2a2a" />
+                  </div>
+                </div>
+                
+                {/* Master Volume */}
+                <div className="knob-group" style={{ display: 'flex', gap: '8px', flexDirection: 'column', alignItems: 'center', padding: '8px', background: 'rgba(140,140,140,0.15)', borderRadius: '6px', border: '1px solid rgba(196,30,58,0.4)', backdropFilter: 'blur(5px)' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#ffffff', textTransform: 'uppercase', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>Master</span>
+                  <Knob label="Master" value={amp.params?.master_volume || 70} onChange={handleKnobChange('master_volume')} size={38} color="#2a2a2a" />
+                </div>
               </div>
             ) : amp.ampType === 'roland_jc120' ? (
               /* ROLAND JC-120 - Authentic Jazz Chorus layout */
@@ -5815,6 +5941,83 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                     <Knob label="Treble" value={amp.params?.treble || 70} onChange={handleKnobChange('treble')} size={36} />
                     <Knob label="Presence" value={amp.params?.presence || 60} onChange={handleKnobChange('presence')} size={36} />
                     <Knob label="Master" value={amp.params?.master_volume || 50} onChange={handleKnobChange('master_volume')} size={36} />
+                  </div>
+                </div>
+              </div>
+            ) : amp.ampType === 'marshall_plexi_super_lead' ? (
+              /* MARSHALL PLEXI SUPER LEAD 100JH - Legendary vintage layout */
+              <div className="marshall-plexi-knobs-layout" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center', background: 'linear-gradient(180deg, #b8996f 0%, #a88858 100%)', padding: '12px', borderRadius: '8px', boxShadow: '0 4px 8px rgba(0,0,0,0.4)' }}>
+                {/* Input Selection */}
+                <div className="knob-group" style={{ display: 'flex', gap: '8px', flexDirection: 'column', alignItems: 'center', padding: '8px', background: 'rgba(0,0,0,0.1)', borderRadius: '6px', border: '1px solid rgba(0,0,0,0.3)' }}>
+                  <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#000000', textTransform: 'uppercase', fontFamily: 'serif' }}>Input Selection</span>
+                  <select
+                    value={amp.params?.input || 0}
+                    onChange={(e) => onUpdate(amp.id, 'input', parseInt(e.target.value))}
+                    style={{ 
+                      padding: '4px 8px', 
+                      borderRadius: '4px', 
+                      background: '#d4af37', 
+                      color: '#000000',
+                      border: '2px solid #000000',
+                      fontSize: '11px',
+                      fontWeight: 'bold',
+                      fontFamily: 'serif'
+                    }}
+                  >
+                    <option value={0}>CH1 HIGH</option>
+                    <option value={1}>CH1 LOW</option>
+                    <option value={2}>CH2 HIGH</option>
+                    <option value={3}>CH2 LOW</option>
+                  </select>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: '#000000', marginTop: '4px', fontFamily: 'serif' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={amp.params?.jumpered !== false}
+                      onChange={(e) => onUpdate(amp.id, 'jumpered', e.target.checked)}
+                      style={{ accentColor: '#000000' }}
+                    />
+                    JUMPERED
+                  </label>
+                </div>
+                
+                {/* Channel Volumes */}
+                <div className="knob-group" style={{ display: 'flex', gap: '8px', flexDirection: 'column', alignItems: 'center', padding: '8px', background: 'rgba(0,0,0,0.1)', borderRadius: '6px', border: '1px solid rgba(0,0,0,0.3)' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#000000', textTransform: 'uppercase', fontFamily: 'serif' }}>Volumes</span>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <Knob label="CH1" value={amp.params?.ch1_volume || 60} onChange={handleKnobChange('ch1_volume')} size={36} color="#d4af37" />
+                    <Knob label="CH2" value={amp.params?.ch2_volume || 60} onChange={handleKnobChange('ch2_volume')} size={36} color="#d4af37" />
+                  </div>
+                </div>
+                
+                {/* Tone Stack */}
+                <div className="knob-group" style={{ display: 'flex', gap: '8px', flexDirection: 'column', alignItems: 'center', padding: '8px', background: 'rgba(0,0,0,0.1)', borderRadius: '6px', border: '1px solid rgba(0,0,0,0.3)' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#000000', textTransform: 'uppercase', fontFamily: 'serif' }}>Tone Stack</span>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <Knob label="Bass" value={amp.params?.bass || 55} onChange={handleKnobChange('bass')} size={36} color="#d4af37" />
+                    <Knob label="Middle" value={amp.params?.middle || 50} onChange={handleKnobChange('middle')} size={36} color="#d4af37" />
+                    <Knob label="Treble" value={amp.params?.treble || 65} onChange={handleKnobChange('treble')} size={36} color="#d4af37" />
+                    <Knob label="Presence" value={amp.params?.presence || 60} onChange={handleKnobChange('presence')} size={36} color="#d4af37" />
+                  </div>
+                </div>
+                
+                {/* Power & Master (optional) */}
+                <div className="knob-group" style={{ display: 'flex', gap: '8px', flexDirection: 'column', alignItems: 'center', padding: '8px', background: 'rgba(0,0,0,0.1)', borderRadius: '6px', border: '1px solid rgba(0,0,0,0.3)' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#000000', textTransform: 'uppercase', fontFamily: 'serif' }}>Power</span>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <Knob label="Variac" value={amp.params?.variac || 100} onChange={handleKnobChange('variac')} size={32} color="#d4af37" />
+                    {amp.params?.has_master && (
+                      <Knob label="Master" value={amp.params?.master_volume || 70} onChange={handleKnobChange('master_volume')} size={32} color="#d4af37" />
+                    )}
+                    <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', fontSize: '9px', color: '#000000', fontFamily: 'serif' }}>
+                      <input 
+                        type="checkbox" 
+                        checked={amp.params?.has_master || false}
+                        onChange={(e) => onUpdate(amp.id, 'has_master', e.target.checked)}
+                        style={{ accentColor: '#000000' }}
+                      />
+                      <span>MASTER</span>
+                    </label>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ff0000', boxShadow: '0 0 8px #ff0000', marginLeft: '4px' }} title="Power LED"></div>
                   </div>
                 </div>
               </div>

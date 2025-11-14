@@ -62,6 +62,21 @@ export const AmpModels = {
     description: 'British rock crunch'
   },
   
+  'plexi-super-lead-100': {
+    name: 'Plexi Super Lead 100',
+    type: 'crunch',
+    color: '#d4af37',
+    grill: '#basketweave',
+    preGain: 6,
+    saturationAmount: 3,
+    bass: 5,
+    mid: 5,
+    treble: 6,
+    presence: 4500,
+    master: 0.7,
+    description: 'THE legendary Marshall - Hendrix, Page, Van Halen tone'
+  },
+  
   'jcm800': {
     name: 'JCM 800',
     type: 'lead',
@@ -137,6 +152,21 @@ export const AmpModels = {
     presence: 3800,
     master: 0.75,
     description: 'Classic British chime'
+  },
+  
+  'nighttrain-nt50': {
+    name: 'Night Train NT50H-G2',
+    type: 'crunch',
+    color: '#000000',
+    grill: '#8b0000',
+    preGain: 6,
+    saturationAmount: 4,
+    bass: 5,
+    mid: 6,
+    treble: 6,
+    presence: 3600,
+    master: 0.7,
+    description: 'Modern British boutique with Vox DNA - 2 channels, 50W'
   },
   
   // ORANGE STYLE

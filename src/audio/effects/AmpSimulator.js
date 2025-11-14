@@ -1,11 +1,13 @@
 import BaseEffect from './BaseEffect';
 import CabinetSimulator from '../amps/CabinetSimulator';
 
-// Import ALL individual amp models (27 professional amps)
+// Import ALL individual amp models (29 professional amps)
 import Peavey5150Amp from '../amps/Peavey5150Amp';
 import VoxAC30Amp from '../amps/VoxAC30Amp';
+import VoxNightTrainNT50Amp from '../amps/VoxNightTrainNT50Amp';
 import FenderDeluxeReverbAmp from '../amps/FenderDeluxeReverbAmp';
 import MarshallJCM800Amp from '../amps/MarshallJCM800Amp';
+import MarshallPlexiSuperLead100Amp from '../amps/MarshallPlexiSuperLead100Amp';
 import MesaDualRectifierAmp from '../amps/MesaDualRectifierAmp';
 import DumbleODSAmp from '../amps/DumbleODSAmp';
 import FenderBassmanAmp from '../amps/FenderBassmanAmp';
@@ -332,13 +334,15 @@ class AmpSimulator extends BaseEffect {
   }
 
   initializeDedicatedAmp(ampType) {
-    // Map ALL amp types to their dedicated classes (27 professional amps)
+    // Map ALL amp types to their dedicated classes (29 professional amps)
     const ampClasses = {
       // Professional amps only
       'peavey_5150': Peavey5150Amp,
       'vox_ac30': VoxAC30Amp,
+      'vox_nighttrain_nt50': VoxNightTrainNT50Amp,
       'fender_deluxe': FenderDeluxeReverbAmp,
       'marshall_jcm800': MarshallJCM800Amp,
+      'marshall_plexi_super_lead': MarshallPlexiSuperLead100Amp,
       'mesa_dual_rectifier': MesaDualRectifierAmp,
       'dumble_ods': DumbleODSAmp,
       'fender_bassman': FenderBassmanAmp,
