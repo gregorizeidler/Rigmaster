@@ -1136,3 +1136,60 @@ kbd {
   transform: scale(1.05);
 }
 
+.utility-btn-active {
+  background: rgba(255, 107, 53, 0.2) !important;
+  border-color: #ff6b35 !important;
+  color: #ff6b35 !important;
+  box-shadow: 0 0 8px rgba(255, 107, 53, 0.3);
+}
+
+.utility-btn-disabled {
+  opacity: 0.35;
+  cursor: not-allowed !important;
+  pointer-events: none;
+}
+
+.utility-btn-disabled:hover {
+  transform: none;
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 107, 53, 0.2);
+}
+
+/* CPU meter color states */
+.meter-fill-warning {
+  background: linear-gradient(90deg, #ff9800, #ffc107) !important;
+}
+
+.meter-fill-danger {
+  background: linear-gradient(90deg, #f44336, #ff5722) !important;
+  animation: meter-pulse 1s ease-in-out infinite;
+}
+
+@keyframes meter-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Tap tempo active animation */
+.tap-tempo:active {
+  transform: scale(0.92);
+  background: linear-gradient(135deg, #ff8555, #ffa070);
+}
+
+@keyframes midi-learn-glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(255, 107, 53, 0.3); }
+  50% { box-shadow: 0 0 15px rgba(255, 107, 53, 0.8); }
+}
+
+.midi-learn-pulse {
+  animation: midi-learn-glow 1s ease-in-out infinite;
+}
+
+/* Control value display */
+.control-value {
+  float: right;
+  color: #ff6b35;
+  font-weight: 600;
+  font-size: 10px;
+}
+

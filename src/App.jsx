@@ -124,8 +124,30 @@ function App() {
   const [backendConnected, setBackendConnected] = useState(false);
   const [showPresetBrowser, setShowPresetBrowser] = useState(false);
   const [presetManager] = useState(() => new PresetManager());
+  
+  // Master Volume & Input Gain
+  const [masterVolume, setMasterVolumeState] = useState(80);
+  const [inputGain, setInputGainState] = useState(50);
+  
+  // BPM / Tap Tempo
+  const [bpm, setBpmState] = useState(120);
+  
+  // CPU Meter
+  const [cpuUsage, setCpuUsage] = useState(0);
+  
+  // MIDI
+  const [midiEnabled, setMidiEnabled] = useState(false);
+  const [midiInputs, setMidiInputs] = useState([]);
+  const [midiLearnActive, setMidiLearnActive] = useState(false);
+  const [midiSupported, setMidiSupported] = useState(false);
+  
+  // Undo/Redo
+  const [undoStack, setUndoStack] = useState([]);
+  const [redoStack, setRedoStack] = useState([]);
+  
   const audioEngineRef = useRef(null);
   const nextIdRef = useRef(1);
+  const cpuIntervalRef = useRef(null);
 
   useEffect(() => {
     audioEngineRef.current = new AudioEngine();
@@ -139,11 +161,185 @@ function App() {
     });
     
     return () => {
+      if (cpuIntervalRef.current) {
+        clearInterval(cpuIntervalRef.current);
+      }
       if (audioEngineRef.current) {
         audioEngineRef.current.stop();
       }
     };
   }, []);
+
+  // CPU meter polling
+  useEffect(() => {
+    if (isAudioActive && audioEngineRef.current) {
+      cpuIntervalRef.current = setInterval(() => {
+        if (audioEngineRef.current) {
+          setCpuUsage(audioEngineRef.current.getCpuUsage());
+        }
+      }, 500);
+    } else {
+      if (cpuIntervalRef.current) {
+        clearInterval(cpuIntervalRef.current);
+        cpuIntervalRef.current = null;
+      }
+      setCpuUsage(0);
+    }
+    return () => {
+      if (cpuIntervalRef.current) {
+        clearInterval(cpuIntervalRef.current);
+      }
+    };
+  }, [isAudioActive]);
+
+  // ============================================
+  // UNDO / REDO SYSTEM
+  // ============================================
+  const pushUndoState = (currentEffects) => {
+    const snapshot = currentEffects.map(e => ({
+      type: e.type,
+      params: { ...e.params },
+      bypassed: e.bypassed,
+      ampType: e.ampType
+    }));
+    setUndoStack(prev => [...prev.slice(-30), snapshot]); // keep last 30 states
+    setRedoStack([]); // clear redo on new action
+  };
+
+  const restoreEffectsFromSnapshot = (snapshot) => {
+    if (!audioEngineRef.current?.audioContext) return;
+    
+    // Remove all current effects
+    effects.forEach(e => {
+      try { audioEngineRef.current.removeEffect(e.id); } catch (err) {}
+    });
+    
+    // Recreate from snapshot
+    const newEffects = [];
+    snapshot.forEach(data => {
+      const newEffect = addEffectToEngine(data.type, data);
+      if (newEffect) {
+        if (data.params) {
+          Object.entries(data.params).forEach(([param, value]) => {
+            try { newEffect.instance.updateParameter(param, value); } catch (err) {}
+          });
+        }
+        if (data.bypassed && newEffect.instance.toggleBypass) {
+          newEffect.instance.toggleBypass();
+        }
+        newEffects.push(newEffect);
+      }
+    });
+    
+    setEffects(newEffects);
+  };
+
+  const undo = () => {
+    if (undoStack.length === 0) return;
+    
+    // Save current state to redo
+    const currentSnapshot = effects.map(e => ({
+      type: e.type,
+      params: { ...e.params },
+      bypassed: e.bypassed,
+      ampType: e.ampType
+    }));
+    setRedoStack(prev => [...prev, currentSnapshot]);
+    
+    // Pop last undo state
+    const newUndoStack = [...undoStack];
+    const prevState = newUndoStack.pop();
+    setUndoStack(newUndoStack);
+    
+    restoreEffectsFromSnapshot(prevState);
+  };
+
+  const redo = () => {
+    if (redoStack.length === 0) return;
+    
+    // Save current state to undo
+    const currentSnapshot = effects.map(e => ({
+      type: e.type,
+      params: { ...e.params },
+      bypassed: e.bypassed,
+      ampType: e.ampType
+    }));
+    setUndoStack(prev => [...prev, currentSnapshot]);
+    
+    // Pop last redo state
+    const newRedoStack = [...redoStack];
+    const nextState = newRedoStack.pop();
+    setRedoStack(newRedoStack);
+    
+    restoreEffectsFromSnapshot(nextState);
+  };
+
+  // ============================================
+  // MASTER VOLUME & INPUT GAIN HANDLERS
+  // ============================================
+  const handleMasterVolumeChange = (value) => {
+    const v = Number(value);
+    setMasterVolumeState(v);
+    if (audioEngineRef.current) {
+      audioEngineRef.current.setMasterVolume(v);
+    }
+  };
+
+  const handleInputGainChange = (value) => {
+    const v = Number(value);
+    setInputGainState(v);
+    if (audioEngineRef.current) {
+      audioEngineRef.current.setInputGain(v);
+    }
+  };
+
+  // ============================================
+  // BPM / TAP TEMPO HANDLERS
+  // ============================================
+  const handleBpmChange = (value) => {
+    const v = Math.max(20, Math.min(300, Number(value)));
+    setBpmState(v);
+    if (audioEngineRef.current) {
+      audioEngineRef.current.setBPM(v);
+    }
+  };
+
+  const handleTapTempo = () => {
+    if (audioEngineRef.current) {
+      const newBpm = audioEngineRef.current.tapTempo();
+      setBpmState(newBpm);
+    }
+  };
+
+  // ============================================
+  // MIDI HANDLER
+  // ============================================
+  const handleMidiToggle = async () => {
+    if (!midiEnabled && audioEngineRef.current) {
+      const result = await audioEngineRef.current.initMIDI();
+      setMidiSupported(result.supported);
+      if (result.supported) {
+        setMidiInputs(result.inputs);
+        setMidiEnabled(true);
+        
+        // Set up MIDI CC callback for UI updates
+        audioEngineRef.current.onMidiCC((mapping, value) => {
+          if (mapping.effectId === '__master__') {
+            setMasterVolumeState(Math.round(value));
+          } else if (mapping.effectId === '__input__') {
+            setInputGainState(Math.round(value));
+          } else if (mapping.effectId === '__bpm__') {
+            setBpmState(Math.round(value));
+          }
+        });
+      } else {
+        alert('Web MIDI API not supported in this browser. Try Chrome or Edge.');
+      }
+    } else {
+      setMidiEnabled(false);
+      setMidiLearnActive(false);
+    }
+  };
 
   // Keyboard shortcuts
   useKeyboardShortcuts({
@@ -170,6 +366,9 @@ function App() {
     'ctrl+s': () => saveCurrentPreset(),
     'ctrl+o': () => setShowPresetMenu(true),
     'ctrl+n': () => clearEffects(),
+    'ctrl+z': () => undo(),
+    'ctrl+shift+z': () => redo(),
+    'ctrl+y': () => redo(),
   });
 
   const startAudio = async () => {
@@ -591,12 +790,14 @@ function App() {
 
     const newEffect = addEffectToEngine(type);
     if (newEffect) {
+      pushUndoState(effects);
       setEffects([...effects, newEffect]);
       setShowAddMenu(false);
     }
   };
 
   const removeEffect = (id) => {
+    pushUndoState(effects);
     audioEngineRef.current.removeEffect(id);
     setEffects(effects.filter(e => e.id !== id));
   };
@@ -724,6 +925,9 @@ function App() {
   };
 
   const clearEffects = () => {
+    if (effects.length > 0) {
+      pushUndoState(effects);
+    }
     effects.forEach(effect => {
       audioEngineRef.current.removeEffect(effect.id);
     });
@@ -732,6 +936,7 @@ function App() {
   };
 
   const reorderEffects = (newOrder) => {
+    pushUndoState(effects);
     setEffects(newOrder);
     // Atualizar a cadeia interna do AudioEngine com a nova ordem
     if (audioEngineRef.current) {
@@ -1101,12 +1306,24 @@ function App() {
           </h3>
           <div className="sidebar-controls">
             <div className="sidebar-control">
-              <label>Master Vol</label>
-              <input type="range" min="0" max="100" defaultValue="80" />
+              <label>Master Vol <span className="control-value">{masterVolume}%</span></label>
+              <input 
+                type="range" 
+                min="0" 
+                max="100" 
+                value={masterVolume} 
+                onChange={(e) => handleMasterVolumeChange(e.target.value)}
+              />
             </div>
             <div className="sidebar-control">
-              <label>Input Gain</label>
-              <input type="range" min="0" max="100" defaultValue="50" />
+              <label>Input Gain <span className="control-value">{inputGain}%</span></label>
+              <input 
+                type="range" 
+                min="0" 
+                max="100" 
+                value={inputGain} 
+                onChange={(e) => handleInputGainChange(e.target.value)}
+              />
             </div>
           </div>
         </div>
@@ -1406,6 +1623,12 @@ function App() {
           <span className="shortcut">
             <kbd>Ctrl+N</kbd> = Limpar Tudo
           </span>
+          <span className="shortcut">
+            <kbd>Ctrl+Z</kbd> = Undo
+          </span>
+          <span className="shortcut">
+            <kbd>Ctrl+Y</kbd> = Redo
+          </span>
         </div>
       </footer>
 
@@ -1414,8 +1637,21 @@ function App() {
         <div className="bottom-section">
           <div className="bottom-control">
             <label>Tempo (BPM)</label>
-            <input type="number" min="40" max="300" defaultValue="120" className="bpm-input" />
-            <button className="tap-tempo">TAP</button>
+            <input 
+              type="number" 
+              min="20" 
+              max="300" 
+              value={bpm} 
+              onChange={(e) => handleBpmChange(e.target.value)}
+              className="bpm-input" 
+            />
+            <button 
+              className={`tap-tempo ${midiLearnActive ? 'midi-learn-pulse' : ''}`}
+              onClick={handleTapTempo}
+              title="Tap to set tempo (syncs delays & tremolos)"
+            >
+              TAP
+            </button>
           </div>
         </div>
 
@@ -1423,21 +1659,38 @@ function App() {
           <div className="cpu-meter">
             <label>CPU</label>
             <div className="meter-bar">
-              <div className="meter-fill" style={{width: '35%'}}></div>
+              <div 
+                className={`meter-fill ${cpuUsage > 80 ? 'meter-fill-danger' : cpuUsage > 50 ? 'meter-fill-warning' : ''}`} 
+                style={{width: `${cpuUsage}%`}}
+              ></div>
             </div>
-            <span>35%</span>
+            <span>{cpuUsage}%</span>
           </div>
         </div>
 
         <div className="bottom-section">
-          <button className="utility-btn" title="MIDI Learn">
-            🎹 MIDI
+          <button 
+            className={`utility-btn ${midiEnabled ? 'utility-btn-active' : ''}`} 
+            title={midiEnabled ? `MIDI Active (${midiInputs.length} device${midiInputs.length !== 1 ? 's' : ''})` : 'Enable MIDI'}
+            onClick={handleMidiToggle}
+          >
+            🎹 MIDI{midiEnabled ? ' ✓' : ''}
           </button>
-          <button className="utility-btn" title="Undo">
-            ↶
+          <button 
+            className={`utility-btn ${undoStack.length === 0 ? 'utility-btn-disabled' : ''}`} 
+            title={`Undo (Ctrl+Z)${undoStack.length > 0 ? ` - ${undoStack.length} state${undoStack.length !== 1 ? 's' : ''}` : ''}`}
+            onClick={undo}
+            disabled={undoStack.length === 0}
+          >
+            ↶ Undo
           </button>
-          <button className="utility-btn" title="Redo">
-            ↷
+          <button 
+            className={`utility-btn ${redoStack.length === 0 ? 'utility-btn-disabled' : ''}`} 
+            title={`Redo (Ctrl+Shift+Z)${redoStack.length > 0 ? ` - ${redoStack.length} state${redoStack.length !== 1 ? 's' : ''}` : ''}`}
+            onClick={redo}
+            disabled={redoStack.length === 0}
+          >
+            ↷ Redo
           </button>
         </div>
       </div>
