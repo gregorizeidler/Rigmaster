@@ -327,6 +327,126 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
         logo: 'The Duchess',
         brand: 'VICTORY'
       },
+      // NEW AMPS 2025 (authentic)
+      fender_champ: {
+        color: '#000000',
+        accent: '#c0c0c0',
+        grill: '#d4d4d4',
+        logo: 'Champ',
+        brand: 'FENDER'
+      },
+      fender_princeton: {
+        color: '#000000',
+        accent: '#c0c0c0',
+        grill: '#d4d4d4',
+        logo: 'Princeton Reverb',
+        brand: 'FENDER'
+      },
+      fender_super_reverb: {
+        color: '#000000',
+        accent: '#c0c0c0',
+        grill: '#d4d4d4',
+        logo: 'Super Reverb',
+        brand: 'FENDER'
+      },
+      marshall_jcm900: {
+        color: '#000000',
+        accent: '#d4af37',
+        grill: '#3a3a3a',
+        logo: 'JCM900',
+        brand: 'MARSHALL'
+      },
+      marshall_jvm410: {
+        color: '#000000',
+        accent: '#d4af37',
+        grill: '#3a3a3a',
+        logo: 'JVM410',
+        brand: 'MARSHALL'
+      },
+      marshall_dsl: {
+        color: '#000000',
+        accent: '#d4af37',
+        grill: '#3a3a3a',
+        logo: 'DSL',
+        brand: 'MARSHALL'
+      },
+      vox_ac15: {
+        color: '#000000',
+        accent: '#c0c0c0',
+        grill: '#6b8e23',
+        logo: 'AC15',
+        brand: 'VOX'
+      },
+      mesa_mark_i: {
+        color: '#000000',
+        accent: '#c0c0c0',
+        grill: '#1a1a1a',
+        logo: 'Mark I',
+        brand: 'MESA'
+      },
+      mesa_mark_iic_plus: {
+        color: '#000000',
+        accent: '#c0c0c0',
+        grill: '#1a1a1a',
+        logo: 'Mark IIC+',
+        brand: 'MESA'
+      },
+      mesa_triple_rectifier: {
+        color: '#000000',
+        accent: '#ffa500',
+        grill: '#1a1a1a',
+        logo: 'TRIPLE RECT',
+        brand: 'MESA'
+      },
+      peavey_6505: {
+        color: '#000000',
+        accent: '#ff0000',
+        grill: '#1a1a1a',
+        logo: '6505',
+        brand: 'PEAVEY'
+      },
+      diezel_herbert: {
+        color: '#4a4a4a',
+        accent: '#c0c0c0',
+        grill: '#2a2a2a',
+        logo: 'HERBERT',
+        brand: 'DIEZEL'
+      },
+      engl_savage: {
+        color: '#000000',
+        accent: '#ff0000',
+        grill: '#1a1a1a',
+        logo: 'SAVAGE 120',
+        brand: 'ENGL'
+      },
+      drz_maz38: {
+        color: '#f5e6c8',
+        accent: '#8b6914',
+        grill: '#d4c5a0',
+        logo: 'MAZ 38',
+        brand: 'DR. Z'
+      },
+      victory_v30: {
+        color: '#000000',
+        accent: '#ff4400',
+        grill: '#2a2a2a',
+        logo: 'V30',
+        brand: 'VICTORY'
+      },
+      revv_generator: {
+        color: '#1a1a1a',
+        accent: '#ff0000',
+        grill: '#2a2a2a',
+        logo: 'GENERATOR 120',
+        brand: 'REVV'
+      },
+      prs_archon: {
+        color: '#1a1a1a',
+        accent: '#d4af37',
+        grill: '#2a2a2a',
+        logo: 'ARCHON',
+        brand: 'PRS'
+      },
       fender_twin_reverb: {
         color: '#000000',  // Preto clássico Fender Blackface
         accent: '#c0c0c0', // Detalhes prateados
@@ -409,6 +529,25 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
       
       // VICTORY DUCHESS - Full British boutique control
       victory_duchess: ['victory_channel', 'channel_volume', 'presence', 'resonance', 'voicing', 'cabinet_enabled'],
+      
+      // NEW AMPS 2025 (authentic controls)
+      fender_champ: ['cabinet_enabled'],
+      fender_princeton: ['reverb', 'cabinet_enabled'],
+      fender_super_reverb: ['reverb', 'bright', 'cabinet_enabled'],
+      marshall_jcm900: ['presence', 'resonance', 'cabinet_enabled'],
+      marshall_jvm410: ['presence', 'resonance', 'cabinet_enabled'],
+      marshall_dsl: ['presence', 'resonance', 'cabinet_enabled'],
+      vox_ac15: ['cabinet_enabled'],
+      mesa_mark_i: ['cabinet_enabled'],
+      mesa_mark_iic_plus: ['presence', 'graphiceq', 'cabinet_enabled'],
+      mesa_triple_rectifier: ['presence', 'cabinet_enabled'],
+      peavey_6505: ['presence', 'resonance', 'cabinet_enabled'],
+      diezel_herbert: ['presence', 'cabinet_enabled'],
+      engl_savage: ['presence', 'cabinet_enabled'],
+      drz_maz38: ['cabinet_enabled'],
+      victory_v30: ['presence', 'resonance', 'cabinet_enabled'],
+      revv_generator: ['revv_generator_controls'],
+      prs_archon: ['prs_archon_controls'],
     };
     return controls[type] || [];
   };
@@ -979,17 +1118,6 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
                 }}
               >HIGH</button>
             </div>
-          </div>
-        );
-      case 'cabinet_enabled':
-        return (
-          <div key="cabinet_enabled" className="toggle-switch">
-            <label>Cabinet</label>
-            <input 
-              type="checkbox" 
-              checked={amp.params?.cabinet_enabled !== false}
-              onChange={(e) => onUpdate(amp.id, 'cabinet_enabled', e.target.checked)}
-            />
           </div>
         );
       case 'channel':
@@ -5457,6 +5585,80 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
           </div>
         );
       
+      // === NEW AMPS 2025 ===
+      case 'revv_generator_controls':
+        return (
+          <div key="revv_generator_controls" className="revv-controls" style={{
+            display: 'flex', flexDirection: 'column', gap: '10px', padding: '10px',
+            background: 'linear-gradient(135deg, rgba(26,26,26,0.8), rgba(40,40,40,0.6))',
+            borderRadius: '6px', border: '1px solid rgba(255,0,0,0.3)'
+          }}>
+            <label style={{ fontSize: '10px', fontWeight: 'bold', color: '#ff0000', textTransform: 'uppercase', letterSpacing: '2px', textAlign: 'center' }}>REVV GENERATOR 120</label>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Knob label="GAIN" value={amp.params?.gain || 50} onChange={handleKnobChange('gain')} size={32} />
+              <Knob label="BASS" value={amp.params?.bass || 50} onChange={handleKnobChange('bass')} size={32} />
+              <Knob label="MID" value={amp.params?.mid || 50} onChange={handleKnobChange('mid')} size={32} />
+              <Knob label="TREBLE" value={amp.params?.treble || 50} onChange={handleKnobChange('treble')} size={32} />
+              <Knob label="PRESENCE" value={amp.params?.presence || 50} onChange={handleKnobChange('presence')} size={32} />
+              <Knob label="MASTER" value={amp.params?.master || 50} onChange={handleKnobChange('master')} size={32} />
+            </div>
+            <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+              {['Blue', 'Green', 'Red', 'Purple'].map(ch => (
+                <button key={ch} onClick={() => onUpdate(amp.id, 'channel', ch.toLowerCase())}
+                  style={{
+                    padding: '4px 10px', fontSize: '9px', fontWeight: 'bold', borderRadius: '3px',
+                    border: `1px solid ${ch === 'Blue' ? '#0066ff' : ch === 'Green' ? '#00ff00' : ch === 'Red' ? '#ff0000' : '#9933ff'}`,
+                    background: amp.params?.channel === ch.toLowerCase() ? (ch === 'Blue' ? '#0066ff' : ch === 'Green' ? '#00aa00' : ch === 'Red' ? '#cc0000' : '#6600cc') : 'rgba(0,0,0,0.5)',
+                    color: '#fff', cursor: 'pointer',
+                    boxShadow: amp.params?.channel === ch.toLowerCase() ? `0 0 8px ${ch === 'Blue' ? '#0066ff' : ch === 'Green' ? '#00ff00' : ch === 'Red' ? '#ff0000' : '#9933ff'}` : 'none'
+                  }}
+                >{ch.toUpperCase()}</button>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+              <Knob label="AGGRESSION" value={amp.params?.aggression || 30} onChange={handleKnobChange('aggression')} size={28} />
+              <Knob label="DEPTH" value={amp.params?.depth || 50} onChange={handleKnobChange('depth')} size={28} />
+            </div>
+          </div>
+        );
+
+      case 'prs_archon_controls':
+        return (
+          <div key="prs_archon_controls" className="prs-archon-controls" style={{
+            display: 'flex', flexDirection: 'column', gap: '10px', padding: '10px',
+            background: 'linear-gradient(135deg, rgba(26,26,26,0.8), rgba(40,40,40,0.6))',
+            borderRadius: '6px', border: '1px solid rgba(212,175,55,0.3)'
+          }}>
+            <label style={{ fontSize: '10px', fontWeight: 'bold', color: '#d4af37', textTransform: 'uppercase', letterSpacing: '2px', textAlign: 'center' }}>PRS ARCHON</label>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Knob label="VOLUME" value={amp.params?.gain || 50} onChange={handleKnobChange('gain')} size={32} />
+              <Knob label="BASS" value={amp.params?.bass || 50} onChange={handleKnobChange('bass')} size={32} />
+              <Knob label="MIDDLE" value={amp.params?.mid || 50} onChange={handleKnobChange('mid')} size={32} />
+              <Knob label="TREBLE" value={amp.params?.treble || 50} onChange={handleKnobChange('treble')} size={32} />
+              <Knob label="MASTER" value={amp.params?.master || 50} onChange={handleKnobChange('master')} size={32} />
+              <Knob label="PRESENCE" value={amp.params?.presence || 50} onChange={handleKnobChange('presence')} size={32} />
+            </div>
+            <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+              {['Lead', 'Clean'].map(ch => (
+                <button key={ch} onClick={() => onUpdate(amp.id, 'channel', ch.toLowerCase())}
+                  style={{
+                    padding: '4px 12px', fontSize: '9px', fontWeight: 'bold', borderRadius: '3px',
+                    border: '1px solid #d4af37',
+                    background: amp.params?.channel === ch.toLowerCase() ? '#d4af37' : 'rgba(0,0,0,0.5)',
+                    color: amp.params?.channel === ch.toLowerCase() ? '#000' : '#d4af37',
+                    cursor: 'pointer',
+                    boxShadow: amp.params?.channel === ch.toLowerCase() ? '0 0 8px rgba(212,175,55,0.5)' : 'none'
+                  }}
+                >{ch.toUpperCase()}</button>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+              <Knob label="DEPTH" value={amp.params?.depth || 50} onChange={handleKnobChange('depth')} size={28} />
+              <Knob label="BRIGHT" value={amp.params?.bright_knob || 50} onChange={handleKnobChange('bright_knob')} size={28} />
+            </div>
+          </div>
+        );
+
       default:
         return null;
     }
@@ -5493,35 +5695,52 @@ const AmpComponent = ({ amp, onUpdate, onBypass, onRemove }) => {
           >
             <optgroup label="🎵 CLEAN/VINTAGE">
               <option value="fender_twin_reverb">Fender Twin Reverb</option>
-              <option value="vox_ac30">Vox AC30</option>
-              <option value="vox_nighttrain_nt50">Vox Night Train NT50H-G2</option>
               <option value="fender_deluxe">Fender Deluxe Reverb</option>
+              <option value="fender_princeton">Fender Princeton Reverb</option>
+              <option value="fender_super_reverb">Fender Super Reverb</option>
+              <option value="fender_champ">Fender Champ</option>
               <option value="fender_vibro_king">Fender Vibro-King</option>
               <option value="fender_bassman">Fender Bassman</option>
               <option value="fender_pro_junior">Fender Pro Junior</option>
+              <option value="vox_ac30">Vox AC30</option>
+              <option value="vox_ac15">Vox AC15</option>
+              <option value="vox_nighttrain_nt50">Vox Night Train NT50H-G2</option>
               <option value="roland_jc120">Roland JC-120</option>
               <option value="matchless_dc30">Matchless DC-30</option>
             </optgroup>
             
             <optgroup label="🔥 CRUNCH/BRITISH">
               <option value="marshall_jcm800">Marshall JCM800</option>
+              <option value="marshall_jcm900">Marshall JCM900</option>
+              <option value="marshall_jvm410">Marshall JVM410</option>
+              <option value="marshall_dsl">Marshall DSL</option>
               <option value="marshall_plexi_super_lead">Marshall Plexi Super Lead 100</option>
+              <option value="marshall_jtm45">Marshall JTM45</option>
               <option value="orange_rockerverb">Orange Rockerverb</option>
               <option value="orange_tiny_terror">Orange Tiny Terror</option>
               <option value="hiwatt_dr103">Hiwatt DR103</option>
-              <option value="marshall_jtm45">Marshall JTM45</option>
               <option value="badcat_hotcat">Bad Cat Hot Cat</option>
+              <option value="drz_maz38">Dr. Z Maz 38</option>
+              <option value="victory_v30">Victory V30</option>
             </optgroup>
             
             <optgroup label="🤘 HIGH GAIN/MODERN">
               <option value="peavey_5150">Peavey 5150</option>
+              <option value="peavey_6505">Peavey 6505</option>
               <option value="mesa_dual_rectifier">Mesa Dual Rectifier</option>
+              <option value="mesa_triple_rectifier">Mesa Triple Rectifier</option>
+              <option value="mesa_mark_i">Mesa Mark I</option>
+              <option value="mesa_mark_iic_plus">Mesa Mark IIC+</option>
               <option value="bogner_ecstasy">Bogner Ecstasy</option>
               <option value="bogner_uberschall">Bogner Überschall</option>
               <option value="diezel_vh4">Diezel VH4</option>
+              <option value="diezel_herbert">Diezel Herbert</option>
               <option value="engl_powerball">ENGL Powerball</option>
+              <option value="engl_savage">ENGL Savage</option>
               <option value="friedman_be100">Friedman BE-100</option>
               <option value="soldano_slo100">Soldano SLO-100</option>
+              <option value="revv_generator">Revv Generator 120</option>
+              <option value="prs_archon">PRS Archon</option>
             </optgroup>
             
             <optgroup label="✨ BOUTIQUE/MODERN">

@@ -332,22 +332,6 @@ const Pedal = ({ effect, onUpdate, onBypass, onRemove }) => {
       },
       
       // SPECIFIC LEGENDARY PEDALS
-      tubescreamer: { 
-        primary: '#99ff33', 
-        secondary: '#77cc22',
-        bgColor: '#559911',
-        bodyGradient: 'linear-gradient(145deg, #77cc22 0%, #559911 50%, #336600 100%)',
-        metalColor: '#gold',
-        label: 'TS808'
-      },
-      bigmuff: { 
-        primary: '#cccccc', 
-        secondary: '#999999',
-        bgColor: '#000000',
-        bodyGradient: 'linear-gradient(145deg, #333333 0%, #1a1a1a 50%, #000000 100%)',
-        metalColor: '#silver',
-        label: 'π MUFF'
-      },
       tapeecho: { 
         primary: '#ffbb77', 
         secondary: '#cc9955',
@@ -446,14 +430,6 @@ const Pedal = ({ effect, onUpdate, onBypass, onRemove }) => {
         metalColor: '#silver',
         label: 'PAN'
       },
-      limiter: { 
-        primary: '#ff6666', 
-        secondary: '#cc4444',
-        bgColor: '#992222',
-        bodyGradient: 'linear-gradient(145deg, #dd5555 0%, #aa3333 50%, #771111 100%)',
-        metalColor: '#silver',
-        label: 'LIM'
-      },
       tubecompressor: { 
         primary: '#ff9966', 
         secondary: '#cc7744',
@@ -493,14 +469,6 @@ const Pedal = ({ effect, onUpdate, onBypass, onRemove }) => {
         bodyGradient: 'linear-gradient(145deg, #33dd88 0%, #22aa66 50%, #117744 100%)',
         metalColor: '#silver',
         label: 'STEP'
-      },
-      harmonizer: { 
-        primary: '#cc00ff', 
-        secondary: '#9900cc',
-        bgColor: '#660099',
-        bodyGradient: 'linear-gradient(145deg, #aa00dd 0%, #7700aa 50%, #440077 100%)',
-        metalColor: '#silver',
-        label: 'HAR'
       },
       detune: { 
         primary: '#ff99cc', 
@@ -574,6 +542,112 @@ const Pedal = ({ effect, onUpdate, onBypass, onRemove }) => {
         metalColor: '#silver',
         label: 'SPLIT'
       },
+      
+      // NEW EFFECTS 2025 - DRIVE (authentic colors)
+      ts808: { primary: '#00ff00', secondary: '#00cc00', bgColor: '#00a550', bodyGradient: 'linear-gradient(145deg, #00cc66 0%, #00a550 50%, #008844 100%)', metalColor: '#f5deb3', ledColor: '#00ff00', label: 'TS808', brand: 'IBANEZ', subtitle: 'Tube Screamer', texture: 'matte', style: 'vintage' },
+      bossod3: { primary: '#ff0000', secondary: '#cc0000', bgColor: '#ff6600', bodyGradient: 'linear-gradient(145deg, #ff7722 0%, #ff6600 50%, #dd5500 100%)', metalColor: '#2a2a2a', ledColor: '#ff0000', label: 'OD-3', brand: 'BOSS', subtitle: 'OverDrive', texture: 'boss-compact', style: 'japanese' },
+      maxonod808: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#2d6b1e', bodyGradient: 'linear-gradient(145deg, #3a8a28 0%, #2d6b1e 50%, #1e4d14 100%)', metalColor: '#f5deb3', ledColor: '#00ff00', label: 'OD808', brand: 'Maxon', subtitle: 'Overdrive', texture: 'matte', style: 'vintage' },
+      tumnus: { primary: '#000000', secondary: '#1a1a1a', bgColor: '#c4a030', bodyGradient: 'linear-gradient(145deg, #e0c860 0%, #c4a030 50%, #a88820 100%)', metalColor: '#2a2a2a', knobPointer: '#ffffff', ledColor: '#0066ff', label: 'TUMNUS', brand: 'Wampler', labelColor: '#000000', texture: 'metallic', style: 'boutique' },
+      morningglory: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#daa520', bodyGradient: 'linear-gradient(145deg, #eebb44 0%, #daa520 50%, #bb8810 100%)', metalColor: '#2a2a2a', knobPointer: '#ff0000', ledColor: '#ff0000', label: 'MORNING GLORY', brand: 'JHS', labelColor: '#ffffff', texture: 'metallic', style: 'boutique' },
+      soulfood: { primary: '#000000', secondary: '#1a1a1a', bgColor: '#f5f0e0', bodyGradient: 'linear-gradient(145deg, #fffbf0 0%, #f5f0e0 50%, #e0d8c0 100%)', metalColor: '#2a2a2a', knobPointer: '#ffffff', ledColor: '#0066ff', label: 'SOUL FOOD', brand: 'Electro-Harmonix', subtitle: 'Transparent OD', labelColor: '#000000', texture: 'metallic', style: 'ehx' },
+      zendrive: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#6b3fa0', bodyGradient: 'linear-gradient(145deg, #8855bb 0%, #6b3fa0 50%, #4e2d78 100%)', metalColor: '#c0c0c0', knobPointer: '#ffffff', ledColor: '#ff0000', label: 'ZENDRIVE', brand: 'Hermida Audio', labelColor: '#ffffff', texture: 'matte', style: 'boutique' },
+      timmy: { primary: '#000000', secondary: '#1a1a1a', bgColor: '#e8e0d0', bodyGradient: 'linear-gradient(145deg, #f5f0e8 0%, #e8e0d0 50%, #d0c8b0 100%)', metalColor: '#2a2a2a', knobPointer: '#ffffff', ledColor: '#ff0000', label: 'TIMMY', brand: 'Paul Cochrane', labelColor: '#000000', texture: 'matte', style: 'boutique' },
+      friedmanbeod: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#1a1a1a', bodyGradient: 'linear-gradient(145deg, #333333 0%, #1a1a1a 50%, #0a0a0a 100%)', metalColor: '#c0c0c0', knobPointer: '#ffffff', ledColor: '#ff0000', label: 'BE-OD', brand: 'Friedman', subtitle: 'Brown Eye', labelColor: '#ffffff', texture: 'matte', style: 'highgain', footswitchColor: '#c0c0c0' },
+      suhrriot: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#1a1a1a', bodyGradient: 'linear-gradient(145deg, #2a2a2a 0%, #1a1a1a 50%, #050505 100%)', metalColor: '#c0c0c0', knobPointer: '#ff6600', ledColor: '#ff0000', label: 'RIOT', brand: 'Suhr', subtitle: 'Distortion', labelColor: '#ffffff', texture: 'metallic', style: 'highgain' },
+      catalinbreaddls: { primary: '#ffffff', secondary: '#cccccc', bgColor: '#8b0000', bodyGradient: 'linear-gradient(145deg, #aa2222 0%, #8b0000 50%, #660000 100%)', metalColor: '#c0c0c0', knobPointer: '#ffffff', ledColor: '#ff0000', label: 'DLS', brand: 'Catalinbread', subtitle: 'Dirty Little Secret', labelColor: '#ffffff', texture: 'matte', style: 'boutique' },
+      bognerecstasyblue: { primary: '#ffffff', secondary: '#aaddff', bgColor: '#0055aa', bodyGradient: 'linear-gradient(145deg, #0077cc 0%, #0055aa 50%, #003388 100%)', metalColor: '#c0c0c0', knobPointer: '#ffffff', ledColor: '#0066ff', label: 'ECSTASY', brand: 'Bogner', subtitle: 'Blue Channel', labelColor: '#ffffff', texture: 'metallic', style: 'boutique' },
+      plumes: { primary: '#000000', secondary: '#1a1a1a', bgColor: '#7cfc00', bodyGradient: 'linear-gradient(145deg, #99ff33 0%, #7cfc00 50%, #5abc00 100%)', metalColor: '#2a2a2a', knobPointer: '#ffffff', ledColor: '#00ff00', label: 'PLUMES', brand: 'EQD', subtitle: 'Small Signal Shredder', labelColor: '#000000', texture: 'matte', style: 'boutique' },
+      dod250: { primary: '#000000', secondary: '#1a1a1a', bgColor: '#808080', bodyGradient: 'linear-gradient(145deg, #999999 0%, #808080 50%, #666666 100%)', metalColor: '#c0c0c0', knobPointer: '#ffffff', ledColor: '#ff0000', label: '250', brand: 'DOD', subtitle: 'Overdrive Preamp', labelColor: '#ffff00', texture: 'metallic', style: 'vintage' },
+      darkglassb7k: { primary: '#00ffff', secondary: '#00cccc', bgColor: '#1a1a1a', bodyGradient: 'linear-gradient(145deg, #2a2a2a 0%, #1a1a1a 50%, #0a0a0a 100%)', metalColor: '#c0c0c0', knobPointer: '#00ffff', ledColor: '#00ffff', label: 'B7K', brand: 'Darkglass', subtitle: 'Ultra v2', labelColor: '#00ffff', texture: 'metallic', style: 'modern-bass' },
+      swollenpickle: { primary: '#ffffff', secondary: '#cccccc', bgColor: '#006400', bodyGradient: 'linear-gradient(145deg, #228b22 0%, #006400 50%, #004400 100%)', metalColor: '#c0c0c0', knobPointer: '#ffffff', ledColor: '#00ff00', label: 'SWOLLEN PICKLE', brand: 'Way Huge', subtitle: 'Jumbo Fuzz', labelColor: '#ffffff', texture: 'matte', style: 'fuzz' },
+      greenrussian: { primary: '#ffffff', secondary: '#cccccc', bgColor: '#2e5e1e', bodyGradient: 'linear-gradient(145deg, #3a7a2a 0%, #2e5e1e 50%, #1e4010 100%)', metalColor: '#c0c0c0', knobPointer: '#ffffff', ledColor: '#ff0000', label: 'GREEN RUSSIAN', brand: 'Electro-Harmonix', subtitle: 'Big Muff', labelColor: '#ffffff', texture: 'matte', style: 'ehx' },
+      fuzzlordchime: { primary: '#ffff00', secondary: '#cccc00', bgColor: '#4b0082', bodyGradient: 'linear-gradient(145deg, #6a0dad 0%, #4b0082 50%, #300055 100%)', metalColor: '#c0c0c0', knobPointer: '#ffff00', ledColor: '#ff0000', label: 'CHIME', brand: 'Fuzzlord', subtitle: 'Octave Fuzz', labelColor: '#ffff00', texture: 'matte', style: 'fuzz' },
+      badmonkey: { primary: '#000000', secondary: '#1a1a1a', bgColor: '#ffcc00', bodyGradient: 'linear-gradient(145deg, #ffdd33 0%, #ffcc00 50%, #ddaa00 100%)', metalColor: '#2a2a2a', knobPointer: '#ffffff', ledColor: '#ff0000', label: 'BAD MONKEY', brand: 'DigiTech', subtitle: 'Tube Overdrive', labelColor: '#000000', texture: 'matte', style: 'budget' },
+      amp11: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#cc0000', bodyGradient: 'linear-gradient(145deg, #ee2222 0%, #cc0000 50%, #990000 100%)', metalColor: '#c0c0c0', knobPointer: '#ffffff', ledColor: '#ff0000', label: 'AMP ELEVEN', brand: 'Lovepedal', labelColor: '#ffffff', texture: 'matte', style: 'boutique' },
+      fulldrive2: { primary: '#ffffff', secondary: '#ddeeff', bgColor: '#1a5bb5', bodyGradient: 'linear-gradient(145deg, #2266cc 0%, #1a5bb5 50%, #134a99 100%)', metalColor: '#e0e0e0', knobPointer: '#1a1a1a', ledColor: '#00ff00', label: '', brand: 'Fulltone', labelColor: '#ffffff', texture: 'metallic', style: 'boutique' },
+      
+      // NEW EFFECTS 2025 - MODULATION (authentic)
+      tccorona: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#0066cc', bodyGradient: 'linear-gradient(145deg, #0088ee 0%, #0066cc 50%, #0044aa 100%)', metalColor: '#2a2a2a', ledColor: '#ffff00', label: 'CORONA', brand: 'TC Electronic', subtitle: 'Chorus', texture: 'tc-compact', style: 'danish' },
+      strymonola: { primary: '#0099ff', secondary: '#0077cc', bgColor: '#e8e0d0', bodyGradient: 'linear-gradient(145deg, #f5f0e8 0%, #e8e0d0 50%, #d0c8b0 100%)', metalColor: '#c0c0c0', knobPointer: '#0099ff', ledColor: '#0066ff', label: 'Ola', brand: 'Strymon', subtitle: 'dBucket Chorus', labelColor: '#0099ff', texture: 'metallic', style: 'strymon' },
+      smallstone: { primary: '#ff6600', secondary: '#cc5500', bgColor: '#c0c0c0', bodyGradient: 'linear-gradient(145deg, #d4d4d4 0%, #c0c0c0 50%, #a0a0a0 100%)', metalColor: '#c0c0c0', ledColor: '#ff0000', label: 'SMALL STONE', brand: 'Electro-Harmonix', subtitle: 'Phase Shifter', labelColor: '#ff6600', texture: 'metallic', style: 'ehx' },
+      phase100: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#ff6600', bodyGradient: 'linear-gradient(145deg, #ff8822 0%, #ff6600 50%, #dd5500 100%)', metalColor: '#2a2a2a', ledColor: '#ff0000', label: 'M107', brand: 'MXR', subtitle: 'Phase 100', texture: 'matte', style: 'vintage' },
+      electricmistress: { primary: '#000000', secondary: '#1a1a1a', bgColor: '#c0c0c0', bodyGradient: 'linear-gradient(145deg, #d8d8d8 0%, #c0c0c0 50%, #a0a0a0 100%)', metalColor: '#c0c0c0', ledColor: '#ff0000', label: 'ELECTRIC MISTRESS', brand: 'Electro-Harmonix', subtitle: 'Flanger', labelColor: '#000000', texture: 'metallic', style: 'ehx' },
+      tcvortex: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#ff3300', bodyGradient: 'linear-gradient(145deg, #ff5533 0%, #ff3300 50%, #cc2200 100%)', metalColor: '#2a2a2a', ledColor: '#ffff00', label: 'VORTEX', brand: 'TC Electronic', subtitle: 'Flanger', texture: 'tc-compact', style: 'danish' },
+      dejavibe: { primary: '#000000', secondary: '#1a1a1a', bgColor: '#f5f0e0', bodyGradient: 'linear-gradient(145deg, #fffbf0 0%, #f5f0e0 50%, #e0d8c0 100%)', metalColor: '#2a2a2a', knobPointer: '#ffffff', ledColor: '#ff0000', label: 'DEJA VIBE', brand: 'Fulltone', subtitle: 'Uni-Vibe', labelColor: '#000000', texture: 'metallic', style: 'boutique' },
+      rotovibe: { primary: '#ffffff', secondary: '#cccccc', bgColor: '#8b4513', bodyGradient: 'linear-gradient(145deg, #a0522d 0%, #8b4513 50%, #6b3310 100%)', metalColor: '#c0c0c0', ledColor: '#00ff00', label: 'ROTOVIBE', brand: 'Dunlop', texture: 'matte', style: 'vintage' },
+      diamondtrem: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#4169e1', bodyGradient: 'linear-gradient(145deg, #5588ff 0%, #4169e1 50%, #2244bb 100%)', metalColor: '#c0c0c0', knobPointer: '#ffffff', ledColor: '#0066ff', label: 'TRM-1', brand: 'Diamond', subtitle: 'Tremolo', labelColor: '#ffffff', texture: 'metallic', style: 'boutique' },
+      warpedvinyl: { primary: '#ff6600', secondary: '#cc5500', bgColor: '#f5f0e8', bodyGradient: 'linear-gradient(145deg, #fffbf5 0%, #f5f0e8 50%, #e0d8c8 100%)', metalColor: '#2a2a2a', knobPointer: '#ff6600', ledColor: '#ff6600', label: 'WARPED VINYL', brand: 'Chase Bliss', subtitle: 'Analog Vibrato', labelColor: '#ff6600', texture: 'metallic', style: 'chasebliss' },
+      polychorus: { primary: '#000000', secondary: '#1a1a1a', bgColor: '#c0c0c0', bodyGradient: 'linear-gradient(145deg, #d8d8d8 0%, #c0c0c0 50%, #a0a0a0 100%)', metalColor: '#c0c0c0', ledColor: '#ff0000', label: 'POLYCHORUS', brand: 'Electro-Harmonix', labelColor: '#000000', texture: 'metallic', style: 'ehx' },
+      tcshaker: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#cc0066', bodyGradient: 'linear-gradient(145deg, #ee0088 0%, #cc0066 50%, #990044 100%)', metalColor: '#2a2a2a', ledColor: '#ffff00', label: 'SHAKER', brand: 'TC Electronic', subtitle: 'Vibrato', texture: 'tc-compact', style: 'danish' },
+      monument: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#2f4f4f', bodyGradient: 'linear-gradient(145deg, #4a6a6a 0%, #2f4f4f 50%, #1a3030 100%)', metalColor: '#c0c0c0', knobPointer: '#ffffff', ledColor: '#ff0000', label: 'MONUMENT', brand: 'Walrus Audio', subtitle: 'Harmonic Tap Tremolo', labelColor: '#ffffff', texture: 'matte', style: 'walrus' },
+      particle: { primary: '#ff0066', secondary: '#cc0044', bgColor: '#ff3388', bodyGradient: 'linear-gradient(145deg, #ff55aa 0%, #ff3388 50%, #cc1166 100%)', metalColor: '#c0c0c0', knobPointer: '#ffffff', ledColor: '#ff0066', label: 'PARTICLE', brand: 'Red Panda', subtitle: 'Granular Delay', labelColor: '#ffffff', texture: 'matte', style: 'experimental' },
+      merisenzo: { primary: '#00ffff', secondary: '#00cccc', bgColor: '#1a1a2e', bodyGradient: 'linear-gradient(145deg, #2a2a44 0%, #1a1a2e 50%, #0a0a1e 100%)', metalColor: '#c0c0c0', knobPointer: '#00ffff', ledColor: '#00ffff', label: 'ENZO', brand: 'Meris', subtitle: 'Multi-Voice Synth', labelColor: '#00ffff', texture: 'metallic', style: 'meris' },
+      
+      // NEW EFFECTS 2025 - TIME-BASED (authentic)
+      tcflashback: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#ff6600', bodyGradient: 'linear-gradient(145deg, #ff8833 0%, #ff6600 50%, #cc4400 100%)', metalColor: '#2a2a2a', ledColor: '#ffff00', label: 'FLASHBACK', brand: 'TC Electronic', subtitle: 'Delay', texture: 'tc-compact', style: 'danish' },
+      supapuss: { primary: '#ffff00', secondary: '#cccc00', bgColor: '#663399', bodyGradient: 'linear-gradient(145deg, #8844bb 0%, #663399 50%, #442266 100%)', metalColor: '#c0c0c0', knobPointer: '#ffff00', ledColor: '#ffff00', label: 'SUPA-PUSS', brand: 'Way Huge', subtitle: 'Analog Delay', labelColor: '#ffff00', texture: 'matte', style: 'wayhuge' },
+      arp87: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#708090', bodyGradient: 'linear-gradient(145deg, #8899aa 0%, #708090 50%, #556677 100%)', metalColor: '#c0c0c0', knobPointer: '#ffffff', ledColor: '#ff0000', label: 'ARP-87', brand: 'Walrus Audio', subtitle: 'Multi-Function Delay', labelColor: '#ffffff', texture: 'matte', style: 'walrus' },
+      dispatchmaster: { primary: '#000000', secondary: '#1a1a1a', bgColor: '#ffd700', bodyGradient: 'linear-gradient(145deg, #ffe033 0%, #ffd700 50%, #ccaa00 100%)', metalColor: '#2a2a2a', knobPointer: '#ffffff', ledColor: '#ff0000', label: 'DISPATCH MASTER', brand: 'EQD', subtitle: 'Delay & Reverb', labelColor: '#000000', texture: 'matte', style: 'boutique' },
+      bossdd3: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#0099ff', bodyGradient: 'linear-gradient(145deg, #22aaff 0%, #0099ff 50%, #0077cc 100%)', metalColor: '#2a2a2a', ledColor: '#ff0000', label: 'DD-3', brand: 'BOSS', subtitle: 'Digital Delay', texture: 'boss-compact', style: 'japanese' },
+      bossdd7: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#0077cc', bodyGradient: 'linear-gradient(145deg, #0099ee 0%, #0077cc 50%, #005599 100%)', metalColor: '#2a2a2a', ledColor: '#ff0000', label: 'DD-7', brand: 'BOSS', subtitle: 'Digital Delay', texture: 'boss-compact', style: 'japanese' },
+      maxonad999: { primary: '#ffff00', secondary: '#cccc00', bgColor: '#556b2f', bodyGradient: 'linear-gradient(145deg, #6a7f3a 0%, #556b2f 50%, #445522 100%)', metalColor: '#c0c0c0', knobPointer: '#ffff00', ledColor: '#00ff00', label: 'AD999', brand: 'Maxon', subtitle: 'Analog Delay', labelColor: '#ffff00', texture: 'matte', style: 'vintage' },
+      echosystem: { primary: '#00ccff', secondary: '#0099cc', bgColor: '#1a1a1a', bodyGradient: 'linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 50%, #0a0a0a 100%)', metalColor: '#c0c0c0', knobPointer: '#00ccff', ledColor: '#00ccff', label: 'ECHOSYSTEM', brand: 'Empress', subtitle: 'Dual Engine Delay', labelColor: '#00ccff', texture: 'metallic', style: 'empress', type: 'rack' },
+      thermae: { primary: '#ff6600', secondary: '#cc5500', bgColor: '#f5f0e8', bodyGradient: 'linear-gradient(145deg, #fffbf5 0%, #f5f0e8 50%, #e0d8c8 100%)', metalColor: '#2a2a2a', knobPointer: '#ff6600', ledColor: '#ff6600', label: 'THERMAE', brand: 'Chase Bliss', subtitle: 'Analog Delay', labelColor: '#ff6600', texture: 'metallic', style: 'chasebliss' },
+      belleepoch: { primary: '#ffffff', secondary: '#cccccc', bgColor: '#8b6914', bodyGradient: 'linear-gradient(145deg, #a0801a 0%, #8b6914 50%, #6b500e 100%)', metalColor: '#c0c0c0', knobPointer: '#ffffff', ledColor: '#ff0000', label: 'BELLE EPOCH', brand: 'Catalinbread', subtitle: 'Tape Echo', labelColor: '#ffffff', texture: 'matte', style: 'boutique' },
+      elcapistan: { primary: '#0099ff', secondary: '#0077cc', bgColor: '#e8e0d0', bodyGradient: 'linear-gradient(145deg, #f5f0e8 0%, #e8e0d0 50%, #d0c8b0 100%)', metalColor: '#c0c0c0', knobPointer: '#0099ff', ledColor: '#0066ff', label: 'El Capistan', brand: 'Strymon', subtitle: 'dBucket Tape Echo', labelColor: '#0099ff', texture: 'metallic', style: 'strymon' },
+      strymonflint: { primary: '#0099ff', secondary: '#0077cc', bgColor: '#e8d8c0', bodyGradient: 'linear-gradient(145deg, #f0e8d8 0%, #e8d8c0 50%, #d0c0a0 100%)', metalColor: '#c0c0c0', knobPointer: '#0099ff', ledColor: '#0066ff', label: 'Flint', brand: 'Strymon', subtitle: 'Tremolo & Reverb', labelColor: '#0099ff', texture: 'metallic', style: 'strymon' },
+      immerse: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#4169e1', bodyGradient: 'linear-gradient(145deg, #5577ff 0%, #4169e1 50%, #2244bb 100%)', metalColor: '#c0c0c0', knobPointer: '#ffffff', ledColor: '#0066ff', label: 'IMMERSE', brand: 'Neunaber', subtitle: 'Reverberator', labelColor: '#ffffff', texture: 'metallic', style: 'boutique' },
+      cathedral: { primary: '#000000', secondary: '#1a1a1a', bgColor: '#c0c0c0', bodyGradient: 'linear-gradient(145deg, #d8d8d8 0%, #c0c0c0 50%, #a0a0a0 100%)', metalColor: '#c0c0c0', ledColor: '#ff0000', label: 'CATHEDRAL', brand: 'Electro-Harmonix', subtitle: 'Stereo Reverb', labelColor: '#000000', texture: 'metallic', style: 'ehx' },
+      walrusslo: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#4a2060', bodyGradient: 'linear-gradient(145deg, #663388 0%, #4a2060 50%, #300040 100%)', metalColor: '#c0c0c0', knobPointer: '#ffffff', ledColor: '#9933ff', label: 'SLÖ', brand: 'Walrus Audio', subtitle: 'Multi Texture Reverb', labelColor: '#ffffff', texture: 'matte', style: 'walrus' },
+      darkstar: { primary: '#ffffff', secondary: '#cccccc', bgColor: '#1a0033', bodyGradient: 'linear-gradient(145deg, #2a0055 0%, #1a0033 50%, #0a0015 100%)', metalColor: '#c0c0c0', knobPointer: '#ffffff', ledColor: '#ff00ff', label: 'DARK STAR', brand: 'Old Blood Noise', subtitle: 'Pad Reverb', labelColor: '#ffffff', texture: 'matte', style: 'experimental' },
+      mercury7: { primary: '#00ccff', secondary: '#0099cc', bgColor: '#1a1a2e', bodyGradient: 'linear-gradient(145deg, #2a2a44 0%, #1a1a2e 50%, #0a0a1e 100%)', metalColor: '#c0c0c0', knobPointer: '#00ccff', ledColor: '#00ccff', label: 'MERCURY7', brand: 'Meris', subtitle: 'Algorithmic Reverb', labelColor: '#00ccff', texture: 'metallic', style: 'meris' },
+      rpcontext: { primary: '#ff0066', secondary: '#cc0044', bgColor: '#333333', bodyGradient: 'linear-gradient(145deg, #444444 0%, #333333 50%, #222222 100%)', metalColor: '#c0c0c0', knobPointer: '#ff0066', ledColor: '#ff0066', label: 'CONTEXT', brand: 'Red Panda', subtitle: 'Reverb', labelColor: '#ff0066', texture: 'matte', style: 'experimental' },
+      tensor: { primary: '#ff0066', secondary: '#cc0044', bgColor: '#ff3388', bodyGradient: 'linear-gradient(145deg, #ff55aa 0%, #ff3388 50%, #cc1166 100%)', metalColor: '#c0c0c0', knobPointer: '#ffffff', ledColor: '#ff0066', label: 'TENSOR', brand: 'Red Panda', subtitle: 'Tape Effects', labelColor: '#ffffff', texture: 'matte', style: 'experimental' },
+      
+      // NEW EFFECTS 2025 - DYNAMICS (authentic)
+      fmrrnc: { primary: '#00ff00', secondary: '#00cc00', bgColor: '#1a1a1a', bodyGradient: 'linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 50%, #0a0a0a 100%)', metalColor: '#c0c0c0', ledColor: '#00ff00', label: 'RNC 1773', brand: 'FMR Audio', subtitle: 'Really Nice Compressor', labelColor: '#00ff00', texture: 'metallic', style: 'rack', type: 'rack' },
+      empresscomp: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#1a1a1a', bodyGradient: 'linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 50%, #0a0a0a 100%)', metalColor: '#c0c0c0', knobPointer: '#ffffff', ledColor: '#ffffff', label: 'COMPRESSOR', brand: 'Empress', subtitle: 'MKII', labelColor: '#ffffff', texture: 'metallic', style: 'empress' },
+      cali76: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#c0c0c0', bodyGradient: 'linear-gradient(145deg, #d8d8d8 0%, #c0c0c0 50%, #a0a0a0 100%)', metalColor: '#c0c0c0', knobPointer: '#ff0000', ledColor: '#ff0000', label: 'CALI76', brand: 'Origin Effects', subtitle: 'Compressor', labelColor: '#000000', texture: 'metallic', style: 'boutique' },
+      deepsix: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#003366', bodyGradient: 'linear-gradient(145deg, #004488 0%, #003366 50%, #002244 100%)', metalColor: '#c0c0c0', knobPointer: '#ffffff', ledColor: '#ff0000', label: 'DEEP SIX', brand: 'Walrus Audio', subtitle: 'Compressor V3', labelColor: '#ffffff', texture: 'matte', style: 'walrus' },
+      blackfinger: { primary: '#ffffff', secondary: '#cccccc', bgColor: '#1a1a1a', bodyGradient: 'linear-gradient(145deg, #2a2a2a 0%, #1a1a1a 50%, #0a0a0a 100%)', metalColor: '#c0c0c0', knobPointer: '#ffffff', ledColor: '#ff6600', label: 'BLACK FINGER', brand: 'Electro-Harmonix', subtitle: 'Tube Compressor', labelColor: '#ffffff', texture: 'metallic', style: 'ehx' },
+      philosopher: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#8b0000', bodyGradient: 'linear-gradient(145deg, #aa2222 0%, #8b0000 50%, #660000 100%)', metalColor: '#c0c0c0', knobPointer: '#ffffff', ledColor: '#ff0000', label: "PHILOSOPHER'S TONE", brand: 'Pigtronix', subtitle: 'Compressor', labelColor: '#ffffff', texture: 'matte', style: 'boutique' },
+      hypergravity: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#cc6600', bodyGradient: 'linear-gradient(145deg, #ee8822 0%, #cc6600 50%, #994400 100%)', metalColor: '#2a2a2a', ledColor: '#ffff00', label: 'HYPERGRAVITY', brand: 'TC Electronic', subtitle: 'Compressor', texture: 'tc-compact', style: 'danish' },
+      bosscs3: { primary: '#0099ff', secondary: '#0077cc', bgColor: '#0099ff', bodyGradient: 'linear-gradient(145deg, #22aaff 0%, #0099ff 50%, #0077cc 100%)', metalColor: '#2a2a2a', ledColor: '#ff0000', label: 'CS-3', brand: 'BOSS', subtitle: 'Compression Sustainer', texture: 'boss-compact', style: 'japanese' },
+      wamplerego: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#556b2f', bodyGradient: 'linear-gradient(145deg, #6a7f3a 0%, #556b2f 50%, #445522 100%)', metalColor: '#2a2a2a', knobPointer: '#ffffff', ledColor: '#0066ff', label: 'EGO', brand: 'Wampler', subtitle: 'Compressor', labelColor: '#ffffff', texture: 'matte', style: 'boutique' },
+      compulator: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#daa520', bodyGradient: 'linear-gradient(145deg, #eebb44 0%, #daa520 50%, #bb8810 100%)', metalColor: '#c0c0c0', knobPointer: '#ffffff', ledColor: '#ff0000', label: 'COMPULATOR', brand: 'Demeter', subtitle: 'Optical Compressor', labelColor: '#ffffff', texture: 'metallic', style: 'boutique' },
+      
+      // NEW EFFECTS 2025 - EQ & FILTERS (authentic)
+      bossge7: { primary: '#000000', secondary: '#1a1a1a', bgColor: '#ffffff', bodyGradient: 'linear-gradient(145deg, #ffffff 0%, #f0f0f0 50%, #e0e0e0 100%)', metalColor: '#2a2a2a', ledColor: '#ff0000', label: 'GE-7', brand: 'BOSS', subtitle: 'Equalizer', labelColor: '#000000', texture: 'boss-compact', style: 'japanese' },
+      sourceaudioeq2: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#1a1a1a', bodyGradient: 'linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 50%, #0a0a0a 100%)', metalColor: '#c0c0c0', ledColor: '#00ff00', label: 'EQ2', brand: 'Source Audio', subtitle: 'Programmable EQ', labelColor: '#ffffff', texture: 'metallic', style: 'modern' },
+      empressparaeq: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#1a1a1a', bodyGradient: 'linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 50%, #0a0a0a 100%)', metalColor: '#c0c0c0', knobPointer: '#ffffff', ledColor: '#ffffff', label: 'ParaEQ', brand: 'Empress', subtitle: 'MKII Deluxe', labelColor: '#ffffff', texture: 'metallic', style: 'empress' },
+      talkingmachine: { primary: '#000000', secondary: '#1a1a1a', bgColor: '#c0c0c0', bodyGradient: 'linear-gradient(145deg, #d8d8d8 0%, #c0c0c0 50%, #a0a0a0 100%)', metalColor: '#c0c0c0', ledColor: '#ff0000', label: 'TALKING MACHINE', brand: 'Electro-Harmonix', subtitle: 'Vocal Formant Filter', labelColor: '#000000', texture: 'metallic', style: 'ehx' },
+      moogmf101: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#1a1a1a', bodyGradient: 'linear-gradient(145deg, #2a2a2a 0%, #1a1a1a 50%, #0a0a0a 100%)', metalColor: '#c0c0c0', knobPointer: '#ffffff', ledColor: '#ff0000', label: 'MF-101', brand: 'Moog', subtitle: 'Lowpass Filter', labelColor: '#ffffff', texture: 'metallic', style: 'moog' },
+      dod440: { primary: '#000000', secondary: '#1a1a1a', bgColor: '#ffcc00', bodyGradient: 'linear-gradient(145deg, #ffdd33 0%, #ffcc00 50%, #ddaa00 100%)', metalColor: '#2a2a2a', ledColor: '#ff0000', label: '440', brand: 'DOD', subtitle: 'Envelope Filter', labelColor: '#000000', texture: 'matte', style: 'vintage' },
+      mutron: { primary: '#000000', secondary: '#1a1a1a', bgColor: '#c0c0c0', bodyGradient: 'linear-gradient(145deg, #d8d8d8 0%, #c0c0c0 50%, #a0a0a0 100%)', metalColor: '#c0c0c0', ledColor: '#00ff00', label: 'MU-TRON III', brand: 'Mu-Tron', subtitle: 'Envelope Filter', labelColor: '#000000', texture: 'metallic', style: 'vintage' },
+      qtron: { primary: '#000000', secondary: '#1a1a1a', bgColor: '#c0c0c0', bodyGradient: 'linear-gradient(145deg, #d8d8d8 0%, #c0c0c0 50%, #a0a0a0 100%)', metalColor: '#c0c0c0', ledColor: '#ff0000', label: 'Q-TRON', brand: 'Electro-Harmonix', subtitle: 'Envelope Filter', labelColor: '#000000', texture: 'metallic', style: 'ehx' },
+      dunlop105q: { primary: '#ffffff', secondary: '#cccccc', bgColor: '#000000', bodyGradient: 'linear-gradient(145deg, #1a1a1a 0%, #000000 50%, #000000 100%)', metalColor: '#c0c0c0', ledColor: '#00ff00', label: '105Q', brand: 'Dunlop', subtitle: 'Cry Baby Bass Wah', labelColor: '#ffffff', texture: 'matte', style: 'wah' },
+      badhorsie: { primary: '#ff0000', secondary: '#cc0000', bgColor: '#000000', bodyGradient: 'linear-gradient(145deg, #1a1a1a 0%, #000000 50%, #000000 100%)', metalColor: '#c0c0c0', ledColor: '#ff0000', label: 'BAD HORSIE', brand: 'Morley', subtitle: 'Wah', labelColor: '#ff0000', texture: 'matte', style: 'wah' },
+      
+      // NEW EFFECTS 2025 - PITCH & SYNTH (authentic)
+      ehxpog: { primary: '#000000', secondary: '#1a1a1a', bgColor: '#c0c0c0', bodyGradient: 'linear-gradient(145deg, #d8d8d8 0%, #c0c0c0 50%, #a0a0a0 100%)', metalColor: '#c0c0c0', ledColor: '#ff0000', label: 'POG', brand: 'Electro-Harmonix', subtitle: 'Polyphonic Octave Generator', labelColor: '#000000', texture: 'metallic', style: 'ehx' },
+      micropog: { primary: '#000000', secondary: '#1a1a1a', bgColor: '#b8b8b8', bodyGradient: 'linear-gradient(145deg, #d0d0d0 0%, #b8b8b8 50%, #a0a0a0 100%)', metalColor: '#c0c0c0', ledColor: '#ff0000', label: 'MICRO POG', brand: 'Electro-Harmonix', subtitle: 'Polyphonic Octave', labelColor: '#000000', texture: 'metallic', style: 'ehx' },
+      ehxhog: { primary: '#000000', secondary: '#1a1a1a', bgColor: '#c0c0c0', bodyGradient: 'linear-gradient(145deg, #d8d8d8 0%, #c0c0c0 50%, #a0a0a0 100%)', metalColor: '#c0c0c0', ledColor: '#ff0000', label: 'HOG 2', brand: 'Electro-Harmonix', subtitle: 'Harmonic Octave Generator', labelColor: '#000000', texture: 'metallic', style: 'ehx' },
+      bossps6: { primary: '#ff00ff', secondary: '#cc00cc', bgColor: '#cc00cc', bodyGradient: 'linear-gradient(145deg, #ee22ee 0%, #cc00cc 50%, #aa00aa 100%)', metalColor: '#2a2a2a', ledColor: '#ff0000', label: 'PS-6', brand: 'BOSS', subtitle: 'Harmonist', texture: 'boss-compact', style: 'japanese' },
+      subnup: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#0066cc', bodyGradient: 'linear-gradient(145deg, #0088ee 0%, #0066cc 50%, #0044aa 100%)', metalColor: '#2a2a2a', ledColor: '#ffff00', label: "SUB 'N' UP", brand: 'TC Electronic', subtitle: 'Octaver', texture: 'tc-compact', style: 'danish' },
+      pitchfork: { primary: '#000000', secondary: '#1a1a1a', bgColor: '#c0c0c0', bodyGradient: 'linear-gradient(145deg, #d8d8d8 0%, #c0c0c0 50%, #a0a0a0 100%)', metalColor: '#c0c0c0', ledColor: '#ff0000', label: 'PITCH FORK', brand: 'Electro-Harmonix', subtitle: 'Polyphonic Pitch Shifter', labelColor: '#000000', texture: 'metallic', style: 'ehx' },
+      pitchfactor: { primary: '#00ff00', secondary: '#00cc00', bgColor: '#1a1a1a', bodyGradient: 'linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 50%, #0a0a0a 100%)', metalColor: '#c0c0c0', knobPointer: '#00ff00', ledColor: '#00ff00', label: 'PitchFactor', brand: 'Eventide', subtitle: 'Harmonizer', labelColor: '#00ff00', texture: 'metallic', style: 'eventide', type: 'rack' },
+      bossoc5: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#003399', bodyGradient: 'linear-gradient(145deg, #004499 0%, #003399 50%, #002266 100%)', metalColor: '#2a2a2a', ledColor: '#ff0000', label: 'OC-5', brand: 'BOSS', subtitle: 'Super Octave', texture: 'boss-compact', style: 'japanese' },
+      freeze: { primary: '#000000', secondary: '#1a1a1a', bgColor: '#b8b8b8', bodyGradient: 'linear-gradient(145deg, #d0d0d0 0%, #b8b8b8 50%, #a0a0a0 100%)', metalColor: '#c0c0c0', ledColor: '#0066ff', label: 'FREEZE', brand: 'Electro-Harmonix', subtitle: 'Sound Retainer', labelColor: '#000000', texture: 'metallic', style: 'ehx' },
+      hedra: { primary: '#00ccff', secondary: '#0099cc', bgColor: '#1a1a2e', bodyGradient: 'linear-gradient(145deg, #2a2a44 0%, #1a1a2e 50%, #0a0a1e 100%)', metalColor: '#c0c0c0', knobPointer: '#00ccff', ledColor: '#00ccff', label: 'HEDRA', brand: 'Meris', subtitle: '3-Voice Rhythmic Pitch Shifter', labelColor: '#00ccff', texture: 'metallic', style: 'meris' },
+      mood: { primary: '#ff6600', secondary: '#cc5500', bgColor: '#f5f0e8', bodyGradient: 'linear-gradient(145deg, #fffbf5 0%, #f5f0e8 50%, #e0d8c8 100%)', metalColor: '#2a2a2a', knobPointer: '#ff6600', ledColor: '#ff6600', label: 'MOOD', brand: 'Chase Bliss', subtitle: 'Micro-Looper/Delay', labelColor: '#ff6600', texture: 'metallic', style: 'chasebliss' },
+      
+      // NEW EFFECTS 2025 - MULTI-FX (authentic)
+      helix: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#1a1a1a', bodyGradient: 'linear-gradient(180deg, #333333 0%, #1a1a1a 50%, #000000 100%)', metalColor: '#c0c0c0', ledColor: '#ff0000', label: 'HELIX', brand: 'Line 6', subtitle: 'Multi-Effects Processor', labelColor: '#ffffff', texture: 'metallic', style: 'modern', type: 'rack' },
+      axefx: { primary: '#00ff00', secondary: '#00cc00', bgColor: '#1a1a1a', bodyGradient: 'linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 50%, #0a0a0a 100%)', metalColor: '#c0c0c0', ledColor: '#00ff00', label: 'AXE-FX III', brand: 'Fractal Audio', subtitle: 'Amp Modeler/Multi-FX', labelColor: '#00ff00', texture: 'metallic', style: 'modern', type: 'rack' },
+      kemper: { primary: '#00ff00', secondary: '#00cc00', bgColor: '#1a1a1a', bodyGradient: 'linear-gradient(180deg, #333333 0%, #1a1a1a 50%, #000000 100%)', metalColor: '#c0c0c0', ledColor: '#00ff00', label: 'PROFILER', brand: 'Kemper', subtitle: 'Profiling Amplifier', labelColor: '#00ff00', texture: 'metallic', style: 'modern', type: 'rack' },
+      quadcortex: { primary: '#ffffff', secondary: '#e0e0e0', bgColor: '#1a1a1a', bodyGradient: 'linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 50%, #0a0a0a 100%)', metalColor: '#c0c0c0', ledColor: '#ffffff', label: 'QUAD CORTEX', brand: 'Neural DSP', subtitle: 'Quad Core Modeler', labelColor: '#ffffff', texture: 'metallic', style: 'modern', type: 'rack' },
+      gt1000: { primary: '#0099ff', secondary: '#0077cc', bgColor: '#000000', bodyGradient: 'linear-gradient(180deg, #1a1a1a 0%, #000000 50%, #000000 100%)', metalColor: '#2a2a2a', ledColor: '#0099ff', label: 'GT-1000', brand: 'BOSS', subtitle: 'Guitar Effects Processor', labelColor: '#0099ff', texture: 'metallic', style: 'japanese', type: 'rack' },
+      headrush: { primary: '#ff6600', secondary: '#cc4400', bgColor: '#1a1a1a', bodyGradient: 'linear-gradient(180deg, #333333 0%, #1a1a1a 50%, #000000 100%)', metalColor: '#c0c0c0', ledColor: '#ff6600', label: 'PEDALBOARD', brand: 'HeadRush', subtitle: 'Guitar FX & Amp Modeling', labelColor: '#ff6600', texture: 'metallic', style: 'modern', type: 'rack' },
       
       // ============================================
       // NEW CLASSIC PEDALS - AUTHENTIC COLORS
@@ -2173,6 +2247,314 @@ const Pedal = ({ effect, onUpdate, onBypass, onRemove }) => {
           </>
         );
       
+      // NEW EFFECTS 2025 - DRIVE (authentic per-pedal controls)
+      case 'ts808':
+        return (<><Knob label="Overdrive" value={effect.params?.drive || 50} onChange={handleKnobChange('drive')} /><Knob label="Tone" value={effect.params?.tone || 50} onChange={handleKnobChange('tone')} /><Knob label="Level" value={effect.params?.level || 70} onChange={handleKnobChange('level')} /></>);
+      case 'bossod3':
+        return (<><Knob label="Drive" value={effect.params?.drive || 50} onChange={handleKnobChange('drive')} /><Knob label="Tone" value={effect.params?.tone || 50} onChange={handleKnobChange('tone')} /><Knob label="Level" value={effect.params?.level || 70} onChange={handleKnobChange('level')} /></>);
+      case 'maxonod808':
+        return (<><Knob label="Drive" value={effect.params?.drive || 50} onChange={handleKnobChange('drive')} /><Knob label="Tone" value={effect.params?.tone || 50} onChange={handleKnobChange('tone')} /><Knob label="Balance" value={effect.params?.level || 70} onChange={handleKnobChange('level')} /></>);
+      case 'tumnus':
+      case 'soulfood':
+        return (<><Knob label="Drive" value={effect.params?.drive || 40} onChange={handleKnobChange('drive')} /><Knob label="Treble" value={effect.params?.treble || 50} onChange={handleKnobChange('treble')} /><Knob label="Volume" value={effect.params?.volume || 70} onChange={handleKnobChange('volume')} /></>);
+      case 'morningglory':
+        return (<><Knob label="Drive" value={effect.params?.drive || 50} onChange={handleKnobChange('drive')} /><Knob label="Tone" value={effect.params?.tone || 50} onChange={handleKnobChange('tone')} /><Knob label="Volume" value={effect.params?.volume || 70} onChange={handleKnobChange('volume')} /></>);
+      case 'zendrive':
+        return (<><Knob label="Gain" value={effect.params?.gain || 50} onChange={handleKnobChange('gain')} /><Knob label="Tone" value={effect.params?.tone || 50} onChange={handleKnobChange('tone')} /><Knob label="Voice" value={effect.params?.voice || 50} onChange={handleKnobChange('voice')} /><Knob label="Volume" value={effect.params?.volume || 70} onChange={handleKnobChange('volume')} /></>);
+      case 'timmy':
+        return (<><Knob label="Drive" value={effect.params?.drive || 40} onChange={handleKnobChange('drive')} /><Knob label="Volume" value={effect.params?.volume || 70} onChange={handleKnobChange('volume')} /><Knob label="Bass" value={effect.params?.bass || 50} onChange={handleKnobChange('bass')} /><Knob label="Treble" value={effect.params?.treble || 50} onChange={handleKnobChange('treble')} /></>);
+      case 'friedmanbeod':
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center', width: '100%' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', gap: '4px', flexWrap: 'wrap' }}>
+              <Knob label="Gain" value={effect.params?.gain || 60} onChange={handleKnobChange('gain')} />
+              <Knob label="Volume" value={effect.params?.volume || 60} onChange={handleKnobChange('volume')} />
+              <Knob label="Treble" value={effect.params?.treble || 50} onChange={handleKnobChange('treble')} />
+              <Knob label="Bass" value={effect.params?.bass || 50} onChange={handleKnobChange('bass')} />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <div className="toggle-switch" style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
+                padding: '4px 6px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px',
+                border: '2px solid rgba(255,255,255,0.25)', minWidth: '35px'
+              }}>
+                <span style={{ fontSize: '7px', color: '#fff', fontWeight: 'bold', opacity: 0.9 }}>TIGHT</span>
+                <input type="checkbox" checked={effect.params?.tight > 50}
+                  onChange={(e) => onUpdate(effect.id, 'tight', e.target.checked ? 100 : 0)}
+                  style={{ transform: 'scale(0.8)', cursor: 'pointer' }} />
+                <span style={{ fontSize: '7px', color: '#aaa', fontWeight: 'bold', opacity: 0.8 }}>OFF</span>
+              </div>
+            </div>
+          </div>
+        );
+      case 'suhrriot':
+        return (<><Knob label="Drive" value={effect.params?.drive || 50} onChange={handleKnobChange('drive')} /><Knob label="Tone" value={effect.params?.tone || 50} onChange={handleKnobChange('tone')} /><Knob label="Level" value={effect.params?.level || 70} onChange={handleKnobChange('level')} /></>);
+      case 'catalinbreaddls':
+        return (<><Knob label="Gain" value={effect.params?.gain || 50} onChange={handleKnobChange('gain')} /><Knob label="Volume" value={effect.params?.volume || 70} onChange={handleKnobChange('volume')} /></>);
+      case 'bognerecstasyblue':
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center', width: '100%' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', gap: '4px', flexWrap: 'wrap' }}>
+              <Knob label="Gain" value={effect.params?.gain || 50} onChange={handleKnobChange('gain')} />
+              <Knob label="Volume" value={effect.params?.volume || 70} onChange={handleKnobChange('volume')} />
+              <Knob label="Treble" value={effect.params?.treble || 50} onChange={handleKnobChange('treble')} />
+              <Knob label="Bass" value={effect.params?.bass || 50} onChange={handleKnobChange('bass')} />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <div className="toggle-switch" style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
+                padding: '4px 6px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px',
+                border: '2px solid rgba(255,255,255,0.25)', minWidth: '35px'
+              }}>
+                <span style={{ fontSize: '7px', color: '#fff', fontWeight: 'bold', opacity: 0.9 }}>BOOST</span>
+                <input type="checkbox" checked={!!effect.params?.boost}
+                  onChange={(e) => onUpdate(effect.id, 'boost', e.target.checked ? 1 : 0)}
+                  style={{ transform: 'scale(0.8)', cursor: 'pointer' }} />
+                <span style={{ fontSize: '7px', color: '#aaa', fontWeight: 'bold', opacity: 0.8 }}>OFF</span>
+              </div>
+            </div>
+          </div>
+        );
+      case 'plumes':
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center', width: '100%' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', gap: '5px' }}>
+              <Knob label="Gain" value={effect.params?.gain || 50} onChange={handleKnobChange('gain')} />
+              <Knob label="Tone" value={effect.params?.tone || 50} onChange={handleKnobChange('tone')} />
+              <Knob label="Level" value={effect.params?.level || 70} onChange={handleKnobChange('level')} />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', alignItems: 'center' }}>
+              {[1, 2, 3].map(m => (
+                <button key={m} onClick={() => onUpdate(effect.id, 'mode', m)}
+                  style={{
+                    width: '22px', height: '22px', borderRadius: '50%',
+                    border: (effect.params?.mode || 1) === m ? '2px solid #000' : '1px solid #888',
+                    background: (effect.params?.mode || 1) === m ? '#5abc00' : '#e0e0e0',
+                    color: (effect.params?.mode || 1) === m ? '#fff' : '#333',
+                    fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', padding: 0
+                  }}>{m}</button>
+              ))}
+            </div>
+          </div>
+        );
+      case 'dod250':
+        return (<><Knob label="Gain" value={effect.params?.gain || 60} onChange={handleKnobChange('gain')} /><Knob label="Level" value={effect.params?.level || 70} onChange={handleKnobChange('level')} /></>);
+      case 'darkglassb7k':
+        return (<><Knob label="Drive" value={effect.params?.drive || 50} onChange={handleKnobChange('drive')} /><Knob label="Blend" value={effect.params?.blend || 50} onChange={handleKnobChange('blend')} /><Knob label="Level" value={effect.params?.level || 70} onChange={handleKnobChange('level')} /><Knob label="Tone" value={effect.params?.tone || 50} onChange={handleKnobChange('tone')} /></>);
+      case 'swollenpickle':
+        return (<><Knob label="Sustain" value={effect.params?.sustain || 60} onChange={handleKnobChange('sustain')} /><Knob label="Filter" value={effect.params?.filter || 50} onChange={handleKnobChange('filter')} /><Knob label="Volume" value={effect.params?.volume || 70} onChange={handleKnobChange('volume')} /><Knob label="Scoop" value={effect.params?.scoop || 50} onChange={handleKnobChange('scoop')} /><Knob label="Crunch" value={effect.params?.crunch || 50} onChange={handleKnobChange('crunch')} /></>);
+      case 'greenrussian':
+        return (<><Knob label="Sustain" value={effect.params?.sustain || 60} onChange={handleKnobChange('sustain')} /><Knob label="Tone" value={effect.params?.tone || 50} onChange={handleKnobChange('tone')} /><Knob label="Volume" value={effect.params?.volume || 70} onChange={handleKnobChange('volume')} /></>);
+      case 'fuzzlordchime':
+        return (<><Knob label="Fuzz" value={effect.params?.fuzz || 70} onChange={handleKnobChange('fuzz')} /><Knob label="Volume" value={effect.params?.volume || 70} onChange={handleKnobChange('volume')} /><Knob label="Octave" value={effect.params?.octave_blend || 50} onChange={handleKnobChange('octave_blend')} /></>);
+      case 'badmonkey':
+        return (<><Knob label="Gain" value={effect.params?.gain || 50} onChange={handleKnobChange('gain')} /><Knob label="Level" value={effect.params?.level || 70} onChange={handleKnobChange('level')} /><Knob label="Bass" value={effect.params?.bass || 50} onChange={handleKnobChange('bass')} /><Knob label="Treble" value={effect.params?.treble || 50} onChange={handleKnobChange('treble')} /></>);
+      case 'amp11':
+        return (<><Knob label="Drive" value={effect.params?.drive || 40} onChange={handleKnobChange('drive')} /><Knob label="Tone" value={effect.params?.tone || 50} onChange={handleKnobChange('tone')} /><Knob label="Volume" value={effect.params?.volume || 70} onChange={handleKnobChange('volume')} /></>);
+      case 'fulldrive2':
+        return (
+          <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center', width: '100%' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 20px', justifyItems: 'center' }}>
+              <Knob label="Volume" value={effect.params?.volume || 70} onChange={handleKnobChange('volume')} />
+              <Knob label="Tone" value={effect.params?.tone || 50} onChange={handleKnobChange('tone')} />
+              <Knob label="OD" value={effect.params?.drive || 50} onChange={handleKnobChange('drive')} />
+              <Knob label="Boost" value={effect.params?.boost || 0} onChange={handleKnobChange('boost')} />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', width: '100%' }}>
+              <div style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
+                padding: '4px 8px', background: 'rgba(0,0,0,0.2)', borderRadius: '4px',
+                border: '1px solid rgba(255,255,255,0.25)'
+              }}>
+                <span style={{ fontSize: '7px', color: '#ddeeff', fontWeight: 'bold', letterSpacing: '0.5px' }}>COMP CUT</span>
+                <div onClick={() => onUpdate(effect.id, 'mode', effect.params?.mode >= 50 ? 0 : 100)}
+                  style={{
+                    width: '16px', height: '26px', background: 'linear-gradient(180deg, #555, #333)',
+                    borderRadius: '8px', border: '1px solid #777', cursor: 'pointer',
+                    position: 'relative', margin: '2px 0', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.5)'
+                  }}>
+                  <div style={{
+                    width: '12px', height: '12px', background: 'radial-gradient(circle at 40% 35%, #f0f0f0, #c0c0c0)',
+                    borderRadius: '50%', position: 'absolute', left: '1px',
+                    top: effect.params?.mode >= 50 ? '1px' : '11px',
+                    transition: 'top 0.15s ease', boxShadow: '0 1px 3px rgba(0,0,0,0.6)'
+                  }}/>
+                </div>
+                <span style={{ fontSize: '7px', color: '#ddeeff', fontWeight: 'bold', letterSpacing: '0.5px' }}>VINTAGE</span>
+              </div>
+            </div>
+          </div>
+        );
+      
+      // NEW EFFECTS 2025 - MODULATION (authentic per-pedal controls)
+      case 'tccorona':
+        return (<><Knob label="Speed" value={effect.params?.speed || 40} onChange={handleKnobChange('speed')} /><Knob label="Depth" value={effect.params?.depth || 60} onChange={handleKnobChange('depth')} /><Knob label="FX Level" value={effect.params?.mix || 50} onChange={handleKnobChange('mix')} /></>);
+      case 'strymonola':
+        return (<><Knob label="Rate" value={effect.params?.rate || 40} onChange={handleKnobChange('rate')} /><Knob label="Depth" value={effect.params?.depth || 60} onChange={handleKnobChange('depth')} /><Knob label="Mix" value={effect.params?.mix || 50} onChange={handleKnobChange('mix')} /></>);
+      case 'smallstone':
+        return (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', gap: '10px' }}>
+            <Knob label="Rate" value={effect.params?.rate || 40} onChange={handleKnobChange('rate')} />
+            <div className="toggle-switch" style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
+              padding: '4px 6px', background: 'rgba(0,0,0,0.15)', borderRadius: '4px',
+              border: '2px solid rgba(0,0,0,0.3)', minWidth: '35px', marginTop: '20px'
+            }}>
+              <span style={{ fontSize: '7px', color: '#ff6600', fontWeight: 'bold', opacity: 0.9 }}>COLOR</span>
+              <input type="checkbox" checked={!!effect.params?.color}
+                onChange={(e) => onUpdate(effect.id, 'color', e.target.checked ? 1 : 0)}
+                style={{ transform: 'scale(0.8)', cursor: 'pointer' }} />
+              <span style={{ fontSize: '7px', color: '#666', fontWeight: 'bold', opacity: 0.8 }}>OFF</span>
+            </div>
+          </div>
+        );
+      case 'phase100':
+        return (<><Knob label="Speed" value={effect.params?.speed || 40} onChange={handleKnobChange('speed')} /><Knob label="Intensity" value={effect.params?.intensity || 60} onChange={handleKnobChange('intensity')} /></>);
+      case 'electricmistress':
+        return (<><Knob label="Rate" value={effect.params?.rate || 30} onChange={handleKnobChange('rate')} /><Knob label="Range" value={effect.params?.range || 60} onChange={handleKnobChange('range')} /><Knob label="Color" value={effect.params?.filter_matrix || 50} onChange={handleKnobChange('filter_matrix')} /></>);
+      case 'tcvortex':
+        return (<><Knob label="Speed" value={effect.params?.speed || 40} onChange={handleKnobChange('speed')} /><Knob label="Depth" value={effect.params?.depth || 60} onChange={handleKnobChange('depth')} /><Knob label="Feedback" value={effect.params?.feedback || 50} onChange={handleKnobChange('feedback')} /></>);
+      case 'dejavibe':
+        return (<><Knob label="Speed" value={effect.params?.speed || 40} onChange={handleKnobChange('speed')} /><Knob label="Intensity" value={effect.params?.intensity || 60} onChange={handleKnobChange('intensity')} /><Knob label="Mix" value={effect.params?.mix || 70} onChange={handleKnobChange('mix')} /></>);
+      case 'rotovibe':
+        return (<><Knob label="Speed" value={effect.params?.speed || 40} onChange={handleKnobChange('speed')} /><Knob label="Depth" value={effect.params?.depth || 60} onChange={handleKnobChange('depth')} /></>);
+      case 'diamondtrem':
+        return (<><Knob label="Speed" value={effect.params?.rate || 50} onChange={handleKnobChange('rate')} /><Knob label="Depth" value={effect.params?.depth || 60} onChange={handleKnobChange('depth')} /><Knob label="Mix" value={effect.params?.mix || 70} onChange={handleKnobChange('mix')} /></>);
+      case 'warpedvinyl':
+        return (<><Knob label="Rate" value={effect.params?.rate || 30} onChange={handleKnobChange('rate')} /><Knob label="Depth" value={effect.params?.depth || 50} onChange={handleKnobChange('depth')} /><Knob label="Mix" value={effect.params?.mix || 50} onChange={handleKnobChange('mix')} /><Knob label="Warp" value={effect.params?.warp || 30} onChange={handleKnobChange('warp')} /><Knob label="Tone" value={effect.params?.tone || 50} onChange={handleKnobChange('tone')} /></>);
+      case 'polychorus':
+        return (<><Knob label="Rate" value={effect.params?.rate || 40} onChange={handleKnobChange('rate')} /><Knob label="Width" value={effect.params?.depth || 50} onChange={handleKnobChange('depth')} /><Knob label="F.Back" value={effect.params?.feedback || 40} onChange={handleKnobChange('feedback')} /><Knob label="Mix" value={effect.params?.mix || 50} onChange={handleKnobChange('mix')} /></>);
+      case 'tcshaker':
+        return (<><Knob label="Speed" value={effect.params?.speed || 40} onChange={handleKnobChange('speed')} /><Knob label="Depth" value={effect.params?.depth || 60} onChange={handleKnobChange('depth')} /><Knob label="FX Level" value={effect.params?.mix || 50} onChange={handleKnobChange('mix')} /></>);
+      case 'monument':
+        return (<><Knob label="Rate" value={effect.params?.rate || 50} onChange={handleKnobChange('rate')} /><Knob label="Depth" value={effect.params?.depth || 60} onChange={handleKnobChange('depth')} /><Knob label="Tone" value={effect.params?.tone || 50} onChange={handleKnobChange('tone')} /><Knob label="Mix" value={effect.params?.mix || 70} onChange={handleKnobChange('mix')} /></>);
+      case 'particle':
+        return (<><Knob label="Time" value={effect.params?.time || 50} onChange={handleKnobChange('time')} /><Knob label="Density" value={effect.params?.density || 50} onChange={handleKnobChange('density')} /><Knob label="Pitch" value={effect.params?.pitch || 50} onChange={handleKnobChange('pitch')} /><Knob label="Mix" value={effect.params?.mix || 50} onChange={handleKnobChange('mix')} /></>);
+      case 'merisenzo':
+        return (<><Knob label="Voice" value={effect.params?.voice || 50} onChange={handleKnobChange('voice')} /><Knob label="Sustain" value={effect.params?.sustain || 60} onChange={handleKnobChange('sustain')} /><Knob label="Mix" value={effect.params?.mix || 50} onChange={handleKnobChange('mix')} /><Knob label="Filter" value={effect.params?.filter || 50} onChange={handleKnobChange('filter')} /><Knob label="Tone" value={effect.params?.tone || 50} onChange={handleKnobChange('tone')} /></>);
+      
+      // NEW EFFECTS 2025 - TIME-BASED (authentic per-pedal controls)
+      case 'tcflashback':
+        return (<><Knob label="Delay" value={effect.params?.time || 50} onChange={handleKnobChange('time')} /><Knob label="Feedback" value={effect.params?.feedback || 50} onChange={handleKnobChange('feedback')} /><Knob label="FX Level" value={effect.params?.mix || 50} onChange={handleKnobChange('mix')} /></>);
+      case 'supapuss':
+        return (<><Knob label="Delay" value={effect.params?.delay || 50} onChange={handleKnobChange('delay')} /><Knob label="Repeats" value={effect.params?.repeats || 50} onChange={handleKnobChange('repeats')} /><Knob label="Mix" value={effect.params?.mix || 50} onChange={handleKnobChange('mix')} /><Knob label="Filter" value={effect.params?.tone || 50} onChange={handleKnobChange('tone')} /><Knob label="Speed" value={effect.params?.mod_speed || 30} onChange={handleKnobChange('mod_speed')} /></>);
+      case 'arp87':
+        return (<><Knob label="Time" value={effect.params?.time || 50} onChange={handleKnobChange('time')} /><Knob label="Repeats" value={effect.params?.repeats || 50} onChange={handleKnobChange('repeats')} /><Knob label="Mix" value={effect.params?.mix || 50} onChange={handleKnobChange('mix')} /><Knob label="Dampen" value={effect.params?.dampen || 50} onChange={handleKnobChange('dampen')} /></>);
+      case 'dispatchmaster':
+        return (<><Knob label="Time" value={effect.params?.time || 50} onChange={handleKnobChange('time')} /><Knob label="Repeats" value={effect.params?.repeats || 50} onChange={handleKnobChange('repeats')} /><Knob label="Reverb" value={effect.params?.reverb || 40} onChange={handleKnobChange('reverb')} /><Knob label="Flexi" value={effect.params?.mix || 50} onChange={handleKnobChange('mix')} /></>);
+      case 'bossdd3':
+        return (<><Knob label="E.Level" value={effect.params?.level || 50} onChange={handleKnobChange('level')} /><Knob label="F.Back" value={effect.params?.feedback || 50} onChange={handleKnobChange('feedback')} /><Knob label="D.Time" value={effect.params?.time || 50} onChange={handleKnobChange('time')} /></>);
+      case 'bossdd7':
+        return (<><Knob label="E.Level" value={effect.params?.level || 50} onChange={handleKnobChange('level')} /><Knob label="Feedback" value={effect.params?.feedback || 50} onChange={handleKnobChange('feedback')} /><Knob label="D.Time" value={effect.params?.time || 50} onChange={handleKnobChange('time')} /><Knob label="Tone" value={effect.params?.tone || 50} onChange={handleKnobChange('tone')} /></>);
+      case 'maxonad999':
+        return (<><Knob label="Delay" value={effect.params?.delay || 50} onChange={handleKnobChange('delay')} /><Knob label="Repeat" value={effect.params?.repeat || 50} onChange={handleKnobChange('repeat')} /><Knob label="Blend" value={effect.params?.blend || 50} onChange={handleKnobChange('blend')} /></>);
+      case 'echosystem':
+        return (<><Knob label="Time A" value={effect.params?.time_a || 50} onChange={handleKnobChange('time_a')} /><Knob label="Time B" value={effect.params?.time_b || 50} onChange={handleKnobChange('time_b')} /><Knob label="Feedback" value={effect.params?.feedback || 50} onChange={handleKnobChange('feedback')} /><Knob label="Mix" value={effect.params?.mix || 50} onChange={handleKnobChange('mix')} /></>);
+      case 'thermae':
+        return (<><Knob label="Time" value={effect.params?.time || 50} onChange={handleKnobChange('time')} /><Knob label="Regen" value={effect.params?.regen || 50} onChange={handleKnobChange('regen')} /><Knob label="Mix" value={effect.params?.mix || 50} onChange={handleKnobChange('mix')} /><Knob label="Int1" value={effect.params?.interval1 || 50} onChange={handleKnobChange('interval1')} /><Knob label="Int2" value={effect.params?.interval2 || 50} onChange={handleKnobChange('interval2')} /></>);
+      case 'belleepoch':
+        return (<><Knob label="Echo" value={effect.params?.echo || 50} onChange={handleKnobChange('echo')} /><Knob label="Record Level" value={effect.params?.sustain || 50} onChange={handleKnobChange('sustain')} /><Knob label="Mix" value={effect.params?.mix || 50} onChange={handleKnobChange('mix')} /><Knob label="Bias" value={effect.params?.tone || 50} onChange={handleKnobChange('tone')} /></>);
+      case 'elcapistan':
+        return (<><Knob label="Time" value={effect.params?.time || 50} onChange={handleKnobChange('time')} /><Knob label="Mix" value={effect.params?.mix || 50} onChange={handleKnobChange('mix')} /><Knob label="Repeats" value={effect.params?.repeats || 50} onChange={handleKnobChange('repeats')} /><Knob label="Wow&Fltr" value={effect.params?.wow_flutter || 20} onChange={handleKnobChange('wow_flutter')} /><Knob label="Tape Age" value={effect.params?.tape_age || 30} onChange={handleKnobChange('tape_age')} /></>);
+      case 'strymonflint':
+        return (<><Knob label="Speed" value={effect.params?.trem_speed || 50} onChange={handleKnobChange('trem_speed')} /><Knob label="Intensity" value={effect.params?.trem_depth || 50} onChange={handleKnobChange('trem_depth')} /><Knob label="Decay" value={effect.params?.reverb_decay || 50} onChange={handleKnobChange('reverb_decay')} /><Knob label="Color" value={effect.params?.color || 50} onChange={handleKnobChange('color')} /><Knob label="Mix" value={effect.params?.reverb_mix || 40} onChange={handleKnobChange('reverb_mix')} /></>);
+      case 'immerse':
+        return (<><Knob label="Depth" value={effect.params?.depth || 50} onChange={handleKnobChange('depth')} /><Knob label="Mix" value={effect.params?.mix || 40} onChange={handleKnobChange('mix')} /><Knob label="Tone" value={effect.params?.tone || 50} onChange={handleKnobChange('tone')} /><Knob label="Trail" value={effect.params?.trail || 50} onChange={handleKnobChange('trail')} /></>);
+      case 'cathedral':
+        return (<><Knob label="Blend" value={effect.params?.blend || 40} onChange={handleKnobChange('blend')} /><Knob label="Feedback" value={effect.params?.feedback || 30} onChange={handleKnobChange('feedback')} /><Knob label="Damping" value={effect.params?.damp || 50} onChange={handleKnobChange('damp')} /><Knob label="Time" value={effect.params?.reverb_time || 50} onChange={handleKnobChange('reverb_time')} /><Knob label="Pre-Delay" value={effect.params?.predelay || 20} onChange={handleKnobChange('predelay')} /></>);
+      case 'walrusslo':
+        return (<><Knob label="Decay" value={effect.params?.decay || 60} onChange={handleKnobChange('decay')} /><Knob label="Mix" value={effect.params?.mix || 40} onChange={handleKnobChange('mix')} /><Knob label="Filter" value={effect.params?.filter || 50} onChange={handleKnobChange('filter')} /><Knob label="X" value={effect.params?.depth || 40} onChange={handleKnobChange('depth')} /></>);
+      case 'darkstar':
+        return (<><Knob label="Decay" value={effect.params?.decay || 60} onChange={handleKnobChange('decay')} /><Knob label="Mix" value={effect.params?.mix || 40} onChange={handleKnobChange('mix')} /><Knob label="Voice" value={effect.params?.voice || 50} onChange={handleKnobChange('voice')} /><Knob label="Crush" value={effect.params?.crush || 0} onChange={handleKnobChange('crush')} /></>);
+      case 'mercury7':
+        return (<><Knob label="Space Decay" value={effect.params?.space_decay || 50} onChange={handleKnobChange('space_decay')} /><Knob label="Mix" value={effect.params?.mix || 40} onChange={handleKnobChange('mix')} /><Knob label="Hi Freq" value={effect.params?.hi_freq || 50} onChange={handleKnobChange('hi_freq')} /><Knob label="Lo Freq" value={effect.params?.lo_freq || 50} onChange={handleKnobChange('lo_freq')} /><Knob label="Mod Speed" value={effect.params?.modulate || 30} onChange={handleKnobChange('modulate')} /><Knob label="Density" value={effect.params?.density || 50} onChange={handleKnobChange('density')} /></>);
+      case 'rpcontext':
+        return (<><Knob label="Decay" value={effect.params?.decay || 50} onChange={handleKnobChange('decay')} /><Knob label="Blend" value={effect.params?.blend || 40} onChange={handleKnobChange('blend')} /><Knob label="Dampen" value={effect.params?.dampen || 50} onChange={handleKnobChange('dampen')} /><Knob label="Pre-Delay" value={effect.params?.pre_delay || 20} onChange={handleKnobChange('pre_delay')} /></>);
+      case 'tensor':
+        return (<><Knob label="Time" value={effect.params?.time || 50} onChange={handleKnobChange('time')} /><Knob label="Pitch" value={effect.params?.pitch || 50} onChange={handleKnobChange('pitch')} /><Knob label="Blend" value={effect.params?.blend || 50} onChange={handleKnobChange('blend')} /><Knob label="Speed" value={effect.params?.speed || 50} onChange={handleKnobChange('speed')} /></>);
+      
+      // NEW EFFECTS 2025 - DYNAMICS (authentic per-pedal controls)
+      case 'fmrrnc':
+        return (<><Knob label="Threshold" value={effect.params?.threshold || 50} onChange={handleKnobChange('threshold')} /><Knob label="Ratio" value={effect.params?.ratio || 40} onChange={handleKnobChange('ratio')} /><Knob label="Attack" value={effect.params?.attack || 30} onChange={handleKnobChange('attack')} /><Knob label="Release" value={effect.params?.release || 40} onChange={handleKnobChange('release')} /><Knob label="Gain" value={effect.params?.volume || 70} onChange={handleKnobChange('volume')} /></>);
+      case 'empresscomp':
+        return (<><Knob label="Comp" value={effect.params?.threshold || 50} onChange={handleKnobChange('threshold')} /><Knob label="Ratio" value={effect.params?.ratio || 40} onChange={handleKnobChange('ratio')} /><Knob label="Mix" value={effect.params?.mix || 70} onChange={handleKnobChange('mix')} /><Knob label="Tone" value={effect.params?.tone || 50} onChange={handleKnobChange('tone')} /><Knob label="Attack" value={effect.params?.attack || 30} onChange={handleKnobChange('attack')} /><Knob label="Output" value={effect.params?.output || 70} onChange={handleKnobChange('output')} /></>);
+      case 'cali76':
+        return (<><Knob label="In" value={effect.params?.input || 50} onChange={handleKnobChange('input')} /><Knob label="Out" value={effect.params?.output || 50} onChange={handleKnobChange('output')} /><Knob label="Attack" value={effect.params?.attack || 30} onChange={handleKnobChange('attack')} /><Knob label="Release" value={effect.params?.release || 40} onChange={handleKnobChange('release')} /><Knob label="Ratio" value={effect.params?.ratio || 40} onChange={handleKnobChange('ratio')} /></>);
+      case 'deepsix':
+        return (<><Knob label="Level" value={effect.params?.level || 70} onChange={handleKnobChange('level')} /><Knob label="Sustain" value={effect.params?.sustain || 50} onChange={handleKnobChange('sustain')} /><Knob label="Blend" value={effect.params?.blend || 70} onChange={handleKnobChange('blend')} /><Knob label="Tone" value={effect.params?.tone || 50} onChange={handleKnobChange('tone')} /><Knob label="Attack" value={effect.params?.attack || 30} onChange={handleKnobChange('attack')} /></>);
+      case 'blackfinger':
+        return (<><Knob label="Sustain" value={effect.params?.sustain || 60} onChange={handleKnobChange('sustain')} /><Knob label="Volume" value={effect.params?.volume || 70} onChange={handleKnobChange('volume')} /><Knob label="Squash" value={effect.params?.squash || 30} onChange={handleKnobChange('squash')} /></>);
+      case 'philosopher':
+        return (<><Knob label="Sustain" value={effect.params?.sustain || 60} onChange={handleKnobChange('sustain')} /><Knob label="Blend" value={effect.params?.blend || 50} onChange={handleKnobChange('blend')} /><Knob label="Treble" value={effect.params?.treble || 50} onChange={handleKnobChange('treble')} /><Knob label="Volume" value={effect.params?.volume || 70} onChange={handleKnobChange('volume')} /><Knob label="Grit" value={effect.params?.grit || 20} onChange={handleKnobChange('grit')} /></>);
+      case 'hypergravity':
+        return (<><Knob label="Sustain" value={effect.params?.sustain || 50} onChange={handleKnobChange('sustain')} /><Knob label="Attack" value={effect.params?.attack || 30} onChange={handleKnobChange('attack')} /><Knob label="Level" value={effect.params?.level || 70} onChange={handleKnobChange('level')} /><Knob label="Blend" value={effect.params?.blend || 70} onChange={handleKnobChange('blend')} /></>);
+      case 'bosscs3':
+        return (<><Knob label="Level" value={effect.params?.level || 70} onChange={handleKnobChange('level')} /><Knob label="Tone" value={effect.params?.tone || 50} onChange={handleKnobChange('tone')} /><Knob label="Attack" value={effect.params?.attack || 30} onChange={handleKnobChange('attack')} /><Knob label="Sustain" value={effect.params?.sustain || 50} onChange={handleKnobChange('sustain')} /></>);
+      case 'wamplerego':
+        return (<><Knob label="Sustain" value={effect.params?.sustain || 50} onChange={handleKnobChange('sustain')} /><Knob label="Volume" value={effect.params?.volume || 70} onChange={handleKnobChange('volume')} /><Knob label="Attack" value={effect.params?.attack || 30} onChange={handleKnobChange('attack')} /><Knob label="Tone" value={effect.params?.tone || 50} onChange={handleKnobChange('tone')} /><Knob label="Blend" value={effect.params?.blend || 70} onChange={handleKnobChange('blend')} /></>);
+      case 'compulator':
+        return (<><Knob label="Comp" value={effect.params?.compress || 50} onChange={handleKnobChange('compress')} /><Knob label="Volume" value={effect.params?.volume || 70} onChange={handleKnobChange('volume')} /><Knob label="Tone" value={effect.params?.tone || 50} onChange={handleKnobChange('tone')} /></>);
+      
+      // NEW EFFECTS 2025 - EQ & FILTERS (authentic per-pedal controls)
+      case 'bossge7':
+        return (<><Knob label="100Hz" value={effect.params?.band1 || 50} onChange={handleKnobChange('band1')} /><Knob label="200Hz" value={effect.params?.band2 || 50} onChange={handleKnobChange('band2')} /><Knob label="400Hz" value={effect.params?.band3 || 50} onChange={handleKnobChange('band3')} /><Knob label="800Hz" value={effect.params?.band4 || 50} onChange={handleKnobChange('band4')} /><Knob label="1.6kHz" value={effect.params?.band5 || 50} onChange={handleKnobChange('band5')} /><Knob label="3.2kHz" value={effect.params?.band6 || 50} onChange={handleKnobChange('band6')} /><Knob label="6.4kHz" value={effect.params?.band7 || 50} onChange={handleKnobChange('band7')} /><Knob label="Level" value={effect.params?.level || 50} onChange={handleKnobChange('level')} /></>);
+      case 'sourceaudioeq2':
+        return (<><Knob label="Band 1" value={effect.params?.low_gain || 50} onChange={handleKnobChange('low_gain')} /><Knob label="Band 2" value={effect.params?.mid_gain || 50} onChange={handleKnobChange('mid_gain')} /><Knob label="Band 3" value={effect.params?.hi_gain || 50} onChange={handleKnobChange('hi_gain')} /><Knob label="Volume" value={effect.params?.boost || 50} onChange={handleKnobChange('boost')} /></>);
+      case 'empressparaeq':
+        return (<><Knob label="Low" value={effect.params?.low_gain || 50} onChange={handleKnobChange('low_gain')} /><Knob label="Low Mid" value={effect.params?.lowmid_gain || 50} onChange={handleKnobChange('lowmid_gain')} /><Knob label="Hi Mid" value={effect.params?.mid_gain || 50} onChange={handleKnobChange('mid_gain')} /><Knob label="High" value={effect.params?.hi_gain || 50} onChange={handleKnobChange('hi_gain')} /><Knob label="Gain" value={effect.params?.boost || 50} onChange={handleKnobChange('boost')} /></>);
+      case 'talkingmachine':
+        return (<><Knob label="Voice" value={effect.params?.voice || 50} onChange={handleKnobChange('voice')} /><Knob label="Sensitivity" value={effect.params?.sensitivity || 50} onChange={handleKnobChange('sensitivity')} /><Knob label="Blend" value={effect.params?.blend || 50} onChange={handleKnobChange('blend')} /></>);
+      case 'moogmf101':
+        return (<><Knob label="Cutoff" value={effect.params?.cutoff || 50} onChange={handleKnobChange('cutoff')} /><Knob label="Reso" value={effect.params?.resonance || 50} onChange={handleKnobChange('resonance')} /><Knob label="Amount" value={effect.params?.envelope_amount || 50} onChange={handleKnobChange('envelope_amount')} /><Knob label="Drive" value={effect.params?.drive || 30} onChange={handleKnobChange('drive')} /><Knob label="Mix" value={effect.params?.mix || 100} onChange={handleKnobChange('mix')} /></>);
+      case 'dod440':
+        return (<><Knob label="Sensitivity" value={effect.params?.sensitivity || 50} onChange={handleKnobChange('sensitivity')} /><Knob label="Range" value={effect.params?.range || 50} onChange={handleKnobChange('range')} /><Knob label="Level" value={effect.params?.level || 70} onChange={handleKnobChange('level')} /></>);
+      case 'mutron':
+        return (<><Knob label="Peak" value={effect.params?.peak || 50} onChange={handleKnobChange('peak')} /><Knob label="Gain" value={effect.params?.gain || 50} onChange={handleKnobChange('gain')} /><Knob label="Drive" value={effect.params?.drive || 30} onChange={handleKnobChange('drive')} /></>);
+      case 'qtron':
+        return (<><Knob label="Q" value={effect.params?.q || 50} onChange={handleKnobChange('q')} /><Knob label="Drive" value={effect.params?.drive || 50} onChange={handleKnobChange('drive')} /><Knob label="Range" value={effect.params?.range || 50} onChange={handleKnobChange('range')} /></>);
+      case 'dunlop105q':
+        return (<><Knob label="Volume" value={effect.params?.volume || 70} onChange={handleKnobChange('volume')} /><Knob label="Frequency" value={effect.params?.position || 50} onChange={handleKnobChange('position')} /><Knob label="Range" value={effect.params?.range || 50} onChange={handleKnobChange('range')} /><Knob label="Q" value={effect.params?.q || 50} onChange={handleKnobChange('q')} /></>);
+      case 'badhorsie':
+        return (<><Knob label="Contour" value={effect.params?.contour || 50} onChange={handleKnobChange('contour')} /><Knob label="Level" value={effect.params?.level || 70} onChange={handleKnobChange('level')} /><Knob label="Range" value={effect.params?.wah_range || 50} onChange={handleKnobChange('wah_range')} /></>);
+      
+      // NEW EFFECTS 2025 - PITCH & SYNTH (authentic per-pedal controls)
+      case 'ehxpog':
+        return (<><Knob label="Sub Octave" value={effect.params?.sub_octave || 50} onChange={handleKnobChange('sub_octave')} /><Knob label="Dry" value={effect.params?.dry || 100} onChange={handleKnobChange('dry')} /><Knob label="Octave Up" value={effect.params?.octave_up || 50} onChange={handleKnobChange('octave_up')} /><Knob label="Filter" value={effect.params?.lpf || 50} onChange={handleKnobChange('lpf')} /></>);
+      case 'micropog':
+        return (<><Knob label="Sub Octave" value={effect.params?.sub_octave || 50} onChange={handleKnobChange('sub_octave')} /><Knob label="Dry" value={effect.params?.dry || 100} onChange={handleKnobChange('dry')} /><Knob label="Octave Up" value={effect.params?.octave_up || 50} onChange={handleKnobChange('octave_up')} /></>);
+      case 'ehxhog':
+        return (<><Knob label="-2 Oct" value={effect.params?.sub2 || 0} onChange={handleKnobChange('sub2')} /><Knob label="-1 Oct" value={effect.params?.sub1 || 50} onChange={handleKnobChange('sub1')} /><Knob label="Dry" value={effect.params?.dry || 100} onChange={handleKnobChange('dry')} /><Knob label="+1 Oct" value={effect.params?.oct1 || 50} onChange={handleKnobChange('oct1')} /><Knob label="+5th" value={effect.params?.fifth || 0} onChange={handleKnobChange('fifth')} /><Knob label="+2 Oct" value={effect.params?.oct2 || 0} onChange={handleKnobChange('oct2')} /></>);
+      case 'bossps6':
+        return (<><Knob label="Shift" value={effect.params?.shift || 50} onChange={handleKnobChange('shift')} /><Knob label="Fine" value={effect.params?.fine || 50} onChange={handleKnobChange('fine')} /><Knob label="Balance" value={effect.params?.balance || 50} onChange={handleKnobChange('balance')} /></>);
+      case 'subnup':
+        return (<><Knob label="Sub 1" value={effect.params?.sub1 || 50} onChange={handleKnobChange('sub1')} /><Knob label="Sub 2" value={effect.params?.sub2 || 30} onChange={handleKnobChange('sub2')} /><Knob label="Dry" value={effect.params?.dry || 100} onChange={handleKnobChange('dry')} /><Knob label="Poly" value={effect.params?.tone || 50} onChange={handleKnobChange('tone')} /></>);
+      case 'pitchfork':
+        return (<><Knob label="Shift" value={effect.params?.shift || 50} onChange={handleKnobChange('shift')} /><Knob label="Blend" value={effect.params?.blend || 50} onChange={handleKnobChange('blend')} /></>);
+      case 'pitchfactor':
+        return (<><Knob label="Pitch A" value={effect.params?.pitch_a || 50} onChange={handleKnobChange('pitch_a')} /><Knob label="Pitch B" value={effect.params?.pitch_b || 50} onChange={handleKnobChange('pitch_b')} /><Knob label="Delay" value={effect.params?.delay || 20} onChange={handleKnobChange('delay')} /><Knob label="FdBk" value={effect.params?.feedback || 20} onChange={handleKnobChange('feedback')} /><Knob label="Mix" value={effect.params?.mix || 50} onChange={handleKnobChange('mix')} /></>);
+      case 'bossoc5':
+        return (<><Knob label="Oct 1" value={effect.params?.oct1 || 50} onChange={handleKnobChange('oct1')} /><Knob label="Oct 2" value={effect.params?.oct2 || 30} onChange={handleKnobChange('oct2')} /><Knob label="Direct" value={effect.params?.dry || 100} onChange={handleKnobChange('dry')} /><Knob label="Range" value={effect.params?.range || 50} onChange={handleKnobChange('range')} /></>);
+      case 'freeze':
+        return (<><Knob label="Decay" value={effect.params?.decay || 100} onChange={handleKnobChange('decay')} /></>);
+      case 'hedra':
+        return (<><Knob label="Pitch A" value={effect.params?.pitch_a || 50} onChange={handleKnobChange('pitch_a')} /><Knob label="Pitch B" value={effect.params?.pitch_b || 50} onChange={handleKnobChange('pitch_b')} /><Knob label="Pitch C" value={effect.params?.pitch_c || 50} onChange={handleKnobChange('pitch_c')} /><Knob label="Mix" value={effect.params?.mix || 50} onChange={handleKnobChange('mix')} /><Knob label="Glide" value={effect.params?.glide || 30} onChange={handleKnobChange('glide')} /><Knob label="Feedback" value={effect.params?.feedback || 20} onChange={handleKnobChange('feedback')} /></>);
+      case 'mood':
+        return (<><Knob label="Time" value={effect.params?.time || 50} onChange={handleKnobChange('time')} /><Knob label="Mix" value={effect.params?.mix || 50} onChange={handleKnobChange('mix')} /><Knob label="Clock" value={effect.params?.clock || 50} onChange={handleKnobChange('clock')} /><Knob label="Filter" value={effect.params?.filter || 50} onChange={handleKnobChange('filter')} /><Knob label="Modify" value={effect.params?.modify || 50} onChange={handleKnobChange('modify')} /></>);
+      
+      // NEW EFFECTS 2025 - MULTI-FX (authentic per-unit controls)
+      case 'helix':
+        return (<><Knob label="Drive" value={effect.params?.drive || 50} onChange={handleKnobChange('drive')} /><Knob label="Bass" value={effect.params?.bass || 50} onChange={handleKnobChange('bass')} /><Knob label="Mid" value={effect.params?.mid || 50} onChange={handleKnobChange('mid')} /><Knob label="Treble" value={effect.params?.treble || 50} onChange={handleKnobChange('treble')} /><Knob label="Dly Mix" value={effect.params?.delay_mix || 30} onChange={handleKnobChange('delay_mix')} /><Knob label="Rev Mix" value={effect.params?.reverb_mix || 30} onChange={handleKnobChange('reverb_mix')} /></>);
+      case 'axefx':
+        return (<><Knob label="Drive" value={effect.params?.drive || 50} onChange={handleKnobChange('drive')} /><Knob label="Bass" value={effect.params?.bass || 50} onChange={handleKnobChange('bass')} /><Knob label="Mid" value={effect.params?.mid || 50} onChange={handleKnobChange('mid')} /><Knob label="Treble" value={effect.params?.treble || 50} onChange={handleKnobChange('treble')} /><Knob label="Presence" value={effect.params?.presence || 50} onChange={handleKnobChange('presence')} /><Knob label="Depth" value={effect.params?.depth || 50} onChange={handleKnobChange('depth')} /></>);
+      case 'kemper':
+        return (<><Knob label="Gain" value={effect.params?.gain || 50} onChange={handleKnobChange('gain')} /><Knob label="Bass" value={effect.params?.bass || 50} onChange={handleKnobChange('bass')} /><Knob label="Mid" value={effect.params?.mid || 50} onChange={handleKnobChange('mid')} /><Knob label="Treble" value={effect.params?.treble || 50} onChange={handleKnobChange('treble')} /><Knob label="Presence" value={effect.params?.presence || 50} onChange={handleKnobChange('presence')} /><Knob label="Definition" value={effect.params?.definition || 50} onChange={handleKnobChange('definition')} /></>);
+      case 'quadcortex':
+        return (<><Knob label="Gain" value={effect.params?.gain || 50} onChange={handleKnobChange('gain')} /><Knob label="Bass" value={effect.params?.bass || 50} onChange={handleKnobChange('bass')} /><Knob label="Mid" value={effect.params?.mid || 50} onChange={handleKnobChange('mid')} /><Knob label="Treble" value={effect.params?.treble || 50} onChange={handleKnobChange('treble')} /><Knob label="Presence" value={effect.params?.presence || 50} onChange={handleKnobChange('presence')} /></>);
+      case 'gt1000':
+        return (<><Knob label="Drive" value={effect.params?.drive || 50} onChange={handleKnobChange('drive')} /><Knob label="Bass" value={effect.params?.bass || 50} onChange={handleKnobChange('bass')} /><Knob label="Mid" value={effect.params?.mid || 50} onChange={handleKnobChange('mid')} /><Knob label="Treble" value={effect.params?.treble || 50} onChange={handleKnobChange('treble')} /><Knob label="FX Level" value={effect.params?.fx_level || 50} onChange={handleKnobChange('fx_level')} /></>);
+      case 'headrush':
+        return (<><Knob label="Gain" value={effect.params?.gain || 50} onChange={handleKnobChange('gain')} /><Knob label="Bass" value={effect.params?.bass || 50} onChange={handleKnobChange('bass')} /><Knob label="Mid" value={effect.params?.mid || 50} onChange={handleKnobChange('mid')} /><Knob label="Treble" value={effect.params?.treble || 50} onChange={handleKnobChange('treble')} /><Knob label="Dly Mix" value={effect.params?.delay_mix || 30} onChange={handleKnobChange('delay_mix')} /></>);
+      
       default:
         return (
           <>
@@ -2195,7 +2577,16 @@ const Pedal = ({ effect, onUpdate, onBypass, onRemove }) => {
     'eventidetimefactor', 'bossdd500', 'line6dl4',
     'eventidespace', 'bossrv500',
     'strymonmobius', 'eventideh9',
-    'mesavtwin', 'tech21sansamp'
+    'mesavtwin', 'tech21sansamp',
+    // New rack/multi-fx effects
+    'helix', 'axefx', 'kemper', 'quadcortex', 'gt1000', 'headrush',
+    'fmrrnc', 'echosystem', 'pitchfactor',
+    // New pedals with many knobs
+    'bossge7', 'ehxhog', 'empresscomp', 'mercury7', 'warpedvinyl',
+    'elcapistan', 'strymonflint', 'philosopher', 'moogmf101',
+    'cathedral', 'walrusslo', 'strymonola', 'hedra', 'mood',
+    'thermae', 'friedmanbeod', 'swollenpickle', 'darkglassb7k',
+    'empressparaeq'
   ];
   const isLarge = largePedals.includes(effect.type);
 

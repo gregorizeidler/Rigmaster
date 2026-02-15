@@ -93,6 +93,105 @@ import MXR10BandEQEffect from './audio/effects/MXR10BandEQEffect';
 import WalrusJuliaEffect from './audio/effects/WalrusJuliaEffect';
 import EHXHolyGrailEffect from './audio/effects/EHXHolyGrailEffect';
 import TCHallOfFameEffect from './audio/effects/TCHallOfFameEffect';
+// NEW EFFECTS 2025 - Drive/Distortion/Fuzz
+import IbanezTS808Effect from './audio/effects/IbanezTS808Effect';
+import BossOD3Effect from './audio/effects/BossOD3Effect';
+import MaxonOD808Effect from './audio/effects/MaxonOD808Effect';
+import WamplerTumnusEffect from './audio/effects/WamplerTumnusEffect';
+import JHSMorningGloryEffect from './audio/effects/JHSMorningGloryEffect';
+import EHXSoulFoodEffect from './audio/effects/EHXSoulFoodEffect';
+import HermidaZendriveEffect from './audio/effects/HermidaZendriveEffect';
+import PaulCochraneTimmy from './audio/effects/PaulCochraneTimmy';
+import FriedmanBEODEffect from './audio/effects/FriedmanBEODEffect';
+import SuhrRiotEffect from './audio/effects/SuhrRiotEffect';
+import CatalinbreadDLSEffect from './audio/effects/CatalinbreadDLSEffect';
+import BognerEcstasyBlueEffect from './audio/effects/BognerEcstasyBlueEffect';
+import EarthquakerPlumesEffect from './audio/effects/EarthquakerPlumesEffect';
+import DOD250Effect from './audio/effects/DOD250Effect';
+import DarkglassB7KEffect from './audio/effects/DarkglassB7KEffect';
+import WayHugeSwollenPickleEffect from './audio/effects/WayHugeSwollenPickleEffect';
+import EHXGreenRussianBigMuffEffect from './audio/effects/EHXGreenRussianBigMuffEffect';
+import FuzzlordChimeEffect from './audio/effects/FuzzlordChimeEffect';
+import DigitechBadMonkeyEffect from './audio/effects/DigitechBadMonkeyEffect';
+import LovepedalAmp11Effect from './audio/effects/LovepedalAmp11Effect';
+import FulltoneFulldrive2Effect from './audio/effects/FulltoneFulldrive2Effect';
+// NEW EFFECTS 2025 - Modulation
+import TCCoronaChorusEffect from './audio/effects/TCCoronaChorusEffect';
+import StrymonOlaEffect from './audio/effects/StrymonOlaEffect';
+import EHXSmallStoneEffect from './audio/effects/EHXSmallStoneEffect';
+import MXRPhase100Effect from './audio/effects/MXRPhase100Effect';
+import EHXElectricMistressEffect from './audio/effects/EHXElectricMistressEffect';
+import TCVortexFlangerEffect from './audio/effects/TCVortexFlangerEffect';
+import FulltoneDejaVibeEffect from './audio/effects/FulltoneDejaVibeEffect';
+import DunlopRotovibe from './audio/effects/DunlopRotovibe';
+import DiamondTremoloEffect from './audio/effects/DiamondTremoloEffect';
+import ChaseBlissWarpedVinylEffect from './audio/effects/ChaseBlissWarpedVinylEffect';
+import EHXPolyChorusEffect from './audio/effects/EHXPolyChorusEffect';
+import TCShakerVibratoEffect from './audio/effects/TCShakerVibratoEffect';
+import WalrusMonumentEffect from './audio/effects/WalrusMonumentEffect';
+import RedPandaParticleEffect from './audio/effects/RedPandaParticleEffect';
+import MerisEnzoEffect from './audio/effects/MerisEnzoEffect';
+// NEW EFFECTS 2025 - Time-Based
+import TCFlashbackEffect from './audio/effects/TCFlashbackEffect';
+import WayHugeSupaPussEffect from './audio/effects/WayHugeSupaPussEffect';
+import WalrusARP87Effect from './audio/effects/WalrusARP87Effect';
+import EQDDispatchMasterEffect from './audio/effects/EQDDispatchMasterEffect';
+import BossDD3Effect from './audio/effects/BossDD3Effect';
+import BossDD7Effect from './audio/effects/BossDD7Effect';
+import MaxonAD999Effect from './audio/effects/MaxonAD999Effect';
+import EmpressEchosystemEffect from './audio/effects/EmpressEchosystemEffect';
+import ChaseBlissThermaeEffect from './audio/effects/ChaseBlissThermaeEffect';
+import CatalinbreadBelleEpochEffect from './audio/effects/CatalinbreadBelleEpochEffect';
+import StrymonElCapistanEffect from './audio/effects/StrymonElCapistanEffect';
+import StrymonFlintEffect from './audio/effects/StrymonFlintEffect';
+import NeunaberImmerseEffect from './audio/effects/NeunaberImmerseEffect';
+import EHXCathedralEffect from './audio/effects/EHXCathedralEffect';
+import WalrusSloEffect from './audio/effects/WalrusSloEffect';
+import OBNDarkStarEffect from './audio/effects/OBNDarkStarEffect';
+import MerisMercury7Effect from './audio/effects/MerisMercury7Effect';
+import RedPandaContextEffect from './audio/effects/RedPandaContextEffect';
+import RedPandaTensorEffect from './audio/effects/RedPandaTensorEffect';
+// NEW EFFECTS 2025 - Dynamics
+import FMRAudioRNCEffect from './audio/effects/FMRAudioRNCEffect';
+import EmpressCompressorEffect from './audio/effects/EmpressCompressorEffect';
+import Cali76Effect from './audio/effects/Cali76Effect';
+import WalrusDeepSixEffect from './audio/effects/WalrusDeepSixEffect';
+import EHXBlackFingerEffect from './audio/effects/EHXBlackFingerEffect';
+import PigtronixPhilosopherEffect from './audio/effects/PigtronixPhilosopherEffect';
+import TCHyperGravityEffect from './audio/effects/TCHyperGravityEffect';
+import BossCS3Effect from './audio/effects/BossCS3Effect';
+import WamplerEgoEffect from './audio/effects/WamplerEgoEffect';
+import DemeterCompulatorEffect from './audio/effects/DemeterCompulatorEffect';
+// NEW EFFECTS 2025 - EQ & Filters
+import BossGE7Effect from './audio/effects/BossGE7Effect';
+import SourceAudioEQ2Effect from './audio/effects/SourceAudioEQ2Effect';
+import EmpressParaEQEffect from './audio/effects/EmpressParaEQEffect';
+import EHXTalkingMachineEffect from './audio/effects/EHXTalkingMachineEffect';
+import MoogMF101Effect from './audio/effects/MoogMF101Effect';
+import DOD440Effect from './audio/effects/DOD440Effect';
+import MuTronIIIEffect from './audio/effects/MuTronIIIEffect';
+import EHXQTronEffect from './audio/effects/EHXQTronEffect';
+import Dunlop105QEffect from './audio/effects/Dunlop105QEffect';
+import MorleyBadHorsieEffect from './audio/effects/MorleyBadHorsieEffect';
+// NEW EFFECTS 2025 - Pitch & Synth
+import EHXPOGEffect from './audio/effects/EHXPOGEffect';
+import EHXMicroPOGEffect from './audio/effects/EHXMicroPOGEffect';
+import EHXHOGEffect from './audio/effects/EHXHOGEffect';
+import BossPS6Effect from './audio/effects/BossPS6Effect';
+import TCSubNUpEffect from './audio/effects/TCSubNUpEffect';
+import EHXPitchForkEffect from './audio/effects/EHXPitchForkEffect';
+import EventidePitchFactorEffect from './audio/effects/EventidePitchFactorEffect';
+import BossOC5Effect from './audio/effects/BossOC5Effect';
+import EHXFreezeEffect from './audio/effects/EHXFreezeEffect';
+import MerisHedraEffect from './audio/effects/MerisHedraEffect';
+import ChaseBlissMoodEffect from './audio/effects/ChaseBlissMoodEffect';
+// NEW EFFECTS 2025 - Multi-FX
+import Line6HelixEffect from './audio/effects/Line6HelixEffect';
+import FractalAxeFXEffect from './audio/effects/FractalAxeFXEffect';
+import KemperProfilerEffect from './audio/effects/KemperProfilerEffect';
+import NeuralDSPQuadCortexEffect from './audio/effects/NeuralDSPQuadCortexEffect';
+import BossGT1000Effect from './audio/effects/BossGT1000Effect';
+import HeadrushPedalboardEffect from './audio/effects/HeadrushPedalboardEffect';
 import Pedal from './components/Pedal';
 import AmpComponent from './components/AmpComponent';
 import VUMeter from './components/VUMeter';
@@ -725,6 +824,106 @@ function App() {
         effectInstance = new TCHallOfFameEffect(audioContext, id);
         break;
       
+      // NEW EFFECTS 2025 - Drive
+      case 'ts808': effectInstance = new IbanezTS808Effect(audioContext, id); break;
+      case 'bossod3': effectInstance = new BossOD3Effect(audioContext, id); break;
+      case 'maxonod808': effectInstance = new MaxonOD808Effect(audioContext, id); break;
+      case 'tumnus': effectInstance = new WamplerTumnusEffect(audioContext, id); break;
+      case 'morningglory': effectInstance = new JHSMorningGloryEffect(audioContext, id); break;
+      case 'soulfood': effectInstance = new EHXSoulFoodEffect(audioContext, id); break;
+      case 'zendrive': effectInstance = new HermidaZendriveEffect(audioContext, id); break;
+      case 'timmy': effectInstance = new PaulCochraneTimmy(audioContext, id); break;
+      case 'friedmanbeod': effectInstance = new FriedmanBEODEffect(audioContext, id); break;
+      case 'suhrriot': effectInstance = new SuhrRiotEffect(audioContext, id); break;
+      case 'catalinbreaddls': effectInstance = new CatalinbreadDLSEffect(audioContext, id); break;
+      case 'bognerecstasyblue': effectInstance = new BognerEcstasyBlueEffect(audioContext, id); break;
+      case 'plumes': effectInstance = new EarthquakerPlumesEffect(audioContext, id); break;
+      case 'dod250': effectInstance = new DOD250Effect(audioContext, id); break;
+      case 'darkglassb7k': effectInstance = new DarkglassB7KEffect(audioContext, id); break;
+      case 'swollenpickle': effectInstance = new WayHugeSwollenPickleEffect(audioContext, id); break;
+      case 'greenrussian': effectInstance = new EHXGreenRussianBigMuffEffect(audioContext, id); break;
+      case 'fuzzlordchime': effectInstance = new FuzzlordChimeEffect(audioContext, id); break;
+      case 'badmonkey': effectInstance = new DigitechBadMonkeyEffect(audioContext, id); break;
+      case 'amp11': effectInstance = new LovepedalAmp11Effect(audioContext, id); break;
+      case 'fulldrive2': effectInstance = new FulltoneFulldrive2Effect(audioContext, id); break;
+      // NEW EFFECTS 2025 - Modulation
+      case 'tccorona': effectInstance = new TCCoronaChorusEffect(audioContext, id); break;
+      case 'strymonola': effectInstance = new StrymonOlaEffect(audioContext, id); break;
+      case 'smallstone': effectInstance = new EHXSmallStoneEffect(audioContext, id); break;
+      case 'phase100': effectInstance = new MXRPhase100Effect(audioContext, id); break;
+      case 'electricmistress': effectInstance = new EHXElectricMistressEffect(audioContext, id); break;
+      case 'tcvortex': effectInstance = new TCVortexFlangerEffect(audioContext, id); break;
+      case 'dejavibe': effectInstance = new FulltoneDejaVibeEffect(audioContext, id); break;
+      case 'rotovibe': effectInstance = new DunlopRotovibe(audioContext, id); break;
+      case 'diamondtrem': effectInstance = new DiamondTremoloEffect(audioContext, id); break;
+      case 'warpedvinyl': effectInstance = new ChaseBlissWarpedVinylEffect(audioContext, id); break;
+      case 'polychorus': effectInstance = new EHXPolyChorusEffect(audioContext, id); break;
+      case 'tcshaker': effectInstance = new TCShakerVibratoEffect(audioContext, id); break;
+      case 'monument': effectInstance = new WalrusMonumentEffect(audioContext, id); break;
+      case 'particle': effectInstance = new RedPandaParticleEffect(audioContext, id); break;
+      case 'merisenzo': effectInstance = new MerisEnzoEffect(audioContext, id); break;
+      // NEW EFFECTS 2025 - Time-Based
+      case 'tcflashback': effectInstance = new TCFlashbackEffect(audioContext, id); break;
+      case 'supapuss': effectInstance = new WayHugeSupaPussEffect(audioContext, id); break;
+      case 'arp87': effectInstance = new WalrusARP87Effect(audioContext, id); break;
+      case 'dispatchmaster': effectInstance = new EQDDispatchMasterEffect(audioContext, id); break;
+      case 'bossdd3': effectInstance = new BossDD3Effect(audioContext, id); break;
+      case 'bossdd7': effectInstance = new BossDD7Effect(audioContext, id); break;
+      case 'maxonad999': effectInstance = new MaxonAD999Effect(audioContext, id); break;
+      case 'echosystem': effectInstance = new EmpressEchosystemEffect(audioContext, id); break;
+      case 'thermae': effectInstance = new ChaseBlissThermaeEffect(audioContext, id); break;
+      case 'belleepoch': effectInstance = new CatalinbreadBelleEpochEffect(audioContext, id); break;
+      case 'elcapistan': effectInstance = new StrymonElCapistanEffect(audioContext, id); break;
+      case 'strymonflint': effectInstance = new StrymonFlintEffect(audioContext, id); break;
+      case 'immerse': effectInstance = new NeunaberImmerseEffect(audioContext, id); break;
+      case 'cathedral': effectInstance = new EHXCathedralEffect(audioContext, id); break;
+      case 'walrusslo': effectInstance = new WalrusSloEffect(audioContext, id); break;
+      case 'darkstar': effectInstance = new OBNDarkStarEffect(audioContext, id); break;
+      case 'mercury7': effectInstance = new MerisMercury7Effect(audioContext, id); break;
+      case 'rpcontext': effectInstance = new RedPandaContextEffect(audioContext, id); break;
+      case 'tensor': effectInstance = new RedPandaTensorEffect(audioContext, id); break;
+      // NEW EFFECTS 2025 - Dynamics
+      case 'fmrrnc': effectInstance = new FMRAudioRNCEffect(audioContext, id); break;
+      case 'empresscomp': effectInstance = new EmpressCompressorEffect(audioContext, id); break;
+      case 'cali76': effectInstance = new Cali76Effect(audioContext, id); break;
+      case 'deepsix': effectInstance = new WalrusDeepSixEffect(audioContext, id); break;
+      case 'blackfinger': effectInstance = new EHXBlackFingerEffect(audioContext, id); break;
+      case 'philosopher': effectInstance = new PigtronixPhilosopherEffect(audioContext, id); break;
+      case 'hypergravity': effectInstance = new TCHyperGravityEffect(audioContext, id); break;
+      case 'bosscs3': effectInstance = new BossCS3Effect(audioContext, id); break;
+      case 'wamplerego': effectInstance = new WamplerEgoEffect(audioContext, id); break;
+      case 'compulator': effectInstance = new DemeterCompulatorEffect(audioContext, id); break;
+      // NEW EFFECTS 2025 - EQ & Filters
+      case 'bossge7': effectInstance = new BossGE7Effect(audioContext, id); break;
+      case 'sourceaudioeq2': effectInstance = new SourceAudioEQ2Effect(audioContext, id); break;
+      case 'empressparaeq': effectInstance = new EmpressParaEQEffect(audioContext, id); break;
+      case 'talkingmachine': effectInstance = new EHXTalkingMachineEffect(audioContext, id); break;
+      case 'moogmf101': effectInstance = new MoogMF101Effect(audioContext, id); break;
+      case 'dod440': effectInstance = new DOD440Effect(audioContext, id); break;
+      case 'mutron': effectInstance = new MuTronIIIEffect(audioContext, id); break;
+      case 'qtron': effectInstance = new EHXQTronEffect(audioContext, id); break;
+      case 'dunlop105q': effectInstance = new Dunlop105QEffect(audioContext, id); break;
+      case 'badhorsie': effectInstance = new MorleyBadHorsieEffect(audioContext, id); break;
+      // NEW EFFECTS 2025 - Pitch & Synth
+      case 'ehxpog': effectInstance = new EHXPOGEffect(audioContext, id); break;
+      case 'micropog': effectInstance = new EHXMicroPOGEffect(audioContext, id); break;
+      case 'ehxhog': effectInstance = new EHXHOGEffect(audioContext, id); break;
+      case 'bossps6': effectInstance = new BossPS6Effect(audioContext, id); break;
+      case 'subnup': effectInstance = new TCSubNUpEffect(audioContext, id); break;
+      case 'pitchfork': effectInstance = new EHXPitchForkEffect(audioContext, id); break;
+      case 'pitchfactor': effectInstance = new EventidePitchFactorEffect(audioContext, id); break;
+      case 'bossoc5': effectInstance = new BossOC5Effect(audioContext, id); break;
+      case 'freeze': effectInstance = new EHXFreezeEffect(audioContext, id); break;
+      case 'hedra': effectInstance = new MerisHedraEffect(audioContext, id); break;
+      case 'mood': effectInstance = new ChaseBlissMoodEffect(audioContext, id); break;
+      // NEW EFFECTS 2025 - Multi-FX
+      case 'helix': effectInstance = new Line6HelixEffect(audioContext, id); break;
+      case 'axefx': effectInstance = new FractalAxeFXEffect(audioContext, id); break;
+      case 'kemper': effectInstance = new KemperProfilerEffect(audioContext, id); break;
+      case 'quadcortex': effectInstance = new NeuralDSPQuadCortexEffect(audioContext, id); break;
+      case 'gt1000': effectInstance = new BossGT1000Effect(audioContext, id); break;
+      case 'headrush': effectInstance = new HeadrushPedalboardEffect(audioContext, id); break;
+
       // EFEITOS AINDA NÃO IMPLEMENTADOS (usam BaseEffect)
       case 'tapdelay':
       case 'analogchorus':
@@ -1099,7 +1298,47 @@ function App() {
       'swell': Waves, 'feedback': Volume2, 'vocoder': Music2,
       // Utility
       'volume': Volume2, 'tuner': Target, 'abtoggle': Shuffle,
-      'splitter': Layers
+      'splitter': Layers,
+      // NEW EFFECTS 2025 - Drive
+      'ts808': Circle, 'bossod3': Circle, 'maxonod808': Circle,
+      'tumnus': Sparkles, 'morningglory': Flame, 'soulfood': Sparkles,
+      'zendrive': Flame, 'timmy': Settings, 'friedmanbeod': Zap,
+      'suhrriot': Zap, 'catalinbreaddls': Guitar, 'bognerecstasyblue': Flame,
+      'plumes': Circle, 'dod250': Zap, 'darkglassb7k': Zap,
+      'swollenpickle': Circle, 'greenrussian': Circle, 'fuzzlordchime': Zap,
+      'badmonkey': Circle, 'amp11': TrendingUp, 'fulldrive2': Circle,
+      // NEW EFFECTS 2025 - Modulation
+      'tccorona': Waves, 'strymonola': Waves, 'smallstone': RotateCw,
+      'phase100': RotateCw, 'electricmistress': Waves, 'tcvortex': Waves,
+      'dejavibe': Waves, 'rotovibe': RotateCw, 'diamondtrem': Activity,
+      'warpedvinyl': Waves, 'polychorus': Waves, 'tcshaker': Activity,
+      'monument': Activity, 'particle': Sparkles, 'merisenzo': Music,
+      // NEW EFFECTS 2025 - Time-Based
+      'tcflashback': Clock, 'supapuss': Clock, 'arp87': Timer,
+      'dispatchmaster': Clock, 'bossdd3': Circle, 'bossdd7': Circle,
+      'maxonad999': Clock, 'echosystem': Timer, 'thermae': Sparkles,
+      'belleepoch': Radio, 'elcapistan': Radio, 'strymonflint': Activity,
+      'immerse': Cloud, 'cathedral': CloudRain, 'walrusslo': Cloud,
+      'darkstar': Sparkle, 'mercury7': Sparkles, 'rpcontext': Cloud,
+      'tensor': Repeat,
+      // NEW EFFECTS 2025 - Dynamics
+      'fmrrnc': Minimize2, 'empresscomp': Minimize2, 'cali76': Minimize2,
+      'deepsix': Minimize2, 'blackfinger': Minimize2, 'philosopher': Minimize2,
+      'hypergravity': Minimize2, 'bosscs3': Circle, 'wamplerego': Minimize2,
+      'compulator': Minimize2,
+      // NEW EFFECTS 2025 - EQ & Filters
+      'bossge7': Sliders, 'sourceaudioeq2': Sliders, 'empressparaeq': Sliders,
+      'talkingmachine': Music2, 'moogmf101': Filter, 'dod440': Filter,
+      'mutron': Filter, 'qtron': Filter, 'dunlop105q': Filter,
+      'badhorsie': Filter,
+      // NEW EFFECTS 2025 - Pitch & Synth
+      'ehxpog': Music3, 'micropog': Music3, 'ehxhog': Music3,
+      'bossps6': Music4, 'subnup': Music3, 'pitchfork': Music4,
+      'pitchfactor': Music, 'bossoc5': Music3, 'freeze': Sparkle,
+      'hedra': Music, 'mood': Sparkles,
+      // NEW EFFECTS 2025 - Multi-FX
+      'helix': Sliders, 'axefx': Sliders, 'kemper': Sliders,
+      'quadcortex': Cpu, 'gt1000': Sliders, 'headrush': Sliders
     };
     return iconMap[type] || Circle;
   };
@@ -1131,6 +1370,27 @@ function App() {
     { type: 'metaldistortion', name: 'Metal Distortion', icon: 'metaldistortion', category: 'drive' },
     { type: 'boost', name: 'Clean Boost', icon: 'boost', category: 'drive' },
     { type: 'tapesaturation', name: 'Tape Saturation', icon: 'tapesaturation', category: 'drive' },
+    { type: 'ts808', name: 'Ibanez TS808', icon: 'ts808', category: 'drive' },
+    { type: 'bossod3', name: 'Boss OD-3', icon: 'bossod3', category: 'drive' },
+    { type: 'maxonod808', name: 'Maxon OD808', icon: 'maxonod808', category: 'drive' },
+    { type: 'tumnus', name: 'Wampler Tumnus', icon: 'tumnus', category: 'drive' },
+    { type: 'morningglory', name: 'JHS Morning Glory', icon: 'morningglory', category: 'drive' },
+    { type: 'soulfood', name: 'EHX Soul Food', icon: 'soulfood', category: 'drive' },
+    { type: 'zendrive', name: 'Hermida Zendrive', icon: 'zendrive', category: 'drive' },
+    { type: 'timmy', name: 'Paul Cochrane Timmy', icon: 'timmy', category: 'drive' },
+    { type: 'friedmanbeod', name: 'Friedman BE-OD', icon: 'friedmanbeod', category: 'drive' },
+    { type: 'suhrriot', name: 'Suhr Riot', icon: 'suhrriot', category: 'drive' },
+    { type: 'catalinbreaddls', name: 'Catalinbread DLS', icon: 'catalinbreaddls', category: 'drive' },
+    { type: 'bognerecstasyblue', name: 'Bogner Ecstasy Blue', icon: 'bognerecstasyblue', category: 'drive' },
+    { type: 'plumes', name: 'EQD Plumes', icon: 'plumes', category: 'drive' },
+    { type: 'dod250', name: 'DOD 250', icon: 'dod250', category: 'drive' },
+    { type: 'darkglassb7k', name: 'Darkglass B7K', icon: 'darkglassb7k', category: 'drive' },
+    { type: 'swollenpickle', name: 'Swollen Pickle', icon: 'swollenpickle', category: 'drive' },
+    { type: 'greenrussian', name: 'Green Russian Muff', icon: 'greenrussian', category: 'drive' },
+    { type: 'fuzzlordchime', name: 'Fuzzlord Chime', icon: 'fuzzlordchime', category: 'drive' },
+    { type: 'badmonkey', name: 'Digitech Bad Monkey', icon: 'badmonkey', category: 'drive' },
+    { type: 'amp11', name: 'Lovepedal Amp 11', icon: 'amp11', category: 'drive' },
+    { type: 'fulldrive2', name: 'Fulltone Fulldrive 2 MOSFET', icon: 'fulldrive2', category: 'drive' },
     
     // DELAY/ECHO (CLASSIC + RACK)
     { type: 'memoryman', name: 'Memory Man', icon: 'memoryman', category: 'time' },
@@ -1155,6 +1415,25 @@ function App() {
     { type: 'hallreverb', name: 'Hall Reverb', icon: 'hallreverb', category: 'time' },
     { type: 'platereverb', name: 'Plate Reverb', icon: 'platereverb', category: 'time' },
     { type: 'roomreverb', name: 'Room Reverb', icon: 'roomreverb', category: 'time' },
+    { type: 'tcflashback', name: 'TC Flashback', icon: 'tcflashback', category: 'time' },
+    { type: 'supapuss', name: 'Way Huge Supa-Puss', icon: 'supapuss', category: 'time' },
+    { type: 'arp87', name: 'Walrus ARP-87', icon: 'arp87', category: 'time' },
+    { type: 'dispatchmaster', name: 'EQD Dispatch Master', icon: 'dispatchmaster', category: 'time' },
+    { type: 'bossdd3', name: 'Boss DD-3', icon: 'bossdd3', category: 'time' },
+    { type: 'bossdd7', name: 'Boss DD-7', icon: 'bossdd7', category: 'time' },
+    { type: 'maxonad999', name: 'Maxon AD999', icon: 'maxonad999', category: 'time' },
+    { type: 'echosystem', name: 'Empress Echosystem', icon: 'echosystem', category: 'time' },
+    { type: 'thermae', name: 'Chase Bliss Thermae', icon: 'thermae', category: 'time' },
+    { type: 'belleepoch', name: 'Catalinbread Belle Epoch', icon: 'belleepoch', category: 'time' },
+    { type: 'elcapistan', name: 'Strymon El Capistan', icon: 'elcapistan', category: 'time' },
+    { type: 'strymonflint', name: 'Strymon Flint', icon: 'strymonflint', category: 'time' },
+    { type: 'immerse', name: 'Neunaber Immerse', icon: 'immerse', category: 'time' },
+    { type: 'cathedral', name: 'EHX Cathedral', icon: 'cathedral', category: 'time' },
+    { type: 'walrusslo', name: 'Walrus Slo', icon: 'walrusslo', category: 'time' },
+    { type: 'darkstar', name: 'OBN Dark Star', icon: 'darkstar', category: 'time' },
+    { type: 'mercury7', name: 'Meris Mercury7', icon: 'mercury7', category: 'time' },
+    { type: 'rpcontext', name: 'Red Panda Context', icon: 'rpcontext', category: 'time' },
+    { type: 'tensor', name: 'Red Panda Tensor', icon: 'tensor', category: 'time' },
     
     // MODULATION (CLASSIC + RACK)
     { type: 'strymonmobius', name: 'Strymon Mobius', icon: 'strymonmobius', category: 'modulation' },
@@ -1173,6 +1452,21 @@ function App() {
     { type: 'vibrato', name: 'Vibrato', icon: 'vibrato', category: 'modulation' },
     { type: 'rotary', name: 'Rotary Speaker', icon: 'rotary', category: 'modulation' },
     { type: 'autopan', name: 'Auto Pan', icon: 'autopan', category: 'modulation' },
+    { type: 'tccorona', name: 'TC Corona', icon: 'tccorona', category: 'modulation' },
+    { type: 'strymonola', name: 'Strymon Ola', icon: 'strymonola', category: 'modulation' },
+    { type: 'smallstone', name: 'EHX Small Stone', icon: 'smallstone', category: 'modulation' },
+    { type: 'phase100', name: 'MXR Phase 100', icon: 'phase100', category: 'modulation' },
+    { type: 'electricmistress', name: 'Electric Mistress', icon: 'electricmistress', category: 'modulation' },
+    { type: 'tcvortex', name: 'TC Vortex', icon: 'tcvortex', category: 'modulation' },
+    { type: 'dejavibe', name: 'Fulltone Deja Vibe', icon: 'dejavibe', category: 'modulation' },
+    { type: 'rotovibe', name: 'Dunlop Rotovibe', icon: 'rotovibe', category: 'modulation' },
+    { type: 'diamondtrem', name: 'Diamond Tremolo', icon: 'diamondtrem', category: 'modulation' },
+    { type: 'warpedvinyl', name: 'Warped Vinyl', icon: 'warpedvinyl', category: 'modulation' },
+    { type: 'polychorus', name: 'EHX Poly Chorus', icon: 'polychorus', category: 'modulation' },
+    { type: 'tcshaker', name: 'TC Shaker', icon: 'tcshaker', category: 'modulation' },
+    { type: 'monument', name: 'Walrus Monument', icon: 'monument', category: 'modulation' },
+    { type: 'particle', name: 'Red Panda Particle', icon: 'particle', category: 'modulation' },
+    { type: 'merisenzo', name: 'Meris Enzo', icon: 'merisenzo', category: 'modulation' },
     
     // DYNAMICS (CLASSIC)
     { type: 'keeleycomp', name: 'Keeley Compressor', icon: 'keeleycomp', category: 'dynamics' },
@@ -1181,6 +1475,16 @@ function App() {
     { type: 'limiter', name: 'Limiter', icon: 'limiter', category: 'dynamics' },
     { type: 'noisegate', name: 'Noise Gate', icon: 'noisegate', category: 'dynamics' },
     { type: 'tubecompressor', name: 'Tube Compressor', icon: 'tubecompressor', category: 'dynamics' },
+    { type: 'fmrrnc', name: 'FMR RNC', icon: 'fmrrnc', category: 'dynamics' },
+    { type: 'empresscomp', name: 'Empress Compressor', icon: 'empresscomp', category: 'dynamics' },
+    { type: 'cali76', name: 'Cali76', icon: 'cali76', category: 'dynamics' },
+    { type: 'deepsix', name: 'Walrus Deep Six', icon: 'deepsix', category: 'dynamics' },
+    { type: 'blackfinger', name: 'EHX Black Finger', icon: 'blackfinger', category: 'dynamics' },
+    { type: 'philosopher', name: 'Pigtronix Philosopher', icon: 'philosopher', category: 'dynamics' },
+    { type: 'hypergravity', name: 'TC HyperGravity', icon: 'hypergravity', category: 'dynamics' },
+    { type: 'bosscs3', name: 'Boss CS-3', icon: 'bosscs3', category: 'dynamics' },
+    { type: 'wamplerego', name: 'Wampler Ego', icon: 'wamplerego', category: 'dynamics' },
+    { type: 'compulator', name: 'Demeter Compulator', icon: 'compulator', category: 'dynamics' },
     
     // EQ/FILTER (CLASSIC)
     { type: 'mxr10bandeq', name: 'MXR 10-Band EQ', icon: 'mxr10bandeq', category: 'filter' },
@@ -1193,6 +1497,16 @@ function App() {
     { type: 'talkbox', name: 'Talk Box', icon: 'talkbox', category: 'filter' },
     { type: 'lfofilter', name: 'LFO Filter', icon: 'lfofilter', category: 'filter' },
     { type: 'stepfilter', name: 'Step Filter', icon: 'stepfilter', category: 'filter' },
+    { type: 'bossge7', name: 'Boss GE-7', icon: 'bossge7', category: 'filter' },
+    { type: 'sourceaudioeq2', name: 'Source Audio EQ2', icon: 'sourceaudioeq2', category: 'filter' },
+    { type: 'empressparaeq', name: 'Empress ParaEQ', icon: 'empressparaeq', category: 'filter' },
+    { type: 'talkingmachine', name: 'EHX Talking Machine', icon: 'talkingmachine', category: 'filter' },
+    { type: 'moogmf101', name: 'Moog MF-101', icon: 'moogmf101', category: 'filter' },
+    { type: 'dod440', name: 'DOD 440', icon: 'dod440', category: 'filter' },
+    { type: 'mutron', name: 'Mu-Tron III', icon: 'mutron', category: 'filter' },
+    { type: 'qtron', name: 'EHX Q-Tron', icon: 'qtron', category: 'filter' },
+    { type: 'dunlop105q', name: 'Dunlop 105Q', icon: 'dunlop105q', category: 'filter' },
+    { type: 'badhorsie', name: 'Morley Bad Horsie', icon: 'badhorsie', category: 'filter' },
     
     // PITCH/HARMONY
     { type: 'octaver', name: 'Octaver', icon: 'octaver', category: 'pitch' },
@@ -1200,6 +1514,17 @@ function App() {
     { type: 'harmonizer', name: 'Harmonizer', icon: 'harmonizer', category: 'pitch' },
     { type: 'whammy', name: 'Whammy', icon: 'whammy', category: 'pitch' },
     { type: 'detune', name: 'Detune', icon: 'detune', category: 'pitch' },
+    { type: 'ehxpog', name: 'EHX POG', icon: 'ehxpog', category: 'pitch' },
+    { type: 'micropog', name: 'EHX Micro POG', icon: 'micropog', category: 'pitch' },
+    { type: 'ehxhog', name: 'EHX HOG', icon: 'ehxhog', category: 'pitch' },
+    { type: 'bossps6', name: 'Boss PS-6', icon: 'bossps6', category: 'pitch' },
+    { type: 'subnup', name: 'TC Sub N Up', icon: 'subnup', category: 'pitch' },
+    { type: 'pitchfork', name: 'EHX Pitch Fork', icon: 'pitchfork', category: 'pitch' },
+    { type: 'pitchfactor', name: 'Eventide PitchFactor', icon: 'pitchfactor', category: 'pitch' },
+    { type: 'bossoc5', name: 'Boss OC-5', icon: 'bossoc5', category: 'pitch' },
+    { type: 'freeze', name: 'EHX Freeze', icon: 'freeze', category: 'pitch' },
+    { type: 'hedra', name: 'Meris Hedra', icon: 'hedra', category: 'pitch' },
+    { type: 'mood', name: 'Chase Bliss Mood', icon: 'mood', category: 'pitch' },
     
     // SPECIAL FX + MULTI-FX
     { type: 'eventideh9', name: 'Eventide H9', icon: 'eventideh9', category: 'special' },
@@ -1211,6 +1536,13 @@ function App() {
     { type: 'swell', name: 'Swell', icon: 'swell', category: 'special' },
     { type: 'feedback', name: 'Feedback', icon: 'feedback', category: 'special' },
     { type: 'vocoder', name: 'Vocoder', icon: 'vocoder', category: 'special' },
+    // MULTI-FX UNITS
+    { type: 'helix', name: 'Line 6 Helix', icon: 'helix', category: 'special' },
+    { type: 'axefx', name: 'Fractal Axe-FX III', icon: 'axefx', category: 'special' },
+    { type: 'kemper', name: 'Kemper Profiler', icon: 'kemper', category: 'special' },
+    { type: 'quadcortex', name: 'Neural DSP Quad Cortex', icon: 'quadcortex', category: 'special' },
+    { type: 'gt1000', name: 'Boss GT-1000', icon: 'gt1000', category: 'special' },
+    { type: 'headrush', name: 'Headrush Pedalboard', icon: 'headrush', category: 'special' },
     
     // UTILITY
     { type: 'volume', name: 'Volume Pedal', icon: 'volume', category: 'utility' },

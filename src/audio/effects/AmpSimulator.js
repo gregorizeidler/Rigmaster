@@ -34,6 +34,24 @@ import ENGLPowerballAmp from '../amps/ENGLPowerballAmp';
 import FenderProJuniorAmp from '../amps/FenderProJuniorAmp';
 import FenderVibroKingAmp from '../amps/FenderVibroKingAmp';
 import CarvinV3MAmp from '../amps/CarvinV3MAmp';
+// NEW AMPS 2025
+import FenderChampAmp from '../amps/FenderChampAmp';
+import FenderPrincetonReverbAmp from '../amps/FenderPrincetonReverbAmp';
+import FenderSuperReverbAmp from '../amps/FenderSuperReverbAmp';
+import MarshallJCM900Amp from '../amps/MarshallJCM900Amp';
+import MarshallJVM410Amp from '../amps/MarshallJVM410Amp';
+import MarshallDSLAmp from '../amps/MarshallDSLAmp';
+import VoxAC15Amp from '../amps/VoxAC15Amp';
+import MesaMarkIAmp from '../amps/MesaMarkIAmp';
+import MesaMarkIICPlusAmp from '../amps/MesaMarkIICPlusAmp';
+import MesaTripleRectifierAmp from '../amps/MesaTripleRectifierAmp';
+import Peavey6505Amp from '../amps/Peavey6505Amp';
+import DiezelHerbertAmp from '../amps/DiezelHerbertAmp';
+import ENGLSavageAmp from '../amps/ENGLSavageAmp';
+import DrZMaz38Amp from '../amps/DrZMaz38Amp';
+import VictoryV30Amp from '../amps/VictoryV30Amp';
+import RevvGenerator120Amp from '../amps/RevvGenerator120Amp';
+import PRSArchonAmp from '../amps/PRSArchonAmp';
 
 class AmpSimulator extends BaseEffect {
   constructor(audioContext, id, ampType = 'clean') {
@@ -368,7 +386,25 @@ class AmpSimulator extends BaseEffect {
       'engl_powerball': ENGLPowerballAmp,
       'fender_pro_junior': FenderProJuniorAmp,
       'fender_vibro_king': FenderVibroKingAmp,
-      'carvin_v3m': CarvinV3MAmp
+      'carvin_v3m': CarvinV3MAmp,
+      // NEW AMPS 2025
+      'fender_champ': FenderChampAmp,
+      'fender_princeton': FenderPrincetonReverbAmp,
+      'fender_super_reverb': FenderSuperReverbAmp,
+      'marshall_jcm900': MarshallJCM900Amp,
+      'marshall_jvm410': MarshallJVM410Amp,
+      'marshall_dsl': MarshallDSLAmp,
+      'vox_ac15': VoxAC15Amp,
+      'mesa_mark_i': MesaMarkIAmp,
+      'mesa_mark_iic_plus': MesaMarkIICPlusAmp,
+      'mesa_triple_rectifier': MesaTripleRectifierAmp,
+      'peavey_6505': Peavey6505Amp,
+      'diezel_herbert': DiezelHerbertAmp,
+      'engl_savage': ENGLSavageAmp,
+      'drz_maz38': DrZMaz38Amp,
+      'victory_v30': VictoryV30Amp,
+      'revv_generator': RevvGenerator120Amp,
+      'prs_archon': PRSArchonAmp
     };
     
     const AmpClass = ampClasses[ampType];

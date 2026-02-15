@@ -31,7 +31,6 @@ const EffectIcon = ({ type, size = 64 }) => {
 
       // OVERDRIVE
       case 'overdrive':
-      case 'tube screamer':
         return (
           <svg viewBox="0 0 64 64" fill="none">
             <defs>
@@ -81,7 +80,6 @@ const EffectIcon = ({ type, size = 64 }) => {
 
       // FUZZ
       case 'fuzz':
-      case 'bigmuff':
       case 'fuzz face':
         return (
           <svg viewBox="0 0 64 64" fill="none">
@@ -605,8 +603,6 @@ const EffectIcon = ({ type, size = 64 }) => {
 
       // WAH
       case 'wah':
-      case 'crybaby':
-      case 'cry baby':
         return (
           <svg viewBox="0 0 64 64" fill="none">
             <defs>
@@ -828,6 +824,35 @@ const EffectIcon = ({ type, size = 64 }) => {
             <text x="32" y="44" fill="#ffffff" fontSize="10" fontWeight="bold" textAnchor="middle">RAT</text>
             {/* LED */}
             <circle cx="32" cy="15" r="2" fill="#ff0000" opacity="0.9"/>
+          </svg>
+        );
+
+      // FULLTONE FULLDRIVE 2 MOSFET
+      case 'fulldrive2':
+      case 'fulltone fulldrive':
+        return (
+          <svg viewBox="0 0 64 64" fill="none">
+            <defs>
+              <linearGradient id="fd2Grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#2266cc" />
+                <stop offset="100%" stopColor="#134a99" />
+              </linearGradient>
+            </defs>
+            <rect x="12" y="6" width="40" height="52" rx="4" fill="url(#fd2Grad)" stroke="#0e3d80" strokeWidth="2"/>
+            {/* 2x2 knob grid */}
+            <circle cx="24" cy="18" r="4" fill="#e8e0d0" stroke="#bbb" strokeWidth="0.8"/>
+            <circle cx="40" cy="18" r="4" fill="#e8e0d0" stroke="#bbb" strokeWidth="0.8"/>
+            <circle cx="24" cy="30" r="4" fill="#e8e0d0" stroke="#bbb" strokeWidth="0.8"/>
+            <circle cx="40" cy="30" r="4" fill="#e8e0d0" stroke="#bbb" strokeWidth="0.8"/>
+            {/* Toggle switch */}
+            <rect x="30" y="22" width="4" height="8" rx="2" fill="#444" stroke="#666" strokeWidth="0.5"/>
+            <circle cx="32" cy="24" r="1.5" fill="#ddd"/>
+            {/* Labels */}
+            <text x="32" y="43" fill="#ffffff" fontSize="4.5" fontWeight="bold" textAnchor="middle" letterSpacing="0.3">FULL-DRIVE2</text>
+            <text x="32" y="49" fill="#ddeeff" fontSize="3.5" textAnchor="middle" letterSpacing="0.5">MOSFET</text>
+            {/* LEDs */}
+            <circle cx="24" cy="54" r="1.5" fill="#00ff00" opacity="0.9"/>
+            <circle cx="40" cy="54" r="1.5" fill="#ff0000" opacity="0.9"/>
           </svg>
         );
 
