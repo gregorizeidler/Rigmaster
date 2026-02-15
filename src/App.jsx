@@ -1,15 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { 
-  Guitar, Speaker, Sliders, Zap, Flame, Waves, Sparkles, 
-  Radio, Repeat, Clock, Timer, Cloud, CloudRain, CircleDot,
-  Volume2, Activity, Settings, Target, Shuffle, Sparkle,
-  Music, Music2, Music3, Music4, TrendingUp, Minimize2,
-  Filter, Blend, Circle, Square, Triangle, Save, BookOpen,
-  Library, Layers, Crosshair, RotateCw, Play, Pause, Disc,
-  FileAudio, Cpu, Power, Inbox, Eye, EyeOff, Check, X, Plus,
-  Minus, MoreHorizontal, ChevronDown, ChevronUp, Lock, Unlock,
-  AlertCircle, Info, HelpCircle, Search, Settings2
+  Zap, Activity, Save, Library, Layers, Play, Power,
+  Eye, EyeOff, AlertCircle, X, Search, Settings2
 } from 'lucide-react';
 import AudioEngine from './audio/AudioEngine';
 import BaseEffect from './audio/effects/BaseEffect';
@@ -215,6 +208,7 @@ function App() {
   const [effects, setEffects] = useState([]);
   const [isAudioActive, setIsAudioActive] = useState(false);
   const [showAddMenu, setShowAddMenu] = useState(false);
+  const [effectSearch, setEffectSearch] = useState('');
   const [showPresetMenu, setShowPresetMenu] = useState(false);
   const [selectedAudioDevice, setSelectedAudioDevice] = useState(null);
   const [usingAudioFile, setUsingAudioFile] = useState(false);
@@ -445,6 +439,7 @@ function App() {
     ' ': () => setShowAddMenu(true),
     'escape': () => {
       setShowAddMenu(false);
+      setEffectSearch('');
       setShowPresetMenu(false);
     },
     'delete': () => {
@@ -966,7 +961,7 @@ function App() {
     };
   };
 
-  const addEffect = (type) => {
+  const addEffect = (type, ampType) => {
     // Check if audio is active
     if (!isAudioActive) {
       alert('Por favor, clique em "START AUDIO" primeiro!');
@@ -979,7 +974,7 @@ function App() {
       // Retry after a short delay
       setTimeout(() => {
         if (audioEngineRef.current?.audioContext) {
-          addEffect(type); // Retry
+          addEffect(type, ampType); // Retry
         } else {
           alert('Erro ao inicializar áudio. Por favor, recarregue a página.');
         }
@@ -987,11 +982,13 @@ function App() {
       return;
     }
 
-    const newEffect = addEffectToEngine(type);
+    const effectData = ampType ? { ampType } : null;
+    const newEffect = addEffectToEngine(type, effectData);
     if (newEffect) {
       pushUndoState(effects);
       setEffects([...effects, newEffect]);
       setShowAddMenu(false);
+      setEffectSearch('');
     }
   };
 
@@ -1251,101 +1248,219 @@ function App() {
     }
   };
 
-  // Icon mapping helper
-  const getEffectIcon = (type) => {
-    const iconMap = {
-      // Amp
-      'amp': Speaker,
-      // Drive/Distortion
-      'mesavtwin': Sliders, 'tech21sansamp': Settings, 'xoticbb': Flame,
-      'xoticep': TrendingUp, 'jhssuperbolt': Zap, 'tubescreamer': Circle,
-      'kloncentaur': Sparkles, 'bossds1': Circle, 'bossbd2': Circle,
-      'bosssd1': Circle, 'procorat': Zap, 'fulltoneocd': Settings,
-      'mxrdistortionplus': Plus, 'bigmuff': Circle, 'fuzzface': Circle,
-      'zvexfuzzfactory': Cpu, 'distortion': Guitar, 'overdrive': Flame,
-      'fuzz': Zap, 'metaldistortion': Zap, 'boost': TrendingUp,
-      'tapesaturation': Radio,
-      // Time/Delay
-      'memoryman': Clock, 'mxrcarboncopy': Repeat, 'timelinedelay': Timer,
-      'eventidetimefactor': Clock, 'bossdd500': Sliders, 'line6dl4': Circle,
-      'delay': Clock, 'tapeecho': Radio, 'tapdelay': Timer,
-      // Reverb
-      'bigskyreverb': Cloud, 'eventidespace': Sparkles, 'bossrv500': Sliders,
-      'ehxholygrail': Sparkle, 'tchalloffame': CloudRain, 'reverb': Cloud,
-      'springreverb': Waves, 'shimmerreverb': Sparkles, 'hallreverb': CloudRain,
-      'platereverb': Radio, 'roomreverb': Cloud,
-      // Modulation
-      'strymonmobius': Waves, 'walrusjulia': Waves, 'bossce1': Music,
-      'mxrphase90': RotateCw, 'univibe': Waves, 'bossbf2': Waves,
-      'bosstr2': Activity, 'chorus': Waves, 'analogchorus': Waves,
-      'phaser': RotateCw, 'flanger': Waves, 'analogflanger': Waves,
-      'tremolo': Activity, 'vibrato': Activity, 'rotary': RotateCw,
-      'autopan': Shuffle,
-      // Dynamics
-      'keeleycomp': Minimize2, 'mxrdynacomp': Minimize2, 'compressor': Minimize2,
-      'limiter': Minimize2, 'noisegate': Volume2, 'tubecompressor': Minimize2,
-      // EQ/Filter
-      'mxr10bandeq': Sliders, 'crybabywah': Filter, 'eq': Sliders,
-      'graphiceq': Sliders, 'wah': Filter, 'autowah': Filter,
-      'envfilter': Filter, 'talkbox': Music2, 'lfofilter': Waves,
-      'stepfilter': Activity,
-      // Pitch
-      'octaver': Music3, 'pitchshifter': Music4, 'harmonizer': Music,
-      'whammy': Guitar, 'detune': Music2,
-      // Special
-      'eventideh9': Sparkles, 'looper': Repeat, 'ringmod': Circle,
-      'bitcrusher': Cpu, 'slicer': Activity, 'stepslicer': Activity,
-      'swell': Waves, 'feedback': Volume2, 'vocoder': Music2,
-      // Utility
-      'volume': Volume2, 'tuner': Target, 'abtoggle': Shuffle,
-      'splitter': Layers,
-      // NEW EFFECTS 2025 - Drive
-      'ts808': Circle, 'bossod3': Circle, 'maxonod808': Circle,
-      'tumnus': Sparkles, 'morningglory': Flame, 'soulfood': Sparkles,
-      'zendrive': Flame, 'timmy': Settings, 'friedmanbeod': Zap,
-      'suhrriot': Zap, 'catalinbreaddls': Guitar, 'bognerecstasyblue': Flame,
-      'plumes': Circle, 'dod250': Zap, 'darkglassb7k': Zap,
-      'swollenpickle': Circle, 'greenrussian': Circle, 'fuzzlordchime': Zap,
-      'badmonkey': Circle, 'amp11': TrendingUp, 'fulldrive2': Circle,
-      // NEW EFFECTS 2025 - Modulation
-      'tccorona': Waves, 'strymonola': Waves, 'smallstone': RotateCw,
-      'phase100': RotateCw, 'electricmistress': Waves, 'tcvortex': Waves,
-      'dejavibe': Waves, 'rotovibe': RotateCw, 'diamondtrem': Activity,
-      'warpedvinyl': Waves, 'polychorus': Waves, 'tcshaker': Activity,
-      'monument': Activity, 'particle': Sparkles, 'merisenzo': Music,
-      // NEW EFFECTS 2025 - Time-Based
-      'tcflashback': Clock, 'supapuss': Clock, 'arp87': Timer,
-      'dispatchmaster': Clock, 'bossdd3': Circle, 'bossdd7': Circle,
-      'maxonad999': Clock, 'echosystem': Timer, 'thermae': Sparkles,
-      'belleepoch': Radio, 'elcapistan': Radio, 'strymonflint': Activity,
-      'immerse': Cloud, 'cathedral': CloudRain, 'walrusslo': Cloud,
-      'darkstar': Sparkle, 'mercury7': Sparkles, 'rpcontext': Cloud,
-      'tensor': Repeat,
-      // NEW EFFECTS 2025 - Dynamics
-      'fmrrnc': Minimize2, 'empresscomp': Minimize2, 'cali76': Minimize2,
-      'deepsix': Minimize2, 'blackfinger': Minimize2, 'philosopher': Minimize2,
-      'hypergravity': Minimize2, 'bosscs3': Circle, 'wamplerego': Minimize2,
-      'compulator': Minimize2,
-      // NEW EFFECTS 2025 - EQ & Filters
-      'bossge7': Sliders, 'sourceaudioeq2': Sliders, 'empressparaeq': Sliders,
-      'talkingmachine': Music2, 'moogmf101': Filter, 'dod440': Filter,
-      'mutron': Filter, 'qtron': Filter, 'dunlop105q': Filter,
-      'badhorsie': Filter,
-      // NEW EFFECTS 2025 - Pitch & Synth
-      'ehxpog': Music3, 'micropog': Music3, 'ehxhog': Music3,
-      'bossps6': Music4, 'subnup': Music3, 'pitchfork': Music4,
-      'pitchfactor': Music, 'bossoc5': Music3, 'freeze': Sparkle,
-      'hedra': Music, 'mood': Sparkles,
-      // NEW EFFECTS 2025 - Multi-FX
-      'helix': Sliders, 'axefx': Sliders, 'kemper': Sliders,
-      'quadcortex': Cpu, 'gt1000': Sliders, 'headrush': Sliders
-    };
-    return iconMap[type] || Circle;
+  // Pedal color & brand info for the effect list
+  const pedalInfo = {
+    amp: { color: '#ff6b35', brand: '' },
+    // Individual amp models (using accent color for visibility on dark backgrounds)
+    fender_twin_reverb: { color: '#c0c0c0', brand: 'Fender' },
+    fender_deluxe: { color: '#c0c0c0', brand: 'Fender' },
+    fender_princeton: { color: '#c0c0c0', brand: 'Fender' },
+    fender_super_reverb: { color: '#c0c0c0', brand: 'Fender' },
+    fender_champ: { color: '#c0c0c0', brand: 'Fender' },
+    fender_vibro_king: { color: '#f5f0e8', brand: 'Fender' },
+    fender_bassman: { color: '#d4af37', brand: 'Fender' },
+    fender_pro_junior: { color: '#d4af37', brand: 'Fender' },
+    vox_ac30: { color: '#d4af37', brand: 'Vox' },
+    vox_ac15: { color: '#c0c0c0', brand: 'Vox' },
+    vox_nighttrain_nt50: { color: '#8c8c8c', brand: 'Vox' },
+    roland_jc120: { color: '#4a9eff', brand: 'Roland' },
+    matchless_dc30: { color: '#e8dcc4', brand: 'Matchless' },
+    marshall_jcm800: { color: '#d4af37', brand: 'Marshall' },
+    marshall_jcm900: { color: '#d4af37', brand: 'Marshall' },
+    marshall_jvm410: { color: '#d4af37', brand: 'Marshall' },
+    marshall_dsl: { color: '#d4af37', brand: 'Marshall' },
+    marshall_plexi_super_lead: { color: '#b8996f', brand: 'Marshall' },
+    marshall_jtm45: { color: '#ffd700', brand: 'Marshall' },
+    orange_rockerverb: { color: '#ff8c00', brand: 'Orange' },
+    orange_tiny_terror: { color: '#ff6600', brand: 'Orange' },
+    hiwatt_dr103: { color: '#4682b4', brand: 'Hiwatt' },
+    badcat_hotcat: { color: '#d4af37', brand: 'Bad Cat' },
+    drz_maz38: { color: '#f5e6c8', brand: 'Dr. Z' },
+    victory_v30: { color: '#ff4400', brand: 'Victory' },
+    peavey_5150: { color: '#ff0000', brand: 'Peavey' },
+    peavey_6505: { color: '#ff0000', brand: 'Peavey' },
+    mesa_dual_rectifier: { color: '#ff6b35', brand: 'Mesa Boogie' },
+    mesa_triple_rectifier: { color: '#ffa500', brand: 'Mesa Boogie' },
+    mesa_mark_i: { color: '#c0c0c0', brand: 'Mesa Boogie' },
+    mesa_mark_iic_plus: { color: '#c0c0c0', brand: 'Mesa Boogie' },
+    bogner_ecstasy: { color: '#d4af37', brand: 'Bogner' },
+    bogner_uberschall: { color: '#d4af37', brand: 'Bogner' },
+    diezel_vh4: { color: '#c0c0c0', brand: 'Diezel' },
+    diezel_herbert: { color: '#c0c0c0', brand: 'Diezel' },
+    engl_powerball: { color: '#ff0000', brand: 'ENGL' },
+    engl_savage: { color: '#ff0000', brand: 'ENGL' },
+    friedman_be100: { color: '#ffd700', brand: 'Friedman' },
+    soldano_slo100: { color: '#a0a0a0', brand: 'Soldano' },
+    revv_generator: { color: '#ff0000', brand: 'Revv' },
+    prs_archon: { color: '#d4af37', brand: 'PRS' },
+    tworock_classic: { color: '#d0d0d0', brand: 'Two-Rock' },
+    dumble_ods: { color: '#d4af37', brand: 'Dumble' },
+    mesa_mark_v: { color: '#ffa500', brand: 'Mesa Boogie' },
+    mesa_triple_crown: { color: '#d4af37', brand: 'Mesa Boogie' },
+    mesa_transatlantic_ta30: { color: '#ffa500', brand: 'Mesa Boogie' },
+    carvin_v3m: { color: '#4a90e2', brand: 'Carvin' },
+    suhr_badger: { color: '#4a9eff', brand: 'Suhr' },
+    victory_duchess: { color: '#e8dcc0', brand: 'Victory' },
+    // Drive
+    mesavtwin: { color: '#1a1a1a', brand: 'Mesa Boogie' }, tech21sansamp: { color: '#1a1a1a', brand: 'Tech 21' },
+    xoticbb: { color: '#0066cc', brand: 'Xotic' }, xoticep: { color: '#d4af37', brand: 'Xotic' },
+    jhssuperbolt: { color: '#cc0000', brand: 'JHS' }, tubescreamer: { color: '#00a550', brand: 'Ibanez' },
+    kloncentaur: { color: '#d4af37', brand: 'Klon' }, bossds1: { color: '#ff6600', brand: 'Boss' },
+    bossbd2: { color: '#0066cc', brand: 'Boss' }, bosssd1: { color: '#ffcc00', brand: 'Boss' },
+    procorat: { color: '#1a1a1a', brand: 'Pro Co' }, fulltoneocd: { color: '#cc0000', brand: 'Fulltone' },
+    mxrdistortionplus: { color: '#ffcc00', brand: 'MXR' }, bigmuff: { color: '#000000', brand: 'EHX' },
+    fuzzface: { color: '#0066cc', brand: 'Dunlop' }, zvexfuzzfactory: { color: '#ccff00', brand: 'Z.Vex' },
+    distortion: { color: '#994400', brand: '' }, overdrive: { color: '#006622', brand: '' },
+    fuzz: { color: '#660066', brand: '' }, metaldistortion: { color: '#1a1a1a', brand: '' },
+    boost: { color: '#d4af37', brand: '' }, tapesaturation: { color: '#8b6914', brand: '' },
+    ts808: { color: '#00a550', brand: 'Ibanez' }, bossod3: { color: '#ff6600', brand: 'Boss' },
+    maxonod808: { color: '#2d6b1e', brand: 'Maxon' }, tumnus: { color: '#c4a030', brand: 'Wampler' },
+    morningglory: { color: '#daa520', brand: 'JHS' }, soulfood: { color: '#f5f0e0', brand: 'EHX' },
+    zendrive: { color: '#6b3fa0', brand: 'Hermida' }, timmy: { color: '#e8e0d0', brand: 'Paul Cochrane' },
+    friedmanbeod: { color: '#1a1a1a', brand: 'Friedman' }, suhrriot: { color: '#1a1a1a', brand: 'Suhr' },
+    catalinbreaddls: { color: '#8b0000', brand: 'Catalinbread' }, bognerecstasyblue: { color: '#0055aa', brand: 'Bogner' },
+    plumes: { color: '#7cfc00', brand: 'EQD' }, dod250: { color: '#808080', brand: 'DOD' },
+    darkglassb7k: { color: '#1a1a1a', brand: 'Darkglass' }, swollenpickle: { color: '#006400', brand: 'Way Huge' },
+    greenrussian: { color: '#2e5e1e', brand: 'EHX' }, fuzzlordchime: { color: '#4b0082', brand: 'Fuzzlord' },
+    badmonkey: { color: '#ffcc00', brand: 'DigiTech' }, amp11: { color: '#cc0000', brand: 'Lovepedal' },
+    fulldrive2: { color: '#1a5bb5', brand: 'Fulltone' },
+    // Time
+    memoryman: { color: '#00aa88', brand: 'EHX' }, mxrcarboncopy: { color: '#006633', brand: 'MXR' },
+    timelinedelay: { color: '#0077cc', brand: 'Strymon' }, eventidetimefactor: { color: '#1a1a1a', brand: 'Eventide' },
+    bossdd500: { color: '#0077cc', brand: 'Boss' }, line6dl4: { color: '#006600', brand: 'Line 6' },
+    delay: { color: '#0077cc', brand: '' }, tapeecho: { color: '#8b6914', brand: '' }, tapdelay: { color: '#0099cc', brand: '' },
+    bigskyreverb: { color: '#4169e1', brand: 'Strymon' }, eventidespace: { color: '#1a1a1a', brand: 'Eventide' },
+    bossrv500: { color: '#6600cc', brand: 'Boss' }, ehxholygrail: { color: '#c0c0c0', brand: 'EHX' },
+    tchalloffame: { color: '#0066cc', brand: 'TC Electronic' }, reverb: { color: '#4169e1', brand: '' },
+    springreverb: { color: '#228b22', brand: '' }, shimmerreverb: { color: '#9966ff', brand: '' },
+    hallreverb: { color: '#4169e1', brand: '' }, platereverb: { color: '#6611aa', brand: '' },
+    roomreverb: { color: '#994477', brand: '' },
+    tcflashback: { color: '#ff6600', brand: 'TC Electronic' }, supapuss: { color: '#663399', brand: 'Way Huge' },
+    arp87: { color: '#708090', brand: 'Walrus Audio' }, dispatchmaster: { color: '#ffd700', brand: 'EQD' },
+    bossdd3: { color: '#0099ff', brand: 'Boss' }, bossdd7: { color: '#0077cc', brand: 'Boss' },
+    maxonad999: { color: '#556b2f', brand: 'Maxon' }, echosystem: { color: '#1a1a1a', brand: 'Empress' },
+    thermae: { color: '#f5f0e8', brand: 'Chase Bliss' }, belleepoch: { color: '#8b6914', brand: 'Catalinbread' },
+    elcapistan: { color: '#e8e0d0', brand: 'Strymon' }, strymonflint: { color: '#e8d8c0', brand: 'Strymon' },
+    immerse: { color: '#4169e1', brand: 'Neunaber' }, cathedral: { color: '#c0c0c0', brand: 'EHX' },
+    walrusslo: { color: '#4a2060', brand: 'Walrus Audio' }, darkstar: { color: '#1a0033', brand: 'Old Blood Noise' },
+    mercury7: { color: '#1a1a2e', brand: 'Meris' }, rpcontext: { color: '#333333', brand: 'Red Panda' },
+    tensor: { color: '#ff3388', brand: 'Red Panda' },
+    // Modulation
+    strymonmobius: { color: '#0099ff', brand: 'Strymon' }, walrusjulia: { color: '#ff6699', brand: 'Walrus Audio' },
+    bossce1: { color: '#6699cc', brand: 'Boss' }, mxrphase90: { color: '#ff6600', brand: 'MXR' },
+    univibe: { color: '#6b3fa0', brand: '' }, bossbf2: { color: '#cc33ff', brand: 'Boss' },
+    bosstr2: { color: '#ff6666', brand: 'Boss' }, chorus: { color: '#0099ff', brand: '' },
+    analogchorus: { color: '#0077cc', brand: '' }, phaser: { color: '#ff6600', brand: '' },
+    flanger: { color: '#cc33ff', brand: '' }, analogflanger: { color: '#9933cc', brand: '' },
+    tremolo: { color: '#ff4444', brand: '' }, vibrato: { color: '#ff6699', brand: '' },
+    rotary: { color: '#8b4513', brand: '' }, autopan: { color: '#ff9900', brand: '' },
+    tccorona: { color: '#0066cc', brand: 'TC Electronic' }, strymonola: { color: '#e8e0d0', brand: 'Strymon' },
+    smallstone: { color: '#c0c0c0', brand: 'EHX' }, phase100: { color: '#ff6600', brand: 'MXR' },
+    electricmistress: { color: '#c0c0c0', brand: 'EHX' }, tcvortex: { color: '#ff3300', brand: 'TC Electronic' },
+    dejavibe: { color: '#f5f0e0', brand: 'Fulltone' }, rotovibe: { color: '#8b4513', brand: 'Dunlop' },
+    diamondtrem: { color: '#4169e1', brand: 'Diamond' }, warpedvinyl: { color: '#f5f0e8', brand: 'Chase Bliss' },
+    polychorus: { color: '#c0c0c0', brand: 'EHX' }, tcshaker: { color: '#cc0066', brand: 'TC Electronic' },
+    monument: { color: '#2f4f4f', brand: 'Walrus Audio' }, particle: { color: '#ff3388', brand: 'Red Panda' },
+    merisenzo: { color: '#1a1a2e', brand: 'Meris' },
+    // Dynamics
+    keeleycomp: { color: '#336699', brand: 'Keeley' }, mxrdynacomp: { color: '#ff0000', brand: 'MXR' },
+    compressor: { color: '#336699', brand: '' }, limiter: { color: '#cc0000', brand: '' },
+    noisegate: { color: '#333333', brand: '' }, tubecompressor: { color: '#8b6914', brand: '' },
+    fmrrnc: { color: '#1a1a1a', brand: 'FMR Audio' }, empresscomp: { color: '#1a1a1a', brand: 'Empress' },
+    cali76: { color: '#c0c0c0', brand: 'Origin Effects' }, deepsix: { color: '#003366', brand: 'Walrus Audio' },
+    blackfinger: { color: '#1a1a1a', brand: 'EHX' }, philosopher: { color: '#8b0000', brand: 'Pigtronix' },
+    hypergravity: { color: '#cc6600', brand: 'TC Electronic' }, bosscs3: { color: '#0099ff', brand: 'Boss' },
+    wamplerego: { color: '#556b2f', brand: 'Wampler' }, compulator: { color: '#daa520', brand: 'Demeter' },
+    // Filter
+    mxr10bandeq: { color: '#0066ff', brand: 'MXR' }, crybabywah: { color: '#1a1a1a', brand: 'Dunlop' },
+    eq: { color: '#336699', brand: '' }, graphiceq: { color: '#336699', brand: '' },
+    wah: { color: '#1a1a1a', brand: '' }, autowah: { color: '#9933cc', brand: '' },
+    envfilter: { color: '#ff6600', brand: '' }, talkbox: { color: '#ff9900', brand: '' },
+    lfofilter: { color: '#0099ff', brand: '' }, stepfilter: { color: '#cc33ff', brand: '' },
+    bossge7: { color: '#ffffff', brand: 'Boss' }, sourceaudioeq2: { color: '#1a1a1a', brand: 'Source Audio' },
+    empressparaeq: { color: '#1a1a1a', brand: 'Empress' }, talkingmachine: { color: '#c0c0c0', brand: 'EHX' },
+    moogmf101: { color: '#1a1a1a', brand: 'Moog' }, dod440: { color: '#ffcc00', brand: 'DOD' },
+    mutron: { color: '#c0c0c0', brand: 'Mu-Tron' }, qtron: { color: '#c0c0c0', brand: 'EHX' },
+    dunlop105q: { color: '#000000', brand: 'Dunlop' }, badhorsie: { color: '#000000', brand: 'Morley' },
+    // Pitch
+    octaver: { color: '#0066cc', brand: '' }, pitchshifter: { color: '#9933cc', brand: '' },
+    harmonizer: { color: '#1a1a1a', brand: '' }, whammy: { color: '#ff0000', brand: 'DigiTech' },
+    detune: { color: '#6699cc', brand: '' },
+    ehxpog: { color: '#c0c0c0', brand: 'EHX' }, micropog: { color: '#b8b8b8', brand: 'EHX' },
+    ehxhog: { color: '#c0c0c0', brand: 'EHX' }, bossps6: { color: '#cc00cc', brand: 'Boss' },
+    subnup: { color: '#0066cc', brand: 'TC Electronic' }, pitchfork: { color: '#c0c0c0', brand: 'EHX' },
+    pitchfactor: { color: '#1a1a1a', brand: 'Eventide' }, bossoc5: { color: '#003399', brand: 'Boss' },
+    freeze: { color: '#b8b8b8', brand: 'EHX' }, hedra: { color: '#1a1a2e', brand: 'Meris' },
+    mood: { color: '#f5f0e8', brand: 'Chase Bliss' },
+    // Special
+    eventideh9: { color: '#1a1a1a', brand: 'Eventide' }, looper: { color: '#ff0000', brand: '' },
+    ringmod: { color: '#9933cc', brand: '' }, bitcrusher: { color: '#00ff00', brand: '' },
+    slicer: { color: '#ff3300', brand: '' }, stepslicer: { color: '#ff6600', brand: '' },
+    swell: { color: '#4169e1', brand: '' }, feedback: { color: '#ff9900', brand: '' },
+    vocoder: { color: '#cc33ff', brand: '' },
+    // Utility
+    volume: { color: '#333333', brand: '' }, tuner: { color: '#00ff00', brand: '' },
+    abtoggle: { color: '#336699', brand: '' }, splitter: { color: '#006699', brand: '' },
+    // Multi-FX
+    helix: { color: '#1a1a1a', brand: 'Line 6' }, axefx: { color: '#1a1a1a', brand: 'Fractal Audio' },
+    kemper: { color: '#1a1a1a', brand: 'Kemper' }, quadcortex: { color: '#1a1a1a', brand: 'Neural DSP' },
+    gt1000: { color: '#000000', brand: 'Boss' }, headrush: { color: '#1a1a1a', brand: 'HeadRush' },
   };
 
   const effectTypes = [
-    // AMP
-    { type: 'amp', name: 'Amplifier', icon: 'amp', category: 'amp' },
+    // AMPS - Clean/Vintage
+    { type: 'amp', name: 'Fender Twin Reverb', ampType: 'fender_twin_reverb', category: 'amp' },
+    { type: 'amp', name: 'Fender Deluxe Reverb', ampType: 'fender_deluxe', category: 'amp' },
+    { type: 'amp', name: 'Fender Princeton Reverb', ampType: 'fender_princeton', category: 'amp' },
+    { type: 'amp', name: 'Fender Super Reverb', ampType: 'fender_super_reverb', category: 'amp' },
+    { type: 'amp', name: 'Fender Champ', ampType: 'fender_champ', category: 'amp' },
+    { type: 'amp', name: 'Fender Vibro-King', ampType: 'fender_vibro_king', category: 'amp' },
+    { type: 'amp', name: 'Fender Bassman', ampType: 'fender_bassman', category: 'amp' },
+    { type: 'amp', name: 'Fender Pro Junior', ampType: 'fender_pro_junior', category: 'amp' },
+    { type: 'amp', name: 'Vox AC30', ampType: 'vox_ac30', category: 'amp' },
+    { type: 'amp', name: 'Vox AC15', ampType: 'vox_ac15', category: 'amp' },
+    { type: 'amp', name: 'Vox Night Train NT50', ampType: 'vox_nighttrain_nt50', category: 'amp' },
+    { type: 'amp', name: 'Roland JC-120', ampType: 'roland_jc120', category: 'amp' },
+    { type: 'amp', name: 'Matchless DC-30', ampType: 'matchless_dc30', category: 'amp' },
+    // AMPS - Crunch/British
+    { type: 'amp', name: 'Marshall JCM800', ampType: 'marshall_jcm800', category: 'amp' },
+    { type: 'amp', name: 'Marshall JCM900', ampType: 'marshall_jcm900', category: 'amp' },
+    { type: 'amp', name: 'Marshall JVM410', ampType: 'marshall_jvm410', category: 'amp' },
+    { type: 'amp', name: 'Marshall DSL', ampType: 'marshall_dsl', category: 'amp' },
+    { type: 'amp', name: 'Marshall Plexi Super Lead 100', ampType: 'marshall_plexi_super_lead', category: 'amp' },
+    { type: 'amp', name: 'Marshall JTM45', ampType: 'marshall_jtm45', category: 'amp' },
+    { type: 'amp', name: 'Orange Rockerverb', ampType: 'orange_rockerverb', category: 'amp' },
+    { type: 'amp', name: 'Orange Tiny Terror', ampType: 'orange_tiny_terror', category: 'amp' },
+    { type: 'amp', name: 'Hiwatt DR103', ampType: 'hiwatt_dr103', category: 'amp' },
+    { type: 'amp', name: 'Bad Cat Hot Cat', ampType: 'badcat_hotcat', category: 'amp' },
+    { type: 'amp', name: 'Dr. Z Maz 38', ampType: 'drz_maz38', category: 'amp' },
+    { type: 'amp', name: 'Victory V30', ampType: 'victory_v30', category: 'amp' },
+    // AMPS - High Gain/Modern
+    { type: 'amp', name: 'Peavey 5150', ampType: 'peavey_5150', category: 'amp' },
+    { type: 'amp', name: 'Peavey 6505', ampType: 'peavey_6505', category: 'amp' },
+    { type: 'amp', name: 'Mesa Dual Rectifier', ampType: 'mesa_dual_rectifier', category: 'amp' },
+    { type: 'amp', name: 'Mesa Triple Rectifier', ampType: 'mesa_triple_rectifier', category: 'amp' },
+    { type: 'amp', name: 'Mesa Mark I', ampType: 'mesa_mark_i', category: 'amp' },
+    { type: 'amp', name: 'Mesa Mark IIC+', ampType: 'mesa_mark_iic_plus', category: 'amp' },
+    { type: 'amp', name: 'Bogner Ecstasy', ampType: 'bogner_ecstasy', category: 'amp' },
+    { type: 'amp', name: 'Bogner Überschall', ampType: 'bogner_uberschall', category: 'amp' },
+    { type: 'amp', name: 'Diezel VH4', ampType: 'diezel_vh4', category: 'amp' },
+    { type: 'amp', name: 'Diezel Herbert', ampType: 'diezel_herbert', category: 'amp' },
+    { type: 'amp', name: 'ENGL Powerball', ampType: 'engl_powerball', category: 'amp' },
+    { type: 'amp', name: 'ENGL Savage', ampType: 'engl_savage', category: 'amp' },
+    { type: 'amp', name: 'Friedman BE-100', ampType: 'friedman_be100', category: 'amp' },
+    { type: 'amp', name: 'Soldano SLO-100', ampType: 'soldano_slo100', category: 'amp' },
+    { type: 'amp', name: 'Revv Generator 120', ampType: 'revv_generator', category: 'amp' },
+    { type: 'amp', name: 'PRS Archon', ampType: 'prs_archon', category: 'amp' },
+    // AMPS - Boutique/Modern
+    { type: 'amp', name: 'Two-Rock Classic', ampType: 'tworock_classic', category: 'amp' },
+    { type: 'amp', name: 'Dumble ODS', ampType: 'dumble_ods', category: 'amp' },
+    { type: 'amp', name: 'Mesa Mark V', ampType: 'mesa_mark_v', category: 'amp' },
+    { type: 'amp', name: 'Mesa Triple Crown', ampType: 'mesa_triple_crown', category: 'amp' },
+    { type: 'amp', name: 'Mesa TransAtlantic TA-30', ampType: 'mesa_transatlantic_ta30', category: 'amp' },
+    { type: 'amp', name: 'Carvin V3M', ampType: 'carvin_v3m', category: 'amp' },
+    { type: 'amp', name: 'Suhr Badger', ampType: 'suhr_badger', category: 'amp' },
+    { type: 'amp', name: 'Victory Duchess', ampType: 'victory_duchess', category: 'amp' },
     
     // OVERDRIVE/DISTORTION (CLASSIC + RACK)
     { type: 'mesavtwin', name: 'Mesa V-Twin', icon: 'mesavtwin', category: 'drive' },
@@ -1766,7 +1881,7 @@ function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setShowAddMenu(false)}
+            onClick={() => { setShowAddMenu(false); setEffectSearch(''); }}
           >
             <motion.div
               className="add-menu"
@@ -1776,22 +1891,35 @@ function App() {
               onClick={(e) => e.stopPropagation()}
             >
               <h2 className="add-menu-title">Escolha um Efeito</h2>
+
+              <div className="effect-search-wrapper">
+                <Search size={16} className="effect-search-icon" />
+                <input
+                  type="text"
+                  className="effect-search-input"
+                  placeholder="Buscar efeito..."
+                  value={effectSearch}
+                  onChange={(e) => setEffectSearch(e.target.value)}
+                  autoFocus
+                />
+                {effectSearch && (
+                  <button className="effect-search-clear" onClick={() => setEffectSearch('')}>
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
               
               {['amp', 'drive', 'time', 'modulation', 'dynamics', 'filter', 'pitch', 'special', 'utility'].map(category => {
-                const categoryEffects = effectTypes.filter(e => e.category === category);
+                const categoryEffects = effectTypes
+                  .filter(e => e.category === category)
+                  .filter(e => {
+                    if (!effectSearch) return true;
+                    const q = effectSearch.toLowerCase();
+                    const infoKey = e.ampType || e.type;
+                    const brand = (pedalInfo[infoKey]?.brand || '').toLowerCase();
+                    return e.name.toLowerCase().includes(q) || brand.includes(q);
+                  });
                 if (categoryEffects.length === 0) return null;
-                
-                const categoryIcons = {
-                  amp: Speaker,
-                  drive: Guitar,
-                  time: Clock,
-                  modulation: Waves,
-                  dynamics: Activity,
-                  filter: Filter,
-                  pitch: Music,
-                  special: Sparkles,
-                  utility: Settings
-                };
                 
                 const categoryNames = {
                   amp: 'Amplifiers',
@@ -1805,30 +1933,28 @@ function App() {
                   utility: 'Utilities'
                 };
                 
-                const CategoryIcon = categoryIcons[category] || Circle;
-                
                 return (
                   <div key={category} className="effect-category">
                     <h3 className="category-title">
-                      <CategoryIcon size={20} />
                       <span>{categoryNames[category]}</span>
+                      <span className="category-count">{categoryEffects.length}</span>
                     </h3>
-                    <div className="effect-grid">
+                    <div className="effect-list">
                       {categoryEffects.map((effectType) => {
-                        const IconComponent = getEffectIcon(effectType.icon);
+                        const infoKey = effectType.ampType || effectType.type;
+                        const info = pedalInfo[infoKey] || { color: '#666', brand: '' };
                         return (
                           <motion.button
-                            key={effectType.type}
-                            className="effect-option"
-                            onClick={() => addEffect(effectType.type)}
-                            whileHover={{ scale: 1.05, y: -5 }}
-                            whileTap={{ scale: 0.95 }}
-                            title={`Add ${effectType.name}`}
+                            key={effectType.ampType || effectType.type}
+                            className="effect-list-item"
+                            onClick={() => addEffect(effectType.type, effectType.ampType)}
+                            whileHover={{ x: 4 }}
+                            whileTap={{ scale: 0.98 }}
+                            style={{ '--pedal-color': info.color }}
                           >
-                            <div className="effect-icon-wrapper">
-                              <IconComponent size={32} strokeWidth={1.5} />
-                            </div>
-                            <span className="effect-name">{effectType.name}</span>
+                            <span className="effect-dot" style={{ background: info.color }} />
+                            <span className="effect-item-name">{effectType.name}</span>
+                            {info.brand && <span className="effect-item-brand">{info.brand}</span>}
                           </motion.button>
                         );
                       })}
@@ -1837,7 +1963,7 @@ function App() {
                 );
               })}
               
-              <button className="close-menu" onClick={() => setShowAddMenu(false)}>
+              <button className="close-menu" onClick={() => { setShowAddMenu(false); setEffectSearch(''); }}>
                 Cancelar
               </button>
             </motion.div>
