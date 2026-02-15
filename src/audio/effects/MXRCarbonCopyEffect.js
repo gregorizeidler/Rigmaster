@@ -34,6 +34,18 @@ class MXRCarbonCopyEffect extends BaseEffect {
     this.modDepth.gain.value = 0.002; // Very subtle
     this.modLFO.start();
     
+    // Highpass filter (60Hz) in feedback to prevent bass buildup
+    this.hpFeedback = audioContext.createBiquadFilter();
+    this.hpFeedback.type = 'highpass';
+    this.hpFeedback.frequency.value = 60;
+    this.hpFeedback.Q.value = 0.707;
+    
+    // DC blocker (highpass 10Hz) after feedback path
+    this.dcBlocker = audioContext.createBiquadFilter();
+    this.dcBlocker.type = 'highpass';
+    this.dcBlocker.frequency.value = 10;
+    this.dcBlocker.Q.value = 0.707;
+    
     // Wet mix
     this.wetGainNode = audioContext.createGain();
     this.wetGainNode.gain.value = 0.5;
@@ -42,11 +54,13 @@ class MXRCarbonCopyEffect extends BaseEffect {
     this.input.connect(this.delay);
     this.delay.connect(this.lpf1);
     this.lpf1.connect(this.lpf2);
-    this.lpf2.connect(this.feedbackGain);
+    this.lpf2.connect(this.hpFeedback);
+    this.hpFeedback.connect(this.feedbackGain);
     this.feedbackGain.connect(this.delay); // Feedback loop
     
     this.lpf2.connect(this.wetGainNode);
-    this.wetGainNode.connect(this.wetGain);
+    this.wetGainNode.connect(this.dcBlocker);
+    this.dcBlocker.connect(this.wetGain);
     this.wetGain.connect(this.output);
     
     // Dry
@@ -87,6 +101,8 @@ class MXRCarbonCopyEffect extends BaseEffect {
       this.feedbackGain.disconnect();
       this.lpf1.disconnect();
       this.lpf2.disconnect();
+      this.hpFeedback.disconnect();
+      this.dcBlocker.disconnect();
       this.modLFO.stop();
       this.modLFO.disconnect();
       this.modDepth.disconnect();

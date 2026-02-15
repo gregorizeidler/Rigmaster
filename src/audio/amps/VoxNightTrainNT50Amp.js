@@ -142,7 +142,7 @@ class VoxNightTrainNT50Amp extends BaseAmp {
     // Output transformer (modern British)
     this.outputTransformer = audioContext.createWaveShaper();
     this.outputTransformer.curve = this.makeTransformerCurve();
-    this.outputTransformer.oversample = '2x';
+    this.outputTransformer.oversample = '4x';
     
     // Post-power filtering
     this.postPowerHPF = audioContext.createBiquadFilter();
@@ -346,7 +346,7 @@ class VoxNightTrainNT50Amp extends BaseAmp {
   // ============================================
   
   makeVoxCleanCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     
     for (let i = 0; i < samples; i++) {
@@ -379,7 +379,7 @@ class VoxNightTrainNT50Amp extends BaseAmp {
   }
   
   makeOverdriveCurve(stage) {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     
     for (let i = 0; i < samples; i++) {
@@ -422,7 +422,7 @@ class VoxNightTrainNT50Amp extends BaseAmp {
   }
   
   makeEL34PowerCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     
     for (let i = 0; i < samples; i++) {
@@ -455,7 +455,7 @@ class VoxNightTrainNT50Amp extends BaseAmp {
   }
   
   makeTransformerCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     
     for (let i = 0; i < samples; i++) {

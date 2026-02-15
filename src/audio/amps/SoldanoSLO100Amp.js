@@ -379,7 +379,7 @@ class SoldanoSLO100Amp extends BaseAmp {
    * @param {Object} options - drive, asym(metry), cold(clipper), mix
    */
   makePreampCurve({drive=7, asym=1.1, cold=false, mix=0.85} = {}) {
-    const N = 44100;
+    const N = 65536;
     const c = new Float32Array(N);
     
     for (let i = 0; i < N; i++) {
@@ -407,7 +407,7 @@ class SoldanoSLO100Amp extends BaseAmp {
   }
   
   makePowerAmpCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;

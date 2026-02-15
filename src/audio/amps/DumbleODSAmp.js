@@ -136,6 +136,7 @@ class DumbleODSAmp extends BaseAmp {
       }
       return c;
     })();
+    this.localNFB.oversample = '4x';
     
     // ============================================
     // PRESENCE
@@ -445,7 +446,7 @@ class DumbleODSAmp extends BaseAmp {
   }
   
   makeCleanCurve() {
-    const n = 44100;
+    const n = 65536;
     const c = new Float32Array(n);
     for (let i = 0; i < n; i++) {
       const x = (i / n) * 2 - 1;
@@ -468,7 +469,7 @@ class DumbleODSAmp extends BaseAmp {
   }
   
   makeODCurve() {
-    const n = 44100;
+    const n = 65536;
     const c = new Float32Array(n);
     for (let i = 0; i < n; i++) {
       const x = (i / n) * 2 - 1;
@@ -497,7 +498,7 @@ class DumbleODSAmp extends BaseAmp {
   }
   
   makePowerAmpCurve() {
-    const n = 44100;
+    const n = 65536;
     const c = new Float32Array(n);
     for (let i = 0; i < n; i++) {
       const x = (i / n) * 2 - 1;

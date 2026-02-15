@@ -168,6 +168,15 @@ class DiezelVH4Amp extends BaseAmp {
     this.powerComp.ratio.value = 3;
     this.powerComp.attack.value = 0.005;
     this.powerComp.release.value = 0.10;
+
+    // NFB (Negative Feedback) - DynamicsCompressor for program-dependent feedback
+    // Replaces deprecated ScriptProcessor; achieves similar dynamic response
+    this.nfbCompressor = audioContext.createDynamicsCompressor();
+    this.nfbCompressor.threshold.value = -20;
+    this.nfbCompressor.knee.value = 6;
+    this.nfbCompressor.ratio.value = 4;
+    this.nfbCompressor.attack.value = 0.003;
+    this.nfbCompressor.release.value = 0.05;
     
     // ============================================
     // CABINET SIMULATOR
@@ -278,12 +287,13 @@ class DiezelVH4Amp extends BaseAmp {
     }
     
     this.deep.connect(this.channelVolume);
-    
+    this.channelVolume.connect(this.nfbCompressor);
+
     // FX loop (parallel)
     if (this.fxLoop) {
       // Split dry/wet
-      this.channelVolume.connect(this.fxDryTap);     // DRY
-      this.channelVolume.connect(this.fxSendLevel);  // SEND
+      this.nfbCompressor.connect(this.fxDryTap);     // DRY
+      this.nfbCompressor.connect(this.fxSendLevel);  // SEND
       this.fxSendLevel.connect(this.fxSend);         // → external effects
       this.fxReturn.connect(this.fxReturnLevel);     // ← return from effects
       
@@ -292,7 +302,7 @@ class DiezelVH4Amp extends BaseAmp {
       this.fxReturnLevel.connect(this.fxMix);
       this.fxMix.connect(this.powerSag || this.powerAmp);
     } else {
-      this.channelVolume.connect(this.powerSag || this.powerAmp);
+      this.nfbCompressor.connect(this.powerSag || this.powerAmp);
     }
     
     if (this.powerSag) {
@@ -349,12 +359,13 @@ class DiezelVH4Amp extends BaseAmp {
     }
     
     this.deep.connect(this.channelVolume);
-    
+    this.channelVolume.connect(this.nfbCompressor);
+
     // FX loop (parallel)
     if (this.fxLoop) {
       // Split dry/wet
-      this.channelVolume.connect(this.fxDryTap);     // DRY
-      this.channelVolume.connect(this.fxSendLevel);  // SEND
+      this.nfbCompressor.connect(this.fxDryTap);     // DRY
+      this.nfbCompressor.connect(this.fxSendLevel);  // SEND
       this.fxSendLevel.connect(this.fxSend);         // → external effects
       this.fxReturn.connect(this.fxReturnLevel);     // ← return from effects
       
@@ -363,7 +374,7 @@ class DiezelVH4Amp extends BaseAmp {
       this.fxReturnLevel.connect(this.fxMix);
       this.fxMix.connect(this.powerSag || this.powerAmp);
     } else {
-      this.channelVolume.connect(this.powerSag || this.powerAmp);
+      this.nfbCompressor.connect(this.powerSag || this.powerAmp);
     }
     
     if (this.powerSag) {
@@ -420,12 +431,13 @@ class DiezelVH4Amp extends BaseAmp {
     }
     
     this.deep.connect(this.channelVolume);
-    
+    this.channelVolume.connect(this.nfbCompressor);
+
     // FX loop (parallel)
     if (this.fxLoop) {
       // Split dry/wet
-      this.channelVolume.connect(this.fxDryTap);     // DRY
-      this.channelVolume.connect(this.fxSendLevel);  // SEND
+      this.nfbCompressor.connect(this.fxDryTap);     // DRY
+      this.nfbCompressor.connect(this.fxSendLevel);  // SEND
       this.fxSendLevel.connect(this.fxSend);         // → external effects
       this.fxReturn.connect(this.fxReturnLevel);     // ← return from effects
       
@@ -434,7 +446,7 @@ class DiezelVH4Amp extends BaseAmp {
       this.fxReturnLevel.connect(this.fxMix);
       this.fxMix.connect(this.powerSag || this.powerAmp);
     } else {
-      this.channelVolume.connect(this.powerSag || this.powerAmp);
+      this.nfbCompressor.connect(this.powerSag || this.powerAmp);
     }
     
     if (this.powerSag) {
@@ -494,12 +506,13 @@ class DiezelVH4Amp extends BaseAmp {
     }
     
     this.deep.connect(this.channelVolume);
-    
+    this.channelVolume.connect(this.nfbCompressor);
+
     // FX loop (parallel)
     if (this.fxLoop) {
       // Split dry/wet
-      this.channelVolume.connect(this.fxDryTap);     // DRY
-      this.channelVolume.connect(this.fxSendLevel);  // SEND
+      this.nfbCompressor.connect(this.fxDryTap);     // DRY
+      this.nfbCompressor.connect(this.fxSendLevel);  // SEND
       this.fxSendLevel.connect(this.fxSend);         // → external effects
       this.fxReturn.connect(this.fxReturnLevel);     // ← return from effects
       
@@ -508,7 +521,7 @@ class DiezelVH4Amp extends BaseAmp {
       this.fxReturnLevel.connect(this.fxMix);
       this.fxMix.connect(this.powerSag || this.powerAmp);
     } else {
-      this.channelVolume.connect(this.powerSag || this.powerAmp);
+      this.nfbCompressor.connect(this.powerSag || this.powerAmp);
     }
     
     if (this.powerSag) {
@@ -567,6 +580,7 @@ class DiezelVH4Amp extends BaseAmp {
       this.fxReturn.disconnect();
       this.fxReturnLevel.disconnect();
       this.fxMix.disconnect();
+      this.nfbCompressor.disconnect();
       this.powerComp.disconnect();
       this.powerAmp.disconnect();
       this.powerSaturation.disconnect();
@@ -600,36 +614,10 @@ class DiezelVH4Amp extends BaseAmp {
     this.powerAmp.gain.value = 1.1;
     this.master.gain.value = 0.7;
     
-    // NFB-style dynamic presence/deep (optional - ScriptProcessor)
-    // This creates a subtle dynamic response to signal level
-    try {
-      this._nfbLfo = this.audioContext.createScriptProcessor(256, 1, 1);
-      this._nfbLfo.onaudioprocess = (e) => {
-        const inp = e.inputBuffer.getChannelData(0);
-        let rms = 0;
-        for (let i = 0; i < inp.length; i++) {
-          const v = inp[i];
-          rms += v * v;
-        }
-        rms = Math.sqrt(rms / inp.length); // 0..~1
-        
-        // Dynamic boost: +0..+1 dB presence and +1.5 dB deep on peaks
-        const p = (rms > 0.02) ? ((rms - 0.02) * 50) : 0;
-        const now = this.audioContext.currentTime;
-        this.presence.gain.setTargetAtTime(((this.params.presence - 50) / 10) + (p * 0.1), now, 0.05);
-        this.deep.gain.setTargetAtTime(((this.params.deep - 50) / 10) + (p * 0.15), now, 0.05);
-      };
-      
-      // Monitor before powerComp
-      this.channelVolume.connect(this._nfbLfo);
-      this._nfbLfo.connect(this.audioContext.createGain()); // Dummy output
-    } catch (e) {
-      console.warn('NFB LFO not available:', e);
-    }
   }
   
   makeDiezelPreampCurve() {
-    const n = 44100;
+    const n = 65536;
     const c = new Float32Array(n);
     for (let i = 0; i < n; i++) {
       const x = (i / n) * 2 - 1;
@@ -659,7 +647,7 @@ class DiezelVH4Amp extends BaseAmp {
   }
   
   makePowerAmpCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -891,15 +879,12 @@ class DiezelVH4Amp extends BaseAmp {
     this.fxReturn.disconnect();
     this.fxReturnLevel.disconnect();
     this.fxMix.disconnect();
+    this.nfbCompressor.disconnect();
     this.powerComp.disconnect();
     this.powerAmp.disconnect();
     this.powerSaturation.disconnect();
     this.master.disconnect();
     
-    // Disconnect NFB LFO if exists
-    if (this._nfbLfo) {
-      this._nfbLfo.disconnect();
-    }
   }
 }
 

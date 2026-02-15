@@ -33,8 +33,21 @@ class TapeEchoEffect extends BaseEffect {
     this.lfoGain.gain.value = 0.0005;
     this.flutter.delayTime.value = 0.001;
     
+    // Anti-aliasing filter (lowpass 18kHz) before saturation
+    this.antiAlias = audioContext.createBiquadFilter();
+    this.antiAlias.type = 'lowpass';
+    this.antiAlias.frequency.value = 18000;
+    this.antiAlias.Q.value = 0.707;
+    
+    // DC blocker (highpass 10Hz) after saturation in feedback path
+    this.dcBlocker = audioContext.createBiquadFilter();
+    this.dcBlocker.type = 'highpass';
+    this.dcBlocker.frequency.value = 10;
+    this.dcBlocker.Q.value = 0.707;
+    
     // Tape saturation
     this.createTapeCurve();
+    this.saturation.oversample = '4x';
     
     // Connect LFO
     this.lfo.connect(this.lfoGain);
@@ -44,8 +57,10 @@ class TapeEchoEffect extends BaseEffect {
     this.input.connect(this.preFilter);
     this.preFilter.connect(this.delay);
     this.delay.connect(this.flutter);
-    this.flutter.connect(this.saturation);
-    this.saturation.connect(this.postFilter);
+    this.flutter.connect(this.antiAlias);
+    this.antiAlias.connect(this.saturation);
+    this.saturation.connect(this.dcBlocker);
+    this.dcBlocker.connect(this.postFilter);
     this.postFilter.connect(this.feedback);
     this.feedback.connect(this.delay);
     this.postFilter.connect(this.wetGain);
@@ -60,7 +75,7 @@ class TapeEchoEffect extends BaseEffect {
   }
 
   createTapeCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     
     for (let i = 0; i < samples; i++) {
@@ -106,6 +121,8 @@ class TapeEchoEffect extends BaseEffect {
     this.postFilter.disconnect();
     this.saturation.disconnect();
     this.flutter.disconnect();
+    this.antiAlias.disconnect();
+    this.dcBlocker.disconnect();
     super.disconnect();
   }
 }

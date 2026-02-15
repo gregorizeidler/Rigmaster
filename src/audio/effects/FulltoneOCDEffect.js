@@ -51,11 +51,17 @@ class FulltoneOCDEffect extends BaseEffect {
     this.presenceShelf.frequency.value = 2200;
     this.presenceShelf.gain.value = 0;
 
-    // Anti-alias pós-clip (suaviza serrilhado)
+    // Anti-alias pré-clip
     this.antiAliasLPF = audioContext.createBiquadFilter();
     this.antiAliasLPF.type = 'lowpass';
-    this.antiAliasLPF.frequency.value = 12000;
-    this.antiAliasLPF.Q.value = 0.7;
+    this.antiAliasLPF.frequency.value = 18000;
+    this.antiAliasLPF.Q.value = 0.707;
+
+    // DC blocker pós-clip
+    this.dcBlocker = audioContext.createBiquadFilter();
+    this.dcBlocker.type = 'highpass';
+    this.dcBlocker.frequency.value = 10;
+    this.dcBlocker.Q.value = 0.707;
 
     // Saída
     this.outputGain = audioContext.createGain();
@@ -65,11 +71,12 @@ class FulltoneOCDEffect extends BaseEffect {
     this.input.connect(this.inputGain);
     this.inputGain.connect(this.hpFilter);
     this.hpFilter.connect(this.bassShelf);
-    this.bassShelf.connect(this.clipper);
-    this.clipper.connect(this.toneFilter);
+    this.bassShelf.connect(this.antiAliasLPF);
+    this.antiAliasLPF.connect(this.clipper);
+    this.clipper.connect(this.dcBlocker);
+    this.dcBlocker.connect(this.toneFilter);
     this.toneFilter.connect(this.presenceShelf);
-    this.presenceShelf.connect(this.antiAliasLPF);
-    this.antiAliasLPF.connect(this.outputGain);
+    this.presenceShelf.connect(this.outputGain);
     this.outputGain.connect(this.wetGain);
     this.wetGain.connect(this.output);
 
@@ -88,7 +95,7 @@ class FulltoneOCDEffect extends BaseEffect {
 
   // MOSFET: híbrido hard/soft, crunch amp-like
   makeOCDCurve(amount) {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     const drive = 1 + amount / 25;
     const knee = 0.7;
@@ -171,6 +178,7 @@ class FulltoneOCDEffect extends BaseEffect {
       this.toneFilter.disconnect();
       this.presenceShelf.disconnect();
       this.antiAliasLPF.disconnect();
+      this.dcBlocker.disconnect();
       this.outputGain.disconnect();
     } catch (e) {}
   }

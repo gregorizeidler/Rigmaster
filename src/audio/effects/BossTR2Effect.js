@@ -18,11 +18,18 @@ class BossTR2Effect extends BaseEffect {
     
     // Carrier gain (for amplitude modulation)
     this.carrierGain = audioContext.createGain();
-    this.carrierGain.gain.value = 0.5;
+    this.carrierGain.gain.value = 0.5; // Base level (DC offset)
     
-    // Offset (to keep signal positive)
-    this.offsetGain = audioContext.createGain();
-    this.offsetGain.gain.value = 0.5;
+    // DC offset using ConstantSourceNode to bias the carrier gain
+    // This keeps the modulated gain positive: gain = offset + LFO
+    // When depth=0.5, offset=0.5: gain oscillates 0.0 to 1.0
+    this.offsetSource = audioContext.createConstantSource();
+    this.offsetSource.offset.value = 0.5;
+    this.offsetSource.connect(this.carrierGain.gain);
+    this.offsetSource.start();
+    
+    // Set carrier base to 0 (all modulation comes from offset + LFO)
+    this.carrierGain.gain.value = 0;
     
     // Chain
     this.input.connect(this.carrierGain);
@@ -49,7 +56,11 @@ class BossTR2Effect extends BaseEffect {
         break;
       case 'depth':
         // Depth controls amplitude modulation
-        this.lfoGain.gain.setTargetAtTime(value / 100 * 0.9, now, 0.01);
+        // LFO swing and offset are balanced so gain stays in [0, 1]
+        const depth = (value / 100) * 0.5; // LFO amplitude: 0 to 0.5
+        const offset = 1.0 - depth;         // DC offset: 1.0 to 0.5
+        this.lfoGain.gain.setTargetAtTime(depth, now, 0.01);
+        this.offsetSource.offset.setTargetAtTime(offset, now, 0.01);
         break;
       case 'wave':
         // Waveform selector
@@ -64,7 +75,7 @@ class BossTR2Effect extends BaseEffect {
         }
         break;
       case 'mix':
-        this.updateMix(value);
+        this.setMix(value / 100);
         break;
       default:
         break;
@@ -78,10 +89,10 @@ class BossTR2Effect extends BaseEffect {
       this.lfo.disconnect();
       this.lfoGain.disconnect();
       this.carrierGain.disconnect();
-      this.offsetGain.disconnect();
+      this.offsetSource.stop();
+      this.offsetSource.disconnect();
     } catch (e) {}
   }
 }
 
 export default BossTR2Effect;
-

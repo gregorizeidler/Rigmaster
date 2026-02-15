@@ -103,7 +103,7 @@ class MetalDistortionEffect extends BaseEffect {
   }
 
   makeMetalCurve(amount) {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     const gain = amount / 10; // 0-10 range
     

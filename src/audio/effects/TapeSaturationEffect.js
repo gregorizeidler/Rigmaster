@@ -18,10 +18,22 @@ class TapeSaturationEffect extends BaseEffect {
     this.preEmphasis.gain.value = 3;
     this.preEmphasis.Q.value = 0.707;
     
+    // Anti-alias pré-clip
+    this.antiAliasLPF = audioContext.createBiquadFilter();
+    this.antiAliasLPF.type = 'lowpass';
+    this.antiAliasLPF.frequency.value = 18000;
+    this.antiAliasLPF.Q.value = 0.707;
+
     // Tape saturation (soft-knee compression + harmonics)
     this.tapeSat = audioContext.createWaveShaper();
     this.tapeSat.oversample = '4x'; // Critical for tape sound
     this.tapeSat.curve = this.makeTapeCurve(50);
+
+    // DC blocker pós-clip
+    this.dcBlocker = audioContext.createBiquadFilter();
+    this.dcBlocker.type = 'highpass';
+    this.dcBlocker.frequency.value = 10;
+    this.dcBlocker.Q.value = 0.707;
     
     // De-emphasis (reduce highs after saturation, balances pre-emphasis)
     this.deEmphasis = audioContext.createBiquadFilter();
@@ -76,8 +88,10 @@ class TapeSaturationEffect extends BaseEffect {
     // Main signal path
     this.input.connect(this.inputTrim);
     this.inputTrim.connect(this.preEmphasis);
-    this.preEmphasis.connect(this.tapeSat);
-    this.tapeSat.connect(this.deEmphasis);
+    this.preEmphasis.connect(this.antiAliasLPF);
+    this.antiAliasLPF.connect(this.tapeSat);
+    this.tapeSat.connect(this.dcBlocker);
+    this.dcBlocker.connect(this.deEmphasis);
     this.deEmphasis.connect(this.wowDelay);
     this.wowDelay.connect(this.headBump);
     this.headBump.connect(this.tapeRolloff);
@@ -106,7 +120,7 @@ class TapeSaturationEffect extends BaseEffect {
   }
   
   makeTapeCurve(amount) {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     const drive = 1 + (amount / 25); // 1-5 range
     
@@ -214,7 +228,9 @@ class TapeSaturationEffect extends BaseEffect {
     try {
       this.inputTrim.disconnect();
       this.preEmphasis.disconnect();
+      this.antiAliasLPF.disconnect();
       this.tapeSat.disconnect();
+      this.dcBlocker.disconnect();
       this.deEmphasis.disconnect();
       this.wowLFO.stop();
       this.wowLFO.disconnect();

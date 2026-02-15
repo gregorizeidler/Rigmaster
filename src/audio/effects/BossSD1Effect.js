@@ -53,11 +53,17 @@ class BossSD1Effect extends BaseEffect {
     this.toneHigh.type = 'highshelf';
     this.toneHigh.frequency.value = 2200;
 
-    // ===== Anti-alias & saída =====
+    // ===== Anti-alias pré-clip =====
     this.antiAliasLPF = audioContext.createBiquadFilter();
     this.antiAliasLPF.type = 'lowpass';
-    this.antiAliasLPF.frequency.value = 9500;
-    this.antiAliasLPF.Q.value = 0.8;
+    this.antiAliasLPF.frequency.value = 18000;
+    this.antiAliasLPF.Q.value = 0.707;
+
+    // DC blocker pós-clip
+    this.dcBlocker = audioContext.createBiquadFilter();
+    this.dcBlocker.type = 'highpass';
+    this.dcBlocker.frequency.value = 10;
+    this.dcBlocker.Q.value = 0.707;
 
     this.outputGain = audioContext.createGain();
     this.outputGain.gain.value = 0.5;
@@ -66,12 +72,13 @@ class BossSD1Effect extends BaseEffect {
     this.input.connect(this.inHPF);
     this.inHPF.connect(this.inputGain);
     this.inputGain.connect(this.preFilter);
-    this.preFilter.connect(this.clipper);
-    this.clipper.connect(this.midHump);
+    this.preFilter.connect(this.antiAliasLPF);
+    this.antiAliasLPF.connect(this.clipper);
+    this.clipper.connect(this.dcBlocker);
+    this.dcBlocker.connect(this.midHump);
     this.midHump.connect(this.toneLow);
     this.toneLow.connect(this.toneHigh);
-    this.toneHigh.connect(this.antiAliasLPF);
-    this.antiAliasLPF.connect(this.outputGain);
+    this.toneHigh.connect(this.outputGain);
     this.outputGain.connect(this.wetGain);
     this.wetGain.connect(this.output);
 
@@ -89,7 +96,7 @@ class BossSD1Effect extends BaseEffect {
 
   // Curva SD-1: assimetria forte no ciclo negativo e joelho mais musical.
   makeSD1Curve(amount) {
-    const n = 44100;
+    const n = 65536;
     const curve = new Float32Array(n);
 
     // drive base 1..4.3 aprox; assimetria cresce com o drive
@@ -169,6 +176,7 @@ class BossSD1Effect extends BaseEffect {
       this.toneLow.disconnect();
       this.toneHigh.disconnect();
       this.antiAliasLPF.disconnect();
+      this.dcBlocker.disconnect();
       this.outputGain.disconnect();
     } catch (e) {}
   }

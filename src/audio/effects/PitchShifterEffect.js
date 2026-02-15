@@ -4,110 +4,89 @@ class PitchShifterEffect extends BaseEffect {
   constructor(audioContext, id) {
     super(audioContext, id, 'Pitch Shifter', 'pitchshifter');
 
-    // Create harmonizer effect using multiple delays
-    this.directGain = audioContext.createGain();
-    this.harmonyMix = audioContext.createGain();
-    
-    // Multiple pitch-shifted voices
-    this.voice1Gain = audioContext.createGain();
-    this.voice2Gain = audioContext.createGain();
-    
-    this.delay1 = audioContext.createDelay();
-    this.delay2 = audioContext.createDelay();
-    
-    this.filter1 = audioContext.createBiquadFilter();
-    this.filter2 = audioContext.createBiquadFilter();
-    
-    this.filter1.type = 'bandpass';
-    this.filter2.type = 'bandpass';
-    this.filter1.frequency.value = 1000;
-    this.filter2.frequency.value = 800;
+    // Anti-alias lowpass filter before pitch shifting (prevents aliasing artifacts)
+    this.antiAlias = audioContext.createBiquadFilter();
+    this.antiAlias.type = 'lowpass';
+    this.antiAlias.frequency.value = 16000;
+    this.antiAlias.Q.value = 0.707;
 
-    // Initial settings
-    this.directGain.gain.value = 0.7;
-    this.voice1Gain.gain.value = 0.5;
-    this.voice2Gain.gain.value = 0.3;
-    
-    // Pitch intervals (semitones)
-    this.interval1 = 5; // Perfect fifth
-    this.interval2 = 7; // Perfect fifth + 2
+    // DC blocker highpass filter after pitch shifting (removes DC offset)
+    this.dcBlocker = audioContext.createBiquadFilter();
+    this.dcBlocker.type = 'highpass';
+    this.dcBlocker.frequency.value = 20;
+    this.dcBlocker.Q.value = 0.707;
 
-    // Connect direct signal
-    this.input.connect(this.directGain);
-    this.directGain.connect(this.harmonyMix);
+    // Pitch shifter AudioWorklet node
+    this.pitchShifterNode = null;
 
-    // Connect voice 1
-    this.input.connect(this.delay1);
-    this.delay1.connect(this.filter1);
-    this.filter1.connect(this.voice1Gain);
-    this.voice1Gain.connect(this.harmonyMix);
+    try {
+      this.pitchShifterNode = new AudioWorkletNode(audioContext, 'pitch-shifter');
+      // Worklet mix set to 1.0 (fully wet internally); external wet/dry handled by BaseEffect
+      this.pitchShifterNode.parameters.get('mix').value = 1.0;
+      this.pitchShifterNode.parameters.get('pitch').value = 0;
+      this.pitchShifterNode.parameters.get('grain').value = 50;
+    } catch (e) {
+      console.warn(
+        'PitchShifterEffect: pitch-shifter AudioWorklet not available. Effect will pass audio through unprocessed.',
+        e
+      );
+    }
 
-    // Connect voice 2
-    this.input.connect(this.delay2);
-    this.delay2.connect(this.filter2);
-    this.filter2.connect(this.voice2Gain);
-    this.voice2Gain.connect(this.harmonyMix);
-
-    // Output: harmonyMix -> wetGain -> output
-    this.harmonyMix.connect(this.wetGain);
+    // Wet signal chain: input → antiAlias → pitchShifterNode → dcBlocker → wetGain → output
+    if (this.pitchShifterNode) {
+      this.input.connect(this.antiAlias);
+      this.antiAlias.connect(this.pitchShifterNode);
+      this.pitchShifterNode.connect(this.dcBlocker);
+      this.dcBlocker.connect(this.wetGain);
+    } else {
+      // Fallback: pass-through when worklet unavailable
+      this.input.connect(this.wetGain);
+    }
     this.wetGain.connect(this.output);
-    
-    // Dry signal from BaseEffect
+
+    // Dry signal chain: input → dryGain → output
     this.input.connect(this.dryGain);
     this.dryGain.connect(this.output);
 
-    this.updateDelays();
-  }
-
-  updateDelays() {
-    // Approximate pitch shifting with delay
-    const delay1Time = 0.001 * Math.pow(2, -this.interval1 / 12);
-    const delay2Time = 0.001 * Math.pow(2, -this.interval2 / 12);
-    
-    this.delay1.delayTime.value = Math.max(0.001, Math.min(0.1, delay1Time));
-    this.delay2.delayTime.value = Math.max(0.001, Math.min(0.1, delay2Time));
-    
-    // Adjust filters
-    this.filter1.frequency.value = 1000 * Math.pow(2, this.interval1 / 12);
-    this.filter2.frequency.value = 1000 * Math.pow(2, this.interval2 / 12);
+    // Default: fully wet
+    this.setMix(1.0);
   }
 
   updateParameter(parameter, value) {
     const now = this.audioContext.currentTime;
 
     switch (parameter) {
-      case 'dry':
-        this.directGain.gain.setTargetAtTime(value / 100, now, 0.01);
+      case 'shift':
+      case 'interval': {
+        // Semitones: -24 to +24
+        if (!this.pitchShifterNode) break;
+        const semitones = Math.max(-24, Math.min(24, value));
+        this.pitchShifterNode.parameters.get('pitch').setTargetAtTime(semitones, now, 0.02);
         break;
-      case 'voice1':
-        this.voice1Gain.gain.setTargetAtTime(value / 100, now, 0.01);
+      }
+      case 'mix': {
+        // 0-100 → 0.0-1.0
+        this.setMix(value / 100);
         break;
-      case 'voice2':
-        this.voice2Gain.gain.setTargetAtTime(value / 100, now, 0.01);
+      }
+      case 'grain': {
+        // Grain size in ms: 20-100
+        if (!this.pitchShifterNode) break;
+        const grainMs = Math.max(20, Math.min(100, value));
+        this.pitchShifterNode.parameters.get('grain').setTargetAtTime(grainMs, now, 0.02);
         break;
-      case 'interval':
-        // -12 to +12 semitones
-        this.interval1 = Math.floor(-12 + (value / 100) * 24);
-        this.interval2 = this.interval1 + 7; // Add a fifth
-        this.updateDelays();
-        break;
+      }
       default:
         break;
     }
   }
 
   disconnect() {
-    this.directGain.disconnect();
-    this.harmonyMix.disconnect();
-    this.voice1Gain.disconnect();
-    this.voice2Gain.disconnect();
-    this.delay1.disconnect();
-    this.delay2.disconnect();
-    this.filter1.disconnect();
-    this.filter2.disconnect();
+    try { this.antiAlias.disconnect(); } catch (e) {}
+    try { if (this.pitchShifterNode) this.pitchShifterNode.disconnect(); } catch (e) {}
+    try { this.dcBlocker.disconnect(); } catch (e) {}
     super.disconnect();
   }
 }
 
 export default PitchShifterEffect;
-

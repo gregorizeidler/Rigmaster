@@ -29,6 +29,17 @@ class BigMuffEffect extends BaseEffect {
     this.preGain1.gain.value = 8;   // forte, como no circuito
     this.preGain2.gain.value = 6;
 
+    // ===== Anti-alias pré-clip (um para cada estágio) =====
+    this.antiAliasLPF1 = audioContext.createBiquadFilter();
+    this.antiAliasLPF1.type = 'lowpass';
+    this.antiAliasLPF1.frequency.value = 18000;
+    this.antiAliasLPF1.Q.value = 0.707;
+
+    this.antiAliasLPF2 = audioContext.createBiquadFilter();
+    this.antiAliasLPF2.type = 'lowpass';
+    this.antiAliasLPF2.frequency.value = 18000;
+    this.antiAliasLPF2.Q.value = 0.707;
+
     // ===== Clipping em dois estágios (diodes-to-ground vibe) =====
     this.clipper1 = audioContext.createWaveShaper();
     this.clipper2 = audioContext.createWaveShaper();
@@ -73,9 +84,11 @@ class BigMuffEffect extends BaseEffect {
     // ===== Roteamento =====
     this.input.connect(this.preHPF);
     this.preHPF.connect(this.preGain1);
-    this.preGain1.connect(this.clipper1);
+    this.preGain1.connect(this.antiAliasLPF1);
+    this.antiAliasLPF1.connect(this.clipper1);
     this.clipper1.connect(this.preGain2);
-    this.preGain2.connect(this.clipper2);
+    this.preGain2.connect(this.antiAliasLPF2);
+    this.antiAliasLPF2.connect(this.clipper2);
 
     // Tone stack paralelo
     this.clipper2.connect(this.bassPath);
@@ -107,7 +120,7 @@ class BigMuffEffect extends BaseEffect {
   // Curva de clipping estilo diodo: limiar assimétrico leve + joelho suave
   // drive: ganho interno; vtP/vtN: thresholds +/- (em "volts" normalizados)
   makeMuffClipCurve(drive = 40, vtP = 0.28, vtN = 0.28) {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     const knee = 0.22; // suavidade do joelho
 
@@ -194,6 +207,8 @@ class BigMuffEffect extends BaseEffect {
       this.preHPF.disconnect();
       this.preGain1.disconnect();
       this.preGain2.disconnect();
+      this.antiAliasLPF1.disconnect();
+      this.antiAliasLPF2.disconnect();
       this.clipper1.disconnect();
       this.clipper2.disconnect();
       this.bassPath.disconnect();

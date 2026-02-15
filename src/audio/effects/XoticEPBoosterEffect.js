@@ -27,9 +27,15 @@ class XoticEPBoosterEffect extends BaseEffect {
     this.inputGain = audioContext.createGain();
     this.inputGain.gain.value = 1.0;
 
+    // Anti-alias pré-clip
+    this.antiAliasLPF = audioContext.createBiquadFilter();
+    this.antiAliasLPF.type = 'lowpass';
+    this.antiAliasLPF.frequency.value = 18000;
+    this.antiAliasLPF.Q.value = 0.707;
+
     // -------- Preamp EP-3 --------
     this.preampShaper = audioContext.createWaveShaper();
-    this.preampShaper.oversample = '2x';
+    this.preampShaper.oversample = '4x';
     this.bias = 0.1;       // 0..0.25
     this.headroom = 50;    // 0..100
     this.preampShaper.curve = this.makeEPCurve(this.headroom, this.bias);
@@ -103,7 +109,8 @@ class XoticEPBoosterEffect extends BaseEffect {
     // -------- Roteamento --------
     this.input.connect(this.preHPF);
     this.preHPF.connect(this.inputGain);
-    this.inputGain.connect(this.preampShaper);
+    this.inputGain.connect(this.antiAliasLPF);
+    this.antiAliasLPF.connect(this.preampShaper);
     this.preampShaper.connect(this.dcBlock);
     this.dcBlock.connect(this.comp);
     this.comp.connect(this.body);
@@ -133,7 +140,7 @@ class XoticEPBoosterEffect extends BaseEffect {
 
   // Curva EP-3 com headroom/bias configuráveis
   makeEPCurve(headroom = 50, bias = 0.1) {
-    const n = 44100, c = new Float32Array(n);
+    const n = 65536, c = new Float32Array(n);
     // headroom baixo = mais drive
     const drive = 1.1 + (100 - headroom) / 70; // ~1.1..2.5
     for (let i = 0; i < n; i++) {
@@ -246,6 +253,7 @@ class XoticEPBoosterEffect extends BaseEffect {
     try {
       this.preHPF.disconnect();
       this.inputGain.disconnect();
+      this.antiAliasLPF.disconnect();
       this.preampShaper.disconnect();
       this.dcBlock.disconnect();
       this.comp.disconnect();

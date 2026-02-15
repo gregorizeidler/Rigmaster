@@ -5,17 +5,20 @@ class ChorusEffect extends BaseEffect {
     super(audioContext, id, 'Chorus', 'chorus');
     
     // Professional chorus with 4 voices for rich, lush sound
+    // Phase spread achieved via different base delay times (authentic chorus behavior)
     this.voices = [];
     
-    // Voice parameters (delay, LFO rate, LFO phase)
+    // Voice parameters: staggered base delays create natural phase spread
+    // Different rates create the rich, evolving texture
     const voiceParams = [
-      { delay: 0.020, rate: 0.5, phase: 0 },      // Voice 1
-      { delay: 0.025, rate: 0.7, phase: Math.PI / 2 }, // Voice 2 (90° phase)
-      { delay: 0.030, rate: 0.6, phase: Math.PI },     // Voice 3 (180° phase)
-      { delay: 0.035, rate: 0.8, phase: (3 * Math.PI) / 2 } // Voice 4 (270° phase)
+      { delay: 0.007, rate: 0.5 },   // Voice 1 - shortest delay
+      { delay: 0.012, rate: 0.7 },   // Voice 2
+      { delay: 0.018, rate: 0.6 },   // Voice 3
+      { delay: 0.024, rate: 0.8 }    // Voice 4 - longest delay
     ];
     
     // Create 4 voices with independent LFOs
+    const startTime = audioContext.currentTime;
     for (let i = 0; i < 4; i++) {
       const voice = {
         delay: audioContext.createDelay(0.1),
@@ -24,10 +27,10 @@ class ChorusEffect extends BaseEffect {
         voiceGain: audioContext.createGain()
       };
       
-      // Setup delay
+      // Setup delay with staggered base times (creates authentic phase spread)
       voice.delay.delayTime.value = voiceParams[i].delay;
       
-      // Setup LFO (desynchronized for natural chorus)
+      // Setup LFO (desynchronized rates for natural chorus)
       voice.lfo.type = 'sine';
       voice.lfo.frequency.value = voiceParams[i].rate;
       voice.lfoGain.gain.value = 0.003; // Modulation depth
@@ -39,8 +42,8 @@ class ChorusEffect extends BaseEffect {
       voice.lfo.connect(voice.lfoGain);
       voice.lfoGain.connect(voice.delay.delayTime);
       
-      // Start LFO with phase offset
-      voice.lfo.start(audioContext.currentTime + voiceParams[i].phase / (2 * Math.PI));
+      // Start all LFOs at the same time - phase spread comes from delay offsets
+      voice.lfo.start(startTime);
       
       this.voices.push(voice);
     }
@@ -58,6 +61,12 @@ class ChorusEffect extends BaseEffect {
     // Mixer for all voices
     this.voiceMixer = audioContext.createGain();
     this.voiceMixer.gain.value = 1.0;
+    
+    // DC blocker (high-pass at ~10Hz to remove DC offset from modulation)
+    this.dcBlocker = audioContext.createBiquadFilter();
+    this.dcBlocker.type = 'highpass';
+    this.dcBlocker.frequency.value = 10;
+    this.dcBlocker.Q.value = 0.7071;
     
     // Connect voices to mixer with stereo panning
     // Voices 1&2 -> Left, Voices 3&4 -> Right
@@ -77,11 +86,12 @@ class ChorusEffect extends BaseEffect {
     this.voices[3].delay.connect(this.voices[3].voiceGain);
     this.voices[3].voiceGain.connect(this.rightGain);
     
-    // Merge stereo and output
+    // Merge stereo → DC blocker → output
     this.leftGain.connect(this.merger, 0, 0);
     this.rightGain.connect(this.merger, 0, 1);
     this.merger.connect(this.voiceMixer);
-    this.voiceMixer.connect(this.wetGain);
+    this.voiceMixer.connect(this.dcBlocker);
+    this.dcBlocker.connect(this.wetGain);
     this.wetGain.connect(this.output);
     
     // Dry signal
@@ -138,8 +148,8 @@ class ChorusEffect extends BaseEffect {
     this.splitter.disconnect();
     this.merger.disconnect();
     this.voiceMixer.disconnect();
+    this.dcBlocker.disconnect();
   }
 }
 
 export default ChorusEffect;
-

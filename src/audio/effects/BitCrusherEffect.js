@@ -4,58 +4,72 @@ class BitCrusherEffect extends BaseEffect {
   constructor(audioContext, id) {
     super(audioContext, id, 'Bit Crusher', 'bitcrusher');
 
-    // Create ScriptProcessor for custom processing
-    this.processor = audioContext.createScriptProcessor(4096, 1, 1);
-    
-    this.bitDepth = 16;
-    this.sampleRateReduction = 1;
-    
-    this.processor.onaudioprocess = (e) => {
-      const input = e.inputBuffer.getChannelData(0);
-      const output = e.outputBuffer.getChannelData(0);
-      
-      let step = Math.pow(0.5, this.bitDepth);
-      let phaser = 0;
-      let last = 0;
+    // Bitcrusher AudioWorklet node
+    this.bitcrusherNode = null;
 
-      for (let i = 0; i < input.length; i++) {
-        phaser += this.sampleRateReduction;
-        if (phaser >= 1.0) {
-          phaser -= 1.0;
-          last = step * Math.floor(input[i] / step + 0.5);
-        }
-        output[i] = last;
-      }
-    };
+    try {
+      this.bitcrusherNode = new AudioWorkletNode(audioContext, 'bitcrusher');
+      this.bitcrusherNode.parameters.get('bits').value = 8;
+      this.bitcrusherNode.parameters.get('downsample').value = 1;
+      this.bitcrusherNode.parameters.get('mix').value = 1.0; // Fully wet internally
+    } catch (e) {
+      console.warn(
+        'BitCrusherEffect: bitcrusher AudioWorklet not available. Effect will pass audio through unprocessed.',
+        e
+      );
+    }
 
-    // Connect: input -> processor -> wetGain -> output
-    this.input.connect(this.processor);
-    this.processor.connect(this.wetGain);
+    // Wet signal chain: input → bitcrusherNode → wetGain → output
+    if (this.bitcrusherNode) {
+      this.input.connect(this.bitcrusherNode);
+      this.bitcrusherNode.connect(this.wetGain);
+    } else {
+      // Fallback: pass-through when worklet unavailable
+      this.input.connect(this.wetGain);
+    }
     this.wetGain.connect(this.output);
-    
-    // Dry signal
+
+    // Dry signal chain: input → dryGain → output
     this.input.connect(this.dryGain);
     this.dryGain.connect(this.output);
+
+    // Default: fully wet
+    this.setMix(1.0);
   }
 
   updateParameter(parameter, value) {
+    const now = this.audioContext.currentTime;
+
     switch (parameter) {
-      case 'bits':
-        this.bitDepth = 2 + (value / 100) * 14; // 2-bit to 16-bit
+      case 'bits': {
+        // Bit depth: 1-24
+        if (!this.bitcrusherNode) break;
+        const bits = Math.max(1, Math.min(24, Math.round(value)));
+        this.bitcrusherNode.parameters.get('bits').setTargetAtTime(bits, now, 0.02);
         break;
+      }
       case 'rate':
-        this.sampleRateReduction = 0.05 + (value / 100) * 0.95; // Heavy to no reduction
+      case 'downsample': {
+        // Sample rate reduction factor: 1-64
+        if (!this.bitcrusherNode) break;
+        const downsample = Math.max(1, Math.min(64, Math.round(value)));
+        this.bitcrusherNode.parameters.get('downsample').setTargetAtTime(downsample, now, 0.02);
         break;
+      }
+      case 'mix': {
+        // 0-100 → 0.0-1.0
+        this.setMix(value / 100);
+        break;
+      }
       default:
         break;
     }
   }
 
   disconnect() {
-    this.processor.disconnect();
+    try { if (this.bitcrusherNode) this.bitcrusherNode.disconnect(); } catch (e) {}
     super.disconnect();
   }
 }
 
 export default BitCrusherEffect;
-

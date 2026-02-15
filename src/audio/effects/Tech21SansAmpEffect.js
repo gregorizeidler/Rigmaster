@@ -17,6 +17,12 @@ class Tech21SansAmpEffect extends BaseEffect {
     this.drive = audioContext.createGain();
     this.drive.gain.value = 1.5;
     
+    // Anti-aliasing filter before preamp (lowpass 18kHz)
+    this.antiAlias = audioContext.createBiquadFilter();
+    this.antiAlias.type = 'lowpass';
+    this.antiAlias.frequency.value = 18000;
+    this.antiAlias.Q.value = 0.707;
+    
     // Preamp stage
     this.preamp = audioContext.createWaveShaper();
     this.preamp.oversample = '4x';
@@ -25,7 +31,7 @@ class Tech21SansAmpEffect extends BaseEffect {
     // DC blocker (removes DC offset from waveshaper)
     this.dcBlock = audioContext.createBiquadFilter();
     this.dcBlock.type = 'highpass';
-    this.dcBlock.frequency.value = 20;
+    this.dcBlock.frequency.value = 10;
     this.dcBlock.Q.value = 0.707;
     
     // Tone stack (Fender/Marshall/Vox style selectable)
@@ -88,10 +94,11 @@ class Tech21SansAmpEffect extends BaseEffect {
     this.outLimiter.attack.value = 0.003;
     this.outLimiter.release.value = 0.08;
     
-    // Chain: input -> preHPF -> drive -> preamp -> dcBlock -> EQ -> presence -> cabinet -> cabRes -> postHPF -> postLPF -> level -> limiter -> wetGain
+    // Chain: input -> preHPF -> drive -> antiAlias -> preamp -> dcBlock -> EQ -> presence -> cabinet -> cabRes -> postHPF -> postLPF -> level -> limiter -> wetGain
     this.input.connect(this.preHPF);
     this.preHPF.connect(this.drive);
-    this.drive.connect(this.preamp);
+    this.drive.connect(this.antiAlias);
+    this.antiAlias.connect(this.preamp);
     this.preamp.connect(this.dcBlock);
     this.dcBlock.connect(this.bass);
     this.bass.connect(this.mid);
@@ -111,7 +118,7 @@ class Tech21SansAmpEffect extends BaseEffect {
   }
   
   makeSansAmpCurve(drive) {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     const driveAmount = 1 + (drive / 20);
     
@@ -221,6 +228,7 @@ class Tech21SansAmpEffect extends BaseEffect {
     try {
       this.preHPF.disconnect();
       this.drive.disconnect();
+      this.antiAlias.disconnect();
       this.preamp.disconnect();
       this.dcBlock.disconnect();
       this.bass.disconnect();

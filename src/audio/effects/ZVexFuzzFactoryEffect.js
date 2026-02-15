@@ -28,6 +28,12 @@ class ZVexFuzzFactoryEffect extends BaseEffect {
     this.biasFilter.frequency.value = 100;
     this.biasFilter.Q.value = 5.0;
 
+    // Anti-alias pré-clip
+    this.antiAliasLPF = audioContext.createBiquadFilter();
+    this.antiAliasLPF.type = 'lowpass';
+    this.antiAliasLPF.frequency.value = 18000;
+    this.antiAliasLPF.Q.value = 0.707;
+
     // Clipper FUZZ (brutal, mas com joelho controlável)
     this.fuzzClip = audioContext.createWaveShaper();
     this.fuzzClip.oversample = '4x';
@@ -75,7 +81,8 @@ class ZVexFuzzFactoryEffect extends BaseEffect {
     // ===== Cadeia principal =====
     this.input.connect(this.inputGain);
     this.inputGain.connect(this.biasFilter);
-    this.biasFilter.connect(this.fuzzClip);
+    this.biasFilter.connect(this.antiAliasLPF);
+    this.antiAliasLPF.connect(this.fuzzClip);
 
     // Tone / saída
     this.fuzzClip.connect(this.toneLow);
@@ -143,7 +150,7 @@ class ZVexFuzzFactoryEffect extends BaseEffect {
 
   // Curva agressiva com "granulação" e pequeno ruído harmônico
   makeFuzzFactoryCurve(amount) {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     const drive = 1 + amount / 10;
 
@@ -264,6 +271,7 @@ class ZVexFuzzFactoryEffect extends BaseEffect {
     try {
       this.inputGain.disconnect();
       this.biasFilter.disconnect();
+      this.antiAliasLPF.disconnect();
       this.fuzzClip.disconnect();
       this.toneLow.disconnect();
       this.toneHigh.disconnect();

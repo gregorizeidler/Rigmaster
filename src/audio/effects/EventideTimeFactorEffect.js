@@ -19,9 +19,11 @@ class EventideTimeFactorEffect extends BaseEffect {
     this.feedbackL.gain.value = 0.5;
     this.feedbackR.gain.value = 0.5;
     
-    // Cross-feedback (L->R, R->L)
-    this.crossFeedback = audioContext.createGain();
-    this.crossFeedback.gain.value = 0;
+    // Cross-feedback (L->R and R->L)
+    this.crossFeedbackLR = audioContext.createGain();
+    this.crossFeedbackRL = audioContext.createGain();
+    this.crossFeedbackLR.gain.value = 0;
+    this.crossFeedbackRL.gain.value = 0;
     
     // Tone/Filter controls
     this.lpFilter = audioContext.createBiquadFilter();
@@ -40,9 +42,17 @@ class EventideTimeFactorEffect extends BaseEffect {
     this.modLFO.start();
     
     // Diffusion (for ambient/shimmer modes)
-    this.diffusion = audioContext.createConvolver();
+    // TODO: Diffusion convolver requires an impulse response buffer to function.
+    // Keeping diffusionGain for parameter control; convolver is not connected
+    // until an impulse response is loaded.
     this.diffusionGain = audioContext.createGain();
     this.diffusionGain.gain.value = 0;
+    
+    // DC blocker (highpass 10Hz) after feedback paths
+    this.dcBlocker = audioContext.createBiquadFilter();
+    this.dcBlocker.type = 'highpass';
+    this.dcBlocker.frequency.value = 10;
+    this.dcBlocker.Q.value = 0.707;
     
     // Mix controls
     this.wetL = audioContext.createGain();
@@ -66,24 +76,27 @@ class EventideTimeFactorEffect extends BaseEffect {
     this.lpFilter.connect(this.wetL);
     this.wetL.connect(this.merger, 0, 0);
     
-    // Right channel
+    // Right channel (through filters for consistent tone)
     this.splitter.connect(this.delayR, 1);
     this.delayR.connect(this.feedbackR);
     this.feedbackR.connect(this.delayR); // Feedback loop
     this.delayR.connect(this.wetR);
     this.wetR.connect(this.merger, 0, 1);
     
-    // Cross-feedback (optional)
-    this.feedbackL.connect(this.crossFeedback);
-    this.crossFeedback.connect(this.delayR);
+    // Cross-feedback: L->R and R->L (bidirectional)
+    this.feedbackL.connect(this.crossFeedbackLR);
+    this.crossFeedbackLR.connect(this.delayR);
+    this.feedbackR.connect(this.crossFeedbackRL);
+    this.crossFeedbackRL.connect(this.delayL);
     
     // Modulation
     this.modLFO.connect(this.modDepth);
     this.modDepth.connect(this.delayL.delayTime);
     this.modDepth.connect(this.delayR.delayTime);
     
-    // Output
-    this.merger.connect(this.wetGain);
+    // Output (DC blocker before wet mix)
+    this.merger.connect(this.dcBlocker);
+    this.dcBlocker.connect(this.wetGain);
     this.wetGain.connect(this.output);
     
     this.input.connect(this.dryGain);
@@ -116,7 +129,8 @@ class EventideTimeFactorEffect extends BaseEffect {
         this.modDepth.gain.setTargetAtTime(value / 100 * 0.02, now, 0.01);
         break;
       case 'xfeed':
-        this.crossFeedback.gain.setTargetAtTime(value / 100 * 0.7, now, 0.01);
+        this.crossFeedbackLR.gain.setTargetAtTime(value / 100 * 0.7, now, 0.01);
+        this.crossFeedbackRL.gain.setTargetAtTime(value / 100 * 0.7, now, 0.01);
         break;
       case 'spread':
         const offset = (value / 100) * 0.1;
@@ -144,9 +158,11 @@ class EventideTimeFactorEffect extends BaseEffect {
       this.delayR.disconnect();
       this.feedbackL.disconnect();
       this.feedbackR.disconnect();
-      this.crossFeedback.disconnect();
+      this.crossFeedbackLR.disconnect();
+      this.crossFeedbackRL.disconnect();
       this.lpFilter.disconnect();
       this.hpFilter.disconnect();
+      this.dcBlocker.disconnect();
       this.modLFO.stop();
       this.modLFO.disconnect();
       this.modDepth.disconnect();

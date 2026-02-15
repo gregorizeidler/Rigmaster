@@ -1,12 +1,13 @@
 /**
- * AudioRecorder - Record and playback with effects
+ * AudioRecorder - Professional quality recording and playback
  * 
  * Features:
- * - Record guitar input with effects
+ * - Record guitar input with effects (post-processing)
  * - Playback recorded audio
- * - Export to WAV
- * - Overdub capability
+ * - Export to 24-bit WAV with TPDF dithering
+ * - High-quality codec selection
  */
+import AudioConfig from './AudioConfig';
 
 class AudioRecorder {
   constructor(audioContext) {
@@ -49,18 +50,7 @@ class AudioRecorder {
     
     // Create MediaRecorder with HIGH QUALITY settings
     const stream = this.recordingDestination.stream;
-    
-    // Try different codecs/settings in order of quality preference
-    const codecOptions = [
-      // Highest quality: PCM (uncompressed) - Chrome/Safari
-      { mimeType: 'audio/webm;codecs=pcm', audioBitsPerSecond: 2116800 }, // 44.1kHz * 16bit * 2ch * 1.5
-      // High quality: Opus at maximum bitrate
-      { mimeType: 'audio/webm;codecs=opus', audioBitsPerSecond: 510000 }, // Max opus bitrate (510kbps)
-      // Safari fallback
-      { mimeType: 'audio/mp4', audioBitsPerSecond: 320000 },
-      // Generic high quality
-      { audioBitsPerSecond: 320000 }
-    ];
+    const codecOptions = AudioConfig.recording.codecPriority;
     
     let mediaRecorderCreated = false;
     
@@ -69,7 +59,7 @@ class AudioRecorder {
         if (!options.mimeType || MediaRecorder.isTypeSupported(options.mimeType)) {
           this.mediaRecorder = new MediaRecorder(stream, options);
           mediaRecorderCreated = true;
-          console.log(`✅ Using codec: ${options.mimeType || 'default'} at ${options.audioBitsPerSecond}bps`);
+          console.log(`Recording codec: ${options.mimeType || 'default'} at ${options.audioBitsPerSecond}bps`);
           break;
         }
       } catch (e) {
@@ -78,9 +68,8 @@ class AudioRecorder {
     }
     
     if (!mediaRecorderCreated) {
-      // Last resort fallback
       this.mediaRecorder = new MediaRecorder(stream);
-      console.warn('⚠️ Using default MediaRecorder settings (may be lower quality)');
+      console.warn('Using default MediaRecorder settings');
     }
     
     this.recordedChunks = [];
@@ -92,13 +81,11 @@ class AudioRecorder {
     };
     
     this.mediaRecorder.onstop = async () => {
-      // Disconnect source to avoid feedback
+      // Disconnect source
       if (this.recordingSourceNode) {
         try {
           this.recordingSourceNode.disconnect(this.recordingDestination);
-        } catch (e) {
-          console.warn('Source already disconnected');
-        }
+        } catch (e) {}
         this.recordingSourceNode = null;
       }
       
@@ -106,22 +93,24 @@ class AudioRecorder {
       await this.loadRecordingToBuffer(blob);
     };
     
-    // Capture every 100ms for smooth recording
-    this.mediaRecorder.start(100);
+    // Start without timeslice for cleanest recording (no chunk boundaries)
+    const timeslice = AudioConfig.recording.timesliceMs;
+    if (timeslice > 0) {
+      this.mediaRecorder.start(timeslice);
+    } else {
+      this.mediaRecorder.start();
+    }
+    
     this.isRecording = true;
     this.recordingStartTime = this.audioContext.currentTime;
     
-    // Log quality info for user
-    const qualityInfo = {
+    console.log('Recording started (HIGH QUALITY MODE)');
+    console.log('Quality:', {
       codec: this.mediaRecorder.mimeType,
       sampleRate: `${this.audioContext.sampleRate / 1000}kHz`,
-      bitrate: this.mediaRecorder.audioBitsPerSecond 
-        ? `${Math.round(this.mediaRecorder.audioBitsPerSecond / 1000)}kbps` 
-        : 'default'
-    };
-    
-    console.log('🔴 Recording started (HIGH QUALITY MODE)');
-    console.log('📊 Quality Settings:', qualityInfo);
+      exportBitDepth: `${AudioConfig.exportBitDepth}-bit`,
+      dithering: AudioConfig.dithering.type,
+    });
   }
   
   /**
@@ -134,7 +123,7 @@ class AudioRecorder {
     this.isRecording = false;
     this.recordingDuration = this.audioContext.currentTime - this.recordingStartTime;
     
-    console.log(`⏹️ Recording stopped (${this.recordingDuration.toFixed(2)}s)`);
+    console.log(`Recording stopped (${this.recordingDuration.toFixed(2)}s)`);
   }
   
   /**
@@ -144,7 +133,7 @@ class AudioRecorder {
     try {
       const arrayBuffer = await blob.arrayBuffer();
       this.recordedBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
-      console.log('✅ Recording ready for playback');
+      console.log('Recording ready for playback');
     } catch (error) {
       console.error('Failed to decode recording:', error);
     }
@@ -163,21 +152,16 @@ class AudioRecorder {
       this.stopPlayback();
     }
     
-    // Create buffer source
     this.playbackSource = this.audioContext.createBufferSource();
     this.playbackSource.buffer = this.recordedBuffer;
     this.playbackSource.connect(this.playbackGain);
     
-    // Auto-stop when finished
     this.playbackSource.onended = () => {
       this.isPlaying = false;
-      console.log('⏹️ Playback finished');
     };
     
     this.playbackSource.start(0);
     this.isPlaying = true;
-    
-    console.log('▶️ Playing recording...');
   }
   
   /**
@@ -188,12 +172,9 @@ class AudioRecorder {
       try {
         this.playbackSource.stop();
         this.playbackSource.disconnect();
-      } catch (e) {
-        // Already stopped
-      }
+      } catch (e) {}
       this.playbackSource = null;
       this.isPlaying = false;
-      console.log('⏹️ Playback stopped');
     }
   }
   
@@ -205,11 +186,20 @@ class AudioRecorder {
     this.recordedBuffer = null;
     this.recordedChunks = [];
     this.recordingDuration = 0;
-    console.log('🗑️ Recording cleared');
   }
   
   /**
-   * Export recording to WAV file
+   * TPDF Dithering - Triangular Probability Density Function
+   * Standard dithering for bit-depth reduction.
+   * Eliminates quantization distortion artifacts.
+   */
+  _tpdfDither() {
+    // Two uniform random values summed = triangular distribution
+    return (Math.random() - 0.5) + (Math.random() - 0.5);
+  }
+  
+  /**
+   * Export recording to WAV file (24-bit with TPDF dithering)
    */
   async exportToWAV() {
     if (!this.recordedBuffer) {
@@ -217,33 +207,33 @@ class AudioRecorder {
       return null;
     }
     
-    // Convert AudioBuffer to WAV
-    const wavBlob = this.audioBufferToWav(this.recordedBuffer);
+    const bitDepth = AudioConfig.exportBitDepth;
+    const wavBlob = this.audioBufferToWav(this.recordedBuffer, bitDepth);
     
-    // Log export info
     const sizeInMB = (wavBlob.size / (1024 * 1024)).toFixed(2);
-    console.log('💾 Exporting WAV file...');
-    console.log(`📊 File Info: ${sizeInMB}MB, ${this.recordedBuffer.sampleRate}Hz, ${this.recordedBuffer.numberOfChannels}ch, 16-bit`);
+    console.log(`Exporting WAV: ${sizeInMB}MB, ${this.recordedBuffer.sampleRate}Hz, ${this.recordedBuffer.numberOfChannels}ch, ${bitDepth}-bit`);
     
     // Create download link
     const url = URL.createObjectURL(wavBlob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `guitrard-recording-${Date.now()}.wav`;
+    a.download = `rigmaster-recording-${Date.now()}.wav`;
     a.click();
     
     URL.revokeObjectURL(url);
-    console.log('✅ Recording exported successfully');
+    console.log('Recording exported successfully');
     
     return wavBlob;
   }
   
   /**
    * Convert AudioBuffer to WAV Blob
+   * Supports 16-bit and 24-bit with TPDF dithering
    */
-  audioBufferToWav(buffer) {
+  audioBufferToWav(buffer, bitDepth = 24) {
     const numberOfChannels = buffer.numberOfChannels;
-    const length = buffer.length * numberOfChannels * 2;
+    const bytesPerSample = bitDepth / 8;
+    const length = buffer.length * numberOfChannels * bytesPerSample;
     const sampleRate = buffer.sampleRate;
     
     const arrayBuffer = new ArrayBuffer(44 + length);
@@ -260,28 +250,71 @@ class AudioRecorder {
     view.setUint32(4, 36 + length, true);
     writeString(8, 'WAVE');
     writeString(12, 'fmt ');
-    view.setUint32(16, 16, true);
-    view.setUint16(20, 1, true);
-    view.setUint16(22, numberOfChannels, true);
-    view.setUint32(24, sampleRate, true);
-    view.setUint32(28, sampleRate * numberOfChannels * 2, true);
-    view.setUint16(32, numberOfChannels * 2, true);
-    view.setUint16(34, 16, true);
+    view.setUint32(16, 16, true);                                        // PCM format chunk size
+    view.setUint16(20, 1, true);                                         // PCM format (1)
+    view.setUint16(22, numberOfChannels, true);                          // Channels
+    view.setUint32(24, sampleRate, true);                                // Sample rate
+    view.setUint32(28, sampleRate * numberOfChannels * bytesPerSample, true); // Byte rate
+    view.setUint16(32, numberOfChannels * bytesPerSample, true);         // Block align
+    view.setUint16(34, bitDepth, true);                                  // Bits per sample
     writeString(36, 'data');
     view.setUint32(40, length, true);
     
-    // Write audio data
+    // Get channel data
     const channels = [];
     for (let i = 0; i < numberOfChannels; i++) {
       channels.push(buffer.getChannelData(i));
     }
     
+    const useDithering = AudioConfig.dithering.enabled && AudioConfig.dithering.type === 'tpdf';
+    
     let offset = 44;
-    for (let i = 0; i < buffer.length; i++) {
-      for (let channel = 0; channel < numberOfChannels; channel++) {
-        const sample = Math.max(-1, Math.min(1, channels[channel][i]));
-        view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
-        offset += 2;
+    
+    if (bitDepth === 24) {
+      // 24-bit WAV export with TPDF dithering
+      const scale = 0x7FFFFF; // 2^23 - 1
+      const ditherScale = 1.0 / scale; // 1 LSB at 24-bit
+      
+      for (let i = 0; i < buffer.length; i++) {
+        for (let channel = 0; channel < numberOfChannels; channel++) {
+          let sample = Math.max(-1, Math.min(1, channels[channel][i]));
+          
+          // Add TPDF dither (1 LSB amplitude)
+          if (useDithering) {
+            sample += this._tpdfDither() * ditherScale;
+          }
+          
+          // Convert to 24-bit integer
+          let intSample = Math.round(sample * scale);
+          intSample = Math.max(-0x800000, Math.min(0x7FFFFF, intSample));
+          
+          // Write 3 bytes (little-endian)
+          view.setUint8(offset, intSample & 0xFF);
+          view.setUint8(offset + 1, (intSample >> 8) & 0xFF);
+          view.setUint8(offset + 2, (intSample >> 16) & 0xFF);
+          offset += 3;
+        }
+      }
+    } else {
+      // 16-bit WAV export with TPDF dithering
+      const scale16 = 0x7FFF;
+      const ditherScale16 = 1.0 / scale16;
+      
+      for (let i = 0; i < buffer.length; i++) {
+        for (let channel = 0; channel < numberOfChannels; channel++) {
+          let sample = Math.max(-1, Math.min(1, channels[channel][i]));
+          
+          // Add TPDF dither
+          if (useDithering) {
+            sample += this._tpdfDither() * ditherScale16;
+          }
+          
+          // Convert to 16-bit
+          const intSample = sample < 0 ? Math.max(-0x8000, Math.round(sample * 0x8000)) 
+                                       : Math.min(0x7FFF, Math.round(sample * 0x7FFF));
+          view.setInt16(offset, intSample, true);
+          offset += 2;
+        }
       }
     }
     
@@ -299,8 +332,9 @@ class AudioRecorder {
       duration: this.recordingDuration,
       sampleRate: this.recordedBuffer?.sampleRate || this.audioContext.sampleRate,
       channels: this.recordedBuffer?.numberOfChannels || 2,
-      bitDepth: 16, // WAV export is 16-bit
-      codec: this.mediaRecorder?.mimeType || 'unknown'
+      bitDepth: AudioConfig.exportBitDepth,
+      codec: this.mediaRecorder?.mimeType || 'unknown',
+      dithering: AudioConfig.dithering.type,
     };
   }
   
@@ -329,11 +363,8 @@ class AudioRecorder {
       this.output.disconnect();
       this.playbackGain.disconnect();
       this.recordingDestination.disconnect();
-    } catch (e) {
-      // Already disconnected
-    }
+    } catch (e) {}
   }
 }
 
 export default AudioRecorder;
-

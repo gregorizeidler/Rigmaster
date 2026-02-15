@@ -38,9 +38,21 @@ class KlonCentaurEffect extends BaseEffect {
     this.dirtyGain = audioContext.createGain();
     this.dirtyGain.gain.value = 1.6;
 
+    // Anti-alias pré-clip
+    this.antiAliasLPF = audioContext.createBiquadFilter();
+    this.antiAliasLPF.type = 'lowpass';
+    this.antiAliasLPF.frequency.value = 18000;
+    this.antiAliasLPF.Q.value = 0.707;
+
     this.clip = audioContext.createWaveShaper();
     this.clip.oversample = '4x';
     this.clip.curve = this.makeKlonCurve({ drive: 50, diode: 'ge', asym: 10 });
+
+    // DC blocker pós-clip
+    this.dcBlocker = audioContext.createBiquadFilter();
+    this.dcBlocker.type = 'highpass';
+    this.dcBlocker.frequency.value = 10;
+    this.dcBlocker.Q.value = 0.707;
 
     // Pós-clip (ajuste de graves/aresta)
     this.postHPF = audioContext.createBiquadFilter();
@@ -80,11 +92,13 @@ class KlonCentaurEffect extends BaseEffect {
     this.inHPF.connect(this.cleanGain);
     this.cleanGain.connect(this.sumGain);
 
-    // dirty: inHPF -> preEQ -> dirtyGain -> clip -> pós-filtros -> treble -> mid -> sum
+    // dirty: inHPF -> preEQ -> dirtyGain -> antiAlias -> clip -> dcBlocker -> pós-filtros -> treble -> mid -> sum
     this.inHPF.connect(this.preEQ);
     this.preEQ.connect(this.dirtyGain);
-    this.dirtyGain.connect(this.clip);
-    this.clip.connect(this.postHPF);
+    this.dirtyGain.connect(this.antiAliasLPF);
+    this.antiAliasLPF.connect(this.clip);
+    this.clip.connect(this.dcBlocker);
+    this.dcBlocker.connect(this.postHPF);
     this.postHPF.connect(this.postLPF);
     this.postLPF.connect(this.treble);
     this.treble.connect(this.midVoice);
@@ -120,7 +134,7 @@ class KlonCentaurEffect extends BaseEffect {
 
   // Curva com joelho macio estilo germanium, controle de diodo/assimetria
   makeKlonCurve({ drive = 50, diode = 'ge', asym = 10 } = {}) {
-    const n = 44100;
+    const n = 65536;
     const c = new Float32Array(n);
 
     const driveMul = 1 + drive / 33; // ~1..2.5
@@ -238,7 +252,9 @@ class KlonCentaurEffect extends BaseEffect {
       this.cleanGain.disconnect();
       this.preEQ.disconnect();
       this.dirtyGain.disconnect();
+      this.antiAliasLPF.disconnect();
       this.clip.disconnect();
+      this.dcBlocker.disconnect();
       this.postHPF.disconnect();
       this.postLPF.disconnect();
       this.treble.disconnect();

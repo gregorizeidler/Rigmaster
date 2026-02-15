@@ -33,18 +33,32 @@ class LimiterEffect extends BaseEffect {
     this.finalClipper.oversample = '4x';
     this.finalClipper.curve = this.makeHardClipCurve();
     
+    // Anti-aliasing filter before softClipper (lowpass 18kHz)
+    this.antiAlias = audioContext.createBiquadFilter();
+    this.antiAlias.type = 'lowpass';
+    this.antiAlias.frequency.value = 18000;
+    this.antiAlias.Q.value = 0.707;
+    
+    // DC blocker after finalClipper (highpass 10Hz)
+    this.dcBlocker = audioContext.createBiquadFilter();
+    this.dcBlocker.type = 'highpass';
+    this.dcBlocker.frequency.value = 10;
+    this.dcBlocker.Q.value = 0.707;
+    
     // Output gain
     this.outputGain = audioContext.createGain();
     this.outputGain.gain.value = 1.0;
     
-    // ROUTING: input -> inputGain -> softClipper -> limiter 
-    // -> makeupGain -> finalClipper -> outputGain -> wetGain -> output
+    // ROUTING: input -> inputGain -> antiAlias -> softClipper -> limiter 
+    // -> makeupGain -> finalClipper -> dcBlocker -> outputGain -> wetGain -> output
     this.input.connect(this.inputGain);
-    this.inputGain.connect(this.softClipper);
+    this.inputGain.connect(this.antiAlias);
+    this.antiAlias.connect(this.softClipper);
     this.softClipper.connect(this.limiter);
     this.limiter.connect(this.makeupGain);
     this.makeupGain.connect(this.finalClipper);
-    this.finalClipper.connect(this.outputGain);
+    this.finalClipper.connect(this.dcBlocker);
+    this.dcBlocker.connect(this.outputGain);
     this.outputGain.connect(this.wetGain);
     this.wetGain.connect(this.output);
     
@@ -54,7 +68,7 @@ class LimiterEffect extends BaseEffect {
   }
 
   makeSoftClipCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     
     for (let i = 0; i < samples; i++) {
@@ -67,7 +81,7 @@ class LimiterEffect extends BaseEffect {
   }
 
   makeHardClipCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     
     for (let i = 0; i < samples; i++) {
@@ -111,10 +125,12 @@ class LimiterEffect extends BaseEffect {
   disconnect() {
     super.disconnect();
     this.inputGain.disconnect();
+    this.antiAlias.disconnect();
     this.softClipper.disconnect();
     this.limiter.disconnect();
     this.makeupGain.disconnect();
     this.finalClipper.disconnect();
+    this.dcBlocker.disconnect();
     this.outputGain.disconnect();
   }
 }

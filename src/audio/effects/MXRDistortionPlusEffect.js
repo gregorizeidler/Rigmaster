@@ -27,6 +27,12 @@ class MXRDistortionPlusEffect extends BaseEffect {
     this.preHPF.frequency.value = 120;
     this.preHPF.Q.value = 0.707;
 
+    // Anti-alias pré-clip
+    this.antiAliasLPF = audioContext.createBiquadFilter();
+    this.antiAliasLPF.type = 'lowpass';
+    this.antiAliasLPF.frequency.value = 18000;
+    this.antiAliasLPF.Q.value = 0.707;
+
     // ===== Clipping (germanium-like, simétrico) =====
     this.clipper = audioContext.createWaveShaper();
     this.clipper.oversample = '4x';
@@ -50,7 +56,8 @@ class MXRDistortionPlusEffect extends BaseEffect {
     // ===== Cadeia =====
     this.input.connect(this.inputGain);
     this.inputGain.connect(this.preHPF);
-    this.preHPF.connect(this.clipper);
+    this.preHPF.connect(this.antiAliasLPF);
+    this.antiAliasLPF.connect(this.clipper);
     this.clipper.connect(this.postLPF);
     this.postLPF.connect(this.dcBlock);
     this.dcBlock.connect(this.outputGain);
@@ -70,7 +77,7 @@ class MXRDistortionPlusEffect extends BaseEffect {
 
   // Curva com limiar ~0.33 (≈ 0,3V germanium), joelho suave e harmônicos extras
   makeDistortionPlusCurve(amount) {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
 
     // "Distortion" do pedal ≈ ganho do op-amp; mantemos limiar fixo e subimos drive
@@ -140,6 +147,7 @@ class MXRDistortionPlusEffect extends BaseEffect {
     try {
       this.inputGain.disconnect();
       this.preHPF.disconnect();
+      this.antiAliasLPF.disconnect();
       this.clipper.disconnect();
       this.postLPF.disconnect();
       this.dcBlock.disconnect();

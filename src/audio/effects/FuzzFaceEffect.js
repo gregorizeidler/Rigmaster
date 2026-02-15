@@ -33,6 +33,12 @@ class FuzzFaceEffect extends BaseEffect {
     this.preEmphasis.frequency.value = 1400;
     this.preEmphasis.gain.value = 1.5;
 
+    // Anti-alias pré-clip
+    this.antiAliasLPF = audioContext.createBiquadFilter();
+    this.antiAliasLPF.type = 'lowpass';
+    this.antiAliasLPF.frequency.value = 18000;
+    this.antiAliasLPF.Q.value = 0.707;
+
     // ===== Clipper germanium com bias/asym =====
     this.fuzzClip = audioContext.createWaveShaper();
     this.fuzzClip.oversample = '4x';
@@ -59,7 +65,8 @@ class FuzzFaceEffect extends BaseEffect {
     this.input.connect(this.inputPad);
     this.inputPad.connect(this.inputHPF);
     this.inputHPF.connect(this.preEmphasis);
-    this.preEmphasis.connect(this.fuzzClip);
+    this.preEmphasis.connect(this.antiAliasLPF);
+    this.antiAliasLPF.connect(this.fuzzClip);
     this.fuzzClip.connect(this.outputLPF);
     this.outputLPF.connect(this.dcBlock);
     this.dcBlock.connect(this.outputGain);
@@ -80,7 +87,7 @@ class FuzzFaceEffect extends BaseEffect {
 
   // Curva germanium com joelho suave + assimetria controlada pelo 'bias'
   makeFuzzFaceCurve(amount = 50, bias = 50) {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
 
     // drive global
@@ -171,6 +178,7 @@ class FuzzFaceEffect extends BaseEffect {
       this.inputPad.disconnect();
       this.inputHPF.disconnect();
       this.preEmphasis.disconnect();
+      this.antiAliasLPF.disconnect();
       this.fuzzClip.disconnect();
       this.outputLPF.disconnect();
       this.dcBlock.disconnect();

@@ -117,6 +117,7 @@ class MarshallJCM800Amp extends BaseAmp {
     // Output transformer
     this.outputTransformer = audioContext.createWaveShaper();
     this.outputTransformer.curve = this.makeTransformerCurve();
+    this.outputTransformer.oversample = '4x';
     
     // ============================================
     // CABINET SIMULATOR
@@ -257,7 +258,7 @@ class MarshallJCM800Amp extends BaseAmp {
   // ============================================
   
   makePreampCurve(isCold = false) {
-    const n = 44100;
+    const n = 65536;
     const curve = new Float32Array(n);
     for (let i = 0; i < n; i++) {
       const x = (i * 2) / n - 1;
@@ -285,7 +286,7 @@ class MarshallJCM800Amp extends BaseAmp {
   }
   
   makePowerAmpCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -310,7 +311,7 @@ class MarshallJCM800Amp extends BaseAmp {
   }
   
   makeTransformerCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;

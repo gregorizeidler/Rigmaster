@@ -54,7 +54,7 @@ class BaseAmp {
   }
   
   // Helper to create saturation curves
-  makeSaturationCurve(amount, samples = 44100) {
+  makeSaturationCurve(amount, samples = 65536) {
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;

@@ -55,7 +55,7 @@ class OverdriveEffect extends BaseEffect {
   }
 
   createOvdriveCurve(amount) {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     const drive = amount / 30; // 0-3.3 range (softer than distortion)
     

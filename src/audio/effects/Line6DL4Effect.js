@@ -33,6 +33,18 @@ class Line6DL4Effect extends BaseEffect {
     this.tweezGain = audioContext.createGain();
     this.tweezGain.gain.value = 1.0;
     
+    // Highpass filter (80Hz) in feedback loop to prevent bass buildup
+    this.hpFeedback = audioContext.createBiquadFilter();
+    this.hpFeedback.type = 'highpass';
+    this.hpFeedback.frequency.value = 80;
+    this.hpFeedback.Q.value = 0.707;
+    
+    // DC blocker (highpass 10Hz) after feedback path
+    this.dcBlocker = audioContext.createBiquadFilter();
+    this.dcBlocker.type = 'highpass';
+    this.dcBlocker.frequency.value = 10;
+    this.dcBlocker.Q.value = 0.707;
+    
     // Mix
     this.wetGainNode = audioContext.createGain();
     this.wetGainNode.gain.value = 0.5;
@@ -41,10 +53,12 @@ class Line6DL4Effect extends BaseEffect {
     this.input.connect(this.delay);
     this.delay.connect(this.tapeFilter);
     this.tapeFilter.connect(this.tweezGain);
-    this.tweezGain.connect(this.feedback);
+    this.tweezGain.connect(this.hpFeedback);
+    this.hpFeedback.connect(this.feedback);
     this.feedback.connect(this.delay); // Feedback loop
     
-    this.tweezGain.connect(this.wetGainNode);
+    this.tweezGain.connect(this.dcBlocker);
+    this.dcBlocker.connect(this.wetGainNode);
     this.wetGainNode.connect(this.wetGain);
     this.wetGain.connect(this.output);
     
@@ -103,6 +117,8 @@ class Line6DL4Effect extends BaseEffect {
       this.delay.disconnect();
       this.feedback.disconnect();
       this.tapeFilter.disconnect();
+      this.hpFeedback.disconnect();
+      this.dcBlocker.disconnect();
       this.modLFO.stop();
       this.modLFO.disconnect();
       this.modDepth.disconnect();

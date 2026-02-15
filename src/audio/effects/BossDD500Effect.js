@@ -103,6 +103,9 @@ class BossDD500Effect extends BaseEffect {
     this.modLFO.start();
     
     // === SHIMMER (pitch shift simulation) ===
+    // TODO: True shimmer mode requires a pitch-shifter AudioWorklet for octave-up
+    // processing in the feedback loop. The current delay-based approach is a placeholder.
+    // Implement with pitch-shifter-processor.js worklet for proper shimmer effect.
     this.shimmerDelay1 = audioContext.createDelay(0.1);
     this.shimmerDelay2 = audioContext.createDelay(0.1);
     this.shimmerDelay1.delayTime.value = 0.012;
@@ -111,6 +114,26 @@ class BossDD500Effect extends BaseEffect {
     this.shimmerGain2 = audioContext.createGain();
     this.shimmerGain1.gain.value = 0;
     this.shimmerGain2.gain.value = 0;
+    
+    // === DC BLOCKERS (highpass 10Hz) in feedback paths ===
+    this.dcBlockerL = audioContext.createBiquadFilter();
+    this.dcBlockerR = audioContext.createBiquadFilter();
+    this.dcBlockerL.type = 'highpass';
+    this.dcBlockerR.type = 'highpass';
+    this.dcBlockerL.frequency.value = 10;
+    this.dcBlockerR.frequency.value = 10;
+    this.dcBlockerL.Q.value = 0.707;
+    this.dcBlockerR.Q.value = 0.707;
+    
+    // === HIGHPASS FILTERS (60Hz) in feedback loops ===
+    this.hpFeedbackL = audioContext.createBiquadFilter();
+    this.hpFeedbackR = audioContext.createBiquadFilter();
+    this.hpFeedbackL.type = 'highpass';
+    this.hpFeedbackR.type = 'highpass';
+    this.hpFeedbackL.frequency.value = 60;
+    this.hpFeedbackR.frequency.value = 60;
+    this.hpFeedbackL.Q.value = 0.707;
+    this.hpFeedbackR.Q.value = 0.707;
     
     // === TERA ECHO (ambient) ===
     this.teraReverb = [];
@@ -174,9 +197,11 @@ class BossDD500Effect extends BaseEffect {
     this.splitter.connect(this.delayL, 0);
     this.delayL.connect(this.toneFilter);
     
-    // Feedback
+    // Feedback (with highpass 60Hz and DC blocker)
     this.toneFilter.connect(this.feedbackL);
-    this.feedbackL.connect(this.delayL);
+    this.feedbackL.connect(this.hpFeedbackL);
+    this.hpFeedbackL.connect(this.dcBlockerL);
+    this.dcBlockerL.connect(this.delayL);
     
     // Cross-feed for ping-pong
     this.toneFilter.connect(this.crossFeedL2R);
@@ -190,9 +215,11 @@ class BossDD500Effect extends BaseEffect {
     this.splitter.connect(this.delayR, 1);
     this.delayR.connect(this.toneFilter);
     
-    // Feedback
+    // Feedback (with highpass 60Hz and DC blocker)
     this.toneFilter.connect(this.feedbackR);
-    this.feedbackR.connect(this.delayR);
+    this.feedbackR.connect(this.hpFeedbackR);
+    this.hpFeedbackR.connect(this.dcBlockerR);
+    this.dcBlockerR.connect(this.delayR);
     
     // Cross-feed
     this.toneFilter.connect(this.crossFeedR2L);
@@ -509,6 +536,10 @@ class BossDD500Effect extends BaseEffect {
       this.feedbackR.disconnect();
       this.crossFeedL2R.disconnect();
       this.crossFeedR2L.disconnect();
+      this.dcBlockerL.disconnect();
+      this.dcBlockerR.disconnect();
+      this.hpFeedbackL.disconnect();
+      this.hpFeedbackR.disconnect();
       this.analogLP.disconnect();
       this.tapeLP.disconnect();
       this.tapeHP.disconnect();

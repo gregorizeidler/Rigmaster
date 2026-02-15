@@ -1,4 +1,5 @@
 import AudioRecorder from './AudioRecorder';
+import AudioConfig from './AudioConfig';
 
 class AudioEngine {
   constructor() {
@@ -19,50 +20,59 @@ class AudioEngine {
     this.audioFileLoop = true;
     this.usingAudioFile = false;
     this.microphoneStream = null;
+    
+    // Worklet readiness flags
+    this.workletsLoaded = {
+      gate: false,
+      sag: false,
+      pitchShifter: false,
+      bitcrusher: false,
+      ringMod: false,
+      envelopeFollower: false,
+    };
   }
 
   async initialize(deviceId = null) {
     try {
-      // Create AudioContext with optimal settings for guitar processing
+      // Create AudioContext with centralized config
       const contextOptions = {
-        latencyHint: 'interactive', // Low latency for live playing
-        sampleRate: 48000 // Professional sample rate (48kHz)
+        latencyHint: AudioConfig.latencyHint,
+        sampleRate: AudioConfig.sampleRate,
       };
       
       this.audioContext = new (window.AudioContext || window.webkitAudioContext)(contextOptions);
       
-      console.log(`🎸 AudioContext initialized at ${this.audioContext.sampleRate}Hz`);
+      console.log(`AudioContext initialized at ${this.audioContext.sampleRate}Hz`);
       
-      // Load AudioWorklet processors (gate and sag)
-      try {
-        await this.audioContext.audioWorklet.addModule('gate-processor.js');
-        console.log('✅ Loaded gate-processor.js');
-      } catch (error) {
-        console.warn('⚠️ Failed to load gate-processor.js:', error);
-      }
+      // Load ALL AudioWorklet processors
+      const worklets = [
+        { file: 'gate-processor.js', key: 'gate' },
+        { file: 'sag-processor.js', key: 'sag' },
+        { file: 'pitch-shifter-processor.js', key: 'pitchShifter' },
+        { file: 'bitcrusher-processor.js', key: 'bitcrusher' },
+        { file: 'ring-mod-processor.js', key: 'ringMod' },
+        { file: 'envelope-follower-processor.js', key: 'envelopeFollower' },
+      ];
       
-      try {
-        await this.audioContext.audioWorklet.addModule('sag-processor.js');
-        console.log('✅ Loaded sag-processor.js');
-      } catch (error) {
-        console.warn('⚠️ Failed to load sag-processor.js:', error);
-      }
+      await Promise.all(worklets.map(async ({ file, key }) => {
+        try {
+          await this.audioContext.audioWorklet.addModule(file);
+          this.workletsLoaded[key] = true;
+        } catch (error) {
+          console.warn(`Failed to load ${file}:`, error);
+        }
+      }));
       
       // Input from microphone/guitar interface with HIGH QUALITY settings
       const constraints = {
         audio: {
           // DISABLE all browser processing for clean signal
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false,
-          
-          // LOW LATENCY
-          latency: 0,
+          ...AudioConfig.inputConstraints,
           
           // HIGH QUALITY AUDIO
-          sampleRate: { ideal: 48000 }, // Pro audio standard
-          sampleSize: { ideal: 24 },    // 24-bit depth
-          channelCount: { ideal: 2 },   // Stereo
+          sampleRate: { ideal: AudioConfig.sampleRate },
+          sampleSize: { ideal: AudioConfig.inputBitDepth },
+          channelCount: { ideal: 2 },
           
           // Advanced constraints (if supported)
           echoCancellationType: 'none',

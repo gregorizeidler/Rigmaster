@@ -389,7 +389,7 @@ class BadCatHotCatAmp extends BaseAmp {
   }
   
   makePreampCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -410,7 +410,7 @@ class BadCatHotCatAmp extends BaseAmp {
   }
   
   makePowerAmpCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -428,7 +428,7 @@ class BadCatHotCatAmp extends BaseAmp {
   
   makeEF86Curve() {
     // EF86 pentode: punch, 3D character, strong 2nd harmonic
-    const N = 44100;
+    const N = 65536;
     const curve = new Float32Array(N);
     for (let i = 0; i < N; i++) {
       const x = (i * 2) / N - 1;

@@ -30,7 +30,14 @@ class TapDelayEffect extends BaseEffect {
     
     this.highpass = audioContext.createBiquadFilter();
     this.highpass.type = 'highpass';
-    this.highpass.frequency.value = 200;
+    this.highpass.frequency.value = 80; // Prevent bass buildup in feedback
+    this.highpass.Q.value = 0.707;
+    
+    // DC blocker (highpass 10Hz) after feedback path
+    this.dcBlocker = audioContext.createBiquadFilter();
+    this.dcBlocker.type = 'highpass';
+    this.dcBlocker.frequency.value = 10;
+    this.dcBlocker.Q.value = 0.707;
     
     // Tap gains (individual tap volumes)
     this.tap1Gain = audioContext.createGain();
@@ -71,13 +78,18 @@ class TapDelayEffect extends BaseEffect {
     this.delay4.connect(this.tap4Gain);
     this.tap4Gain.connect(this.wetGain);
     
-    // Feedback loop
+    // Feedback loop (feeds back into all delay taps)
     this.wetGain.connect(this.feedback);
     this.feedback.connect(this.highpass);
     this.highpass.connect(this.lowpass);
     this.lowpass.connect(this.delay1);
+    this.lowpass.connect(this.delay2);
+    this.lowpass.connect(this.delay3);
+    this.lowpass.connect(this.delay4);
     
-    this.wetGain.connect(this.outputGain);
+    // DC blocker on wet output path
+    this.wetGain.connect(this.dcBlocker);
+    this.dcBlocker.connect(this.outputGain);
     this.outputGain.connect(this.output);
     
     // Initialize
@@ -106,7 +118,7 @@ class TapDelayEffect extends BaseEffect {
   }
   
   tap() {
-    const now = Date.now();
+    const now = this.audioContext.currentTime * 1000; // Use audio clock for accurate timing
     
     if (this.lastTapTime > 0) {
       const interval = now - this.lastTapTime;
@@ -143,11 +155,12 @@ class TapDelayEffect extends BaseEffect {
       baseTime *= (2/3);
     }
     
-    // Set tap times (rhythmic pattern)
-    this.delay1.delayTime.value = baseTime;
-    this.delay2.delayTime.value = baseTime * 2;
-    this.delay3.delayTime.value = baseTime * 3;
-    this.delay4.delayTime.value = baseTime * 4;
+    // Set tap times (rhythmic pattern) using setTargetAtTime for smooth transitions
+    const now = this.audioContext.currentTime;
+    this.delay1.delayTime.setTargetAtTime(baseTime, now, 0.02);
+    this.delay2.delayTime.setTargetAtTime(baseTime * 2, now, 0.02);
+    this.delay3.delayTime.setTargetAtTime(baseTime * 3, now, 0.02);
+    this.delay4.delayTime.setTargetAtTime(baseTime * 4, now, 0.02);
   }
   
   updateParameter(parameter, value) {
@@ -208,6 +221,7 @@ class TapDelayEffect extends BaseEffect {
     this.feedback.disconnect();
     this.lowpass.disconnect();
     this.highpass.disconnect();
+    this.dcBlocker.disconnect();
     this.tap1Gain.disconnect();
     this.tap2Gain.disconnect();
     this.tap3Gain.disconnect();

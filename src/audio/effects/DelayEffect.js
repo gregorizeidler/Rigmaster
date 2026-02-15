@@ -49,6 +49,16 @@ class DelayEffect extends BaseEffect {
     this.hpFilterLeft.Q.value = 0.707;
     this.hpFilterRight.Q.value = 0.707;
     
+    // DC blockers (highpass 10Hz) to prevent DC offset accumulation
+    this.dcBlockerLeft = audioContext.createBiquadFilter();
+    this.dcBlockerRight = audioContext.createBiquadFilter();
+    this.dcBlockerLeft.type = 'highpass';
+    this.dcBlockerRight.type = 'highpass';
+    this.dcBlockerLeft.frequency.value = 10;
+    this.dcBlockerRight.frequency.value = 10;
+    this.dcBlockerLeft.Q.value = 0.707;
+    this.dcBlockerRight.Q.value = 0.707;
+    
     // LFO for tape-style modulation (subtle pitch variation)
     this.lfo = audioContext.createOscillator();
     this.lfoGain = audioContext.createGain();
@@ -82,8 +92,9 @@ class DelayEffect extends BaseEffect {
     this.hpFilterLeft.connect(this.crossFeedbackL2R);
     this.crossFeedbackL2R.connect(this.delayRight);
     
-    // Left output
-    this.hpFilterLeft.connect(this.leftGain);
+    // Left output (DC blocker before wet output)
+    this.hpFilterLeft.connect(this.dcBlockerLeft);
+    this.dcBlockerLeft.connect(this.leftGain);
     this.leftGain.connect(this.merger, 0, 0);
     
     // RIGHT CHANNEL:
@@ -100,8 +111,9 @@ class DelayEffect extends BaseEffect {
     this.hpFilterRight.connect(this.crossFeedbackR2L);
     this.crossFeedbackR2L.connect(this.delayLeft);
     
-    // Right output
-    this.hpFilterRight.connect(this.rightGain);
+    // Right output (DC blocker before wet output)
+    this.hpFilterRight.connect(this.dcBlockerRight);
+    this.dcBlockerRight.connect(this.rightGain);
     this.rightGain.connect(this.merger, 0, 1);
     
     // LFO modulation (connects to both delay times for tape wobble)
@@ -172,6 +184,8 @@ class DelayEffect extends BaseEffect {
     this.filterRight.disconnect();
     this.hpFilterLeft.disconnect();
     this.hpFilterRight.disconnect();
+    this.dcBlockerLeft.disconnect();
+    this.dcBlockerRight.disconnect();
     this.leftGain.disconnect();
     this.rightGain.disconnect();
   }

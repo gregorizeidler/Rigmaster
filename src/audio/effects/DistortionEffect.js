@@ -61,7 +61,7 @@ class DistortionEffect extends BaseEffect {
   }
 
   makeDistortionCurve(amount) {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     const drive = amount / 20; // 0-5 range
     

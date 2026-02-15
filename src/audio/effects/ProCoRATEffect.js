@@ -52,11 +52,17 @@ class ProCoRATEffect extends BaseEffect {
     this.ratClip.oversample = '4x';
     this.ratClip.curve = this.makeRATCurve(50);
 
-    // Anti-alias pós-clip (suaviza o serrilhado nos agudos)
+    // Anti-alias pré-clip
     this.antiAliasLPF = audioContext.createBiquadFilter();
     this.antiAliasLPF.type = 'lowpass';
-    this.antiAliasLPF.frequency.value = 10000;
-    this.antiAliasLPF.Q.value = 0.7;
+    this.antiAliasLPF.frequency.value = 18000;
+    this.antiAliasLPF.Q.value = 0.707;
+
+    // DC blocker pós-clip
+    this.dcBlocker = audioContext.createBiquadFilter();
+    this.dcBlocker.type = 'highpass';
+    this.dcBlocker.frequency.value = 10;
+    this.dcBlocker.Q.value = 0.707;
 
     // Filtro "Filter" (inverso: CCW = mais brilho)
     this.ratFilter = audioContext.createBiquadFilter();
@@ -74,9 +80,10 @@ class ProCoRATEffect extends BaseEffect {
     this.inputGain.connect(this.preEmphasis);
     this.preEmphasis.connect(this.slewRateLimiter);
     this.slewRateLimiter.connect(this.preCompressor);
-    this.preCompressor.connect(this.ratClip);
-    this.ratClip.connect(this.antiAliasLPF);
-    this.antiAliasLPF.connect(this.ratFilter);
+    this.preCompressor.connect(this.antiAliasLPF);
+    this.antiAliasLPF.connect(this.ratClip);
+    this.ratClip.connect(this.dcBlocker);
+    this.dcBlocker.connect(this.ratFilter);
     this.ratFilter.connect(this.outputGain);
     this.outputGain.connect(this.wetGain);
     this.wetGain.connect(this.output);
@@ -99,7 +106,7 @@ class ProCoRATEffect extends BaseEffect {
 
   // Curva: hard clip ±0.8 com compressão no miolo + harmônicos "nervosos".
   makeRATCurve(amount) {
-    const n = 44100;
+    const n = 65536;
     const curve = new Float32Array(n);
     const drive = 1 + amount / 12; // escala original
     const hard = 0.8;
@@ -190,6 +197,7 @@ class ProCoRATEffect extends BaseEffect {
       this.preCompressor.disconnect();
       this.ratClip.disconnect();
       this.antiAliasLPF.disconnect();
+      this.dcBlocker.disconnect();
       this.ratFilter.disconnect();
       this.outputGain.disconnect();
     } catch (e) {}

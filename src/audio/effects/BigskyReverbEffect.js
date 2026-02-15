@@ -451,7 +451,7 @@ class BigskyReverbEffect extends BaseEffect {
     const shaper = ctx.createWaveShaper();
     const curve = new Float32Array(65536);
     for (let i=0;i<65536;i++){ const x=(i-32768)/32768; curve[i]=Math.abs(x); }
-    shaper.curve = curve; shaper.oversample = '2x';
+    shaper.curve = curve; shaper.oversample = '4x';
     return shaper;
   }
 

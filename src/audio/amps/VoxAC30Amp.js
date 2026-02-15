@@ -391,12 +391,12 @@ class VoxAC30Amp extends BaseAmp {
       const x = (i - 32768) / 32768;
       c[i] = Math.abs(x);
     }
-    s.curve = c; s.oversample = '2x';
+    s.curve = c; s.oversample = '4x';
     return s;
   }
 
   _makeEF86Curve() {
-    const N = 44100; const c = new Float32Array(N);
+    const N = 65536; const c = new Float32Array(N);
     for (let i = 0; i < N; i++) {
       const x = (i * 2) / N - 1;
       let y = Math.tanh(x * 1.8);
@@ -410,7 +410,7 @@ class VoxAC30Amp extends BaseAmp {
   }
 
   _makeEL84Curve() {
-    const N = 44100; const c = new Float32Array(N);
+    const N = 65536; const c = new Float32Array(N);
     for (let i = 0; i < N; i++) {
       const x = (i * 2) / N - 1;
       let y = Math.tanh(x * 1.5);

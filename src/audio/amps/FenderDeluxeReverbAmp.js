@@ -115,15 +115,6 @@ class FenderDeluxeReverbAmp extends BaseAmp {
     this.vibratoLFO.start();
     
     // ============================================
-    // RECTIFIER SAG (5AR4)
-    // ============================================
-    this.rectifierSag = audioContext.createDynamicsCompressor();
-    this.rectifierSag.threshold.value = -22;
-    this.rectifierSag.ratio.value = 2.2;
-    this.rectifierSag.attack.value = 0.005;
-    this.rectifierSag.release.value = 0.12;
-    
-    // ============================================
     // POWER AMP (2x 6V6)
     // ============================================
     // POWER SUPPLY SAG - AUDIOWORKLET (tube rectifier)
@@ -225,12 +216,11 @@ class FenderDeluxeReverbAmp extends BaseAmp {
     this.reverbMix.connect(this.reverbSum); // Wet
     
     // Power section with sag
-    this.reverbSum.connect(this.rectifierSag);
     if (this.powerSag) {
-      this.rectifierSag.connect(this.powerSag);
+      this.reverbSum.connect(this.powerSag);
       this.powerSag.connect(this.powerAmp);
     } else {
-      this.rectifierSag.connect(this.powerAmp);
+      this.reverbSum.connect(this.powerAmp);
     }
     this.powerAmp.connect(this.powerSaturation);
     
@@ -276,12 +266,11 @@ class FenderDeluxeReverbAmp extends BaseAmp {
     this.reverbMix.connect(this.reverbSum); // Wet
     
     // Power section with sag
-    this.reverbSum.connect(this.rectifierSag);
     if (this.powerSag) {
-      this.rectifierSag.connect(this.powerSag);
+      this.reverbSum.connect(this.powerSag);
       this.powerSag.connect(this.powerAmp);
     } else {
-      this.rectifierSag.connect(this.powerAmp);
+      this.reverbSum.connect(this.powerAmp);
     }
     this.powerAmp.connect(this.powerSaturation);
     
@@ -315,7 +304,6 @@ class FenderDeluxeReverbAmp extends BaseAmp {
       this.reverbFeedback.disconnect();
       this.reverbMix.disconnect();
       this.reverbSum.disconnect();
-      this.rectifierSag.disconnect();
       this.powerAmp.disconnect();
       this.powerSaturation.disconnect();
       this.preCabinet.disconnect();
@@ -361,7 +349,7 @@ class FenderDeluxeReverbAmp extends BaseAmp {
   
   make12AX7Curve() {
     // Blackface preamp - clean, subtle shimmer
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -376,7 +364,7 @@ class FenderDeluxeReverbAmp extends BaseAmp {
   
   make6V6Curve() {
     // Blackface power tubes - clean with sweet harmonics
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -590,11 +578,10 @@ class FenderDeluxeReverbAmp extends BaseAmp {
     this.reverbFeedback.disconnect();
     this.reverbMix.disconnect();
     this.reverbSum.disconnect();
-    this.rectifierSag.disconnect();
     this.powerAmp.disconnect();
     this.powerSaturation.disconnect();
-    this.postHPF.disconnect();
-    this.postLPF.disconnect();
+    this.preCabinet.disconnect();
+    this.postCabinet.disconnect();
     this.master.disconnect();
   }
 }

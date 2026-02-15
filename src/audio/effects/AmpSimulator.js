@@ -221,7 +221,7 @@ class AmpSimulator extends BaseEffect {
     
     // TRANSFORMER SATURATION
     this.transformerSaturation = audioContext.createWaveShaper();
-    this.transformerSaturation.oversample = '2x';
+    this.transformerSaturation.oversample = '4x';
     this.transformerSaturation.curve = this.makeTransformerCurve();
     this.transformerGain = audioContext.createGain();
     this.transformerGain.gain.value = 1.0;
@@ -562,7 +562,7 @@ class AmpSimulator extends BaseEffect {
 
   makeCleanCurve() {
     // Fallback clean curve for legacy compatibility
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -573,7 +573,7 @@ class AmpSimulator extends BaseEffect {
 
   // CLEAN/VINTAGE CURVES (5)
   makeVoxAC30Curve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -610,7 +610,7 @@ class AmpSimulator extends BaseEffect {
   }
 
   makeFenderDeluxeCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -647,7 +647,7 @@ class AmpSimulator extends BaseEffect {
   }
 
   makeFenderBassmanCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -675,7 +675,7 @@ class AmpSimulator extends BaseEffect {
   }
 
   makeRolandJC120Curve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -698,7 +698,7 @@ class AmpSimulator extends BaseEffect {
   }
 
   makeMatchlessDC30Curve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -730,7 +730,7 @@ class AmpSimulator extends BaseEffect {
 
   // CRUNCH/BRITISH CURVES (5)
   makeMarshallJCM800Curve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -766,7 +766,7 @@ class AmpSimulator extends BaseEffect {
   }
 
   makeOrangeRockerverbCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -796,7 +796,7 @@ class AmpSimulator extends BaseEffect {
   }
 
   makeHiwattDR103Curve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -826,7 +826,7 @@ class AmpSimulator extends BaseEffect {
   }
 
   makeMarshallJTM45Curve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -856,7 +856,7 @@ class AmpSimulator extends BaseEffect {
   }
 
   makeBadCatHotCatCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -886,7 +886,7 @@ class AmpSimulator extends BaseEffect {
 
   // HIGH GAIN/MODERN CURVES (5)
   makePeavey5150Curve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -918,7 +918,7 @@ class AmpSimulator extends BaseEffect {
   }
 
   makeBognerEcstasyCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -949,7 +949,7 @@ class AmpSimulator extends BaseEffect {
   }
 
   makeDiezelVH4Curve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -985,7 +985,7 @@ class AmpSimulator extends BaseEffect {
   }
 
   makeFriedmanBE100Curve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -1015,7 +1015,7 @@ class AmpSimulator extends BaseEffect {
   }
 
   makeSoldanoSLO100Curve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -1047,7 +1047,7 @@ class AmpSimulator extends BaseEffect {
 
   // BOUTIQUE/MODERN CURVES (5)
   makeTwoRockClassicCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -1079,7 +1079,7 @@ class AmpSimulator extends BaseEffect {
   }
 
   makeDumbleODSCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -1121,7 +1121,7 @@ class AmpSimulator extends BaseEffect {
   }
 
   makeMesaMarkVCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -1154,7 +1154,7 @@ class AmpSimulator extends BaseEffect {
   }
 
   makeMesaDualRectifierCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -1219,7 +1219,7 @@ class AmpSimulator extends BaseEffect {
   }
 
   makeSuhrBadgerCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -1253,7 +1253,7 @@ class AmpSimulator extends BaseEffect {
   }
 
   makeVictoryDuchessCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -1288,7 +1288,7 @@ class AmpSimulator extends BaseEffect {
 
   // Transformer saturation curve
   makeTransformerCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;

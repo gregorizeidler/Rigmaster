@@ -142,7 +142,7 @@ class StrymonMobiusEffect extends BaseEffect {
     
     // === DESTROYER (Lo-Fi/Bit Crusher) ===
     this.destroyerCrusher = audioContext.createWaveShaper();
-    this.destroyerCrusher.oversample = 'none';
+    this.destroyerCrusher.oversample = '4x';
     this.destroyerCrusher.curve = this.makeBitCrushCurve(16);
     
     this.destroyerLP = audioContext.createBiquadFilter();

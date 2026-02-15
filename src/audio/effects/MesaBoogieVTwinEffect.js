@@ -36,6 +36,12 @@ class MesaBoogieVTwinEffect extends BaseEffect {
     this.cleanBright.frequency.value = 2500;
     this.cleanBright.gain.value = 0;
     
+    // Anti-aliasing filter before stage1 (lowpass 18kHz)
+    this.antiAlias = audioContext.createBiquadFilter();
+    this.antiAlias.type = 'lowpass';
+    this.antiAlias.frequency.value = 18000;
+    this.antiAlias.Q.value = 0.707;
+    
     // Stage 1: Input stage (12AX7 sim)
     this.stage1 = audioContext.createWaveShaper();
     this.stage1.oversample = '4x';
@@ -50,6 +56,12 @@ class MesaBoogieVTwinEffect extends BaseEffect {
     this.stage3 = audioContext.createWaveShaper();
     this.stage3.oversample = '4x';
     this.stage3.curve = this.makeTubeCurve(40);
+    
+    // DC blocker after stage3 (highpass 10Hz)
+    this.dcBlockPost = audioContext.createBiquadFilter();
+    this.dcBlockPost.type = 'highpass';
+    this.dcBlockPost.frequency.value = 10;
+    this.dcBlockPost.Q.value = 0.707;
     
     // EQ Section (Mesa graphic EQ style)
     this.bass = audioContext.createBiquadFilter();
@@ -108,7 +120,8 @@ class MesaBoogieVTwinEffect extends BaseEffect {
     this.inputGain.connect(this.channelGain);
     this.channelGain.connect(this.cleanBright);
     this.cleanBright.connect(this.preHPF);
-    this.preHPF.connect(this.stage1);
+    this.preHPF.connect(this.antiAlias);
+    this.antiAlias.connect(this.stage1);
     this.stage1.connect(this.stage2);
     this.stage2.connect(this.dcBlock);
     this.dcBlock.connect(this.bass);
@@ -118,7 +131,8 @@ class MesaBoogieVTwinEffect extends BaseEffect {
     this.contourLow.connect(this.contour);
     this.contour.connect(this.contourHigh);
     this.contourHigh.connect(this.stage3);
-    this.stage3.connect(this.postHPF);
+    this.stage3.connect(this.dcBlockPost);
+    this.dcBlockPost.connect(this.postHPF);
     this.postHPF.connect(this.postLPF);
     this.postLPF.connect(this.presence);
     this.presence.connect(this.masterGain);
@@ -130,7 +144,7 @@ class MesaBoogieVTwinEffect extends BaseEffect {
   }
   
   makeTubeCurve(drive) {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     const driveAmount = 1 + (drive / 25);
     
@@ -225,6 +239,7 @@ class MesaBoogieVTwinEffect extends BaseEffect {
       this.channelGain.disconnect();
       this.cleanBright.disconnect();
       this.preHPF.disconnect();
+      this.antiAlias.disconnect();
       this.stage1.disconnect();
       this.stage2.disconnect();
       this.dcBlock.disconnect();
@@ -235,6 +250,7 @@ class MesaBoogieVTwinEffect extends BaseEffect {
       this.contour.disconnect();
       this.contourHigh.disconnect();
       this.stage3.disconnect();
+      this.dcBlockPost.disconnect();
       this.postHPF.disconnect();
       this.postLPF.disconnect();
       this.presence.disconnect();

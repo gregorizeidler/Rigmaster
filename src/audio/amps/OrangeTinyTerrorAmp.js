@@ -179,7 +179,7 @@ class OrangeTinyTerrorAmp extends BaseAmp {
     // Transformer saturation (adds harmonics)
     this.transformerSat = audioContext.createWaveShaper();
     this.transformerSat.curve = this.makeTransformerCurve();
-    this.transformerSat.oversample = '2x';
+    this.transformerSat.oversample = '4x';
     
     // ============================================
     // DC BLOCKER (Essential for high-gain)

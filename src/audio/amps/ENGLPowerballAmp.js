@@ -806,7 +806,7 @@ class ENGLPowerballAmp extends BaseAmp {
   }
   
   makeENGLPreampCurve({stage=1, drive=7.5, asym=1.08} = {}) {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       let x = (i * 2) / samples - 1;
@@ -845,7 +845,7 @@ class ENGLPowerballAmp extends BaseAmp {
   }
   
   makePowerAmpCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;

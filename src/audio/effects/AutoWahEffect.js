@@ -4,84 +4,96 @@ class AutoWahEffect extends BaseEffect {
   constructor(audioContext, id) {
     super(audioContext, id, 'Auto Wah', 'autowah');
 
-    // Envelope follower
-    this.inputGain = audioContext.createGain();
-    this.analyser = audioContext.createAnalyser();
-    this.analyser.fftSize = 256;
-    this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
-
-    // Filter
+    // Wah filter
     this.filter = audioContext.createBiquadFilter();
     this.filter.type = 'bandpass';
     this.filter.Q.value = 10;
     this.filter.frequency.value = 500;
 
     // Parameters
-    this.sensitivity = 50;
+    this.sensitivity = 0.5;
     this.minFreq = 200;
     this.maxFreq = 2000;
-    this.speed = 0.1;
+    this.attackTime = 0.01;
+    this.releaseTime = 0.1;
 
-    // Connect: input -> inputGain -> filter -> wetGain -> output
-    this.input.connect(this.inputGain);
-    this.inputGain.connect(this.analyser);
-    this.inputGain.connect(this.filter);
+    this._workletReady = false;
+
+    // Envelope-to-frequency scaling gain node
+    // The envelope outputs 0..1 signal. We use a GainNode to scale it
+    // to the frequency range and connect to filter.frequency AudioParam.
+    this.envScaler = audioContext.createGain();
+    this.envScaler.gain.value = (this.maxFreq - this.minFreq) * this.sensitivity;
+
+    // Set base frequency on the filter
+    this.filter.frequency.value = this.minFreq;
+
+    try {
+      this.envelopeFollower = new AudioWorkletNode(audioContext, 'envelope-follower');
+      this._workletReady = true;
+
+      // Set initial envelope parameters
+      this.envelopeFollower.parameters.get('attack').value = this.attackTime;
+      this.envelopeFollower.parameters.get('release').value = this.releaseTime;
+      this.envelopeFollower.parameters.get('sensitivity').value = this.sensitivity * 5;
+      this.envelopeFollower.parameters.get('mode').value = 0; // RMS mode
+
+      // Sidechain: input → envelopeFollower → envScaler → filter.frequency
+      this.input.connect(this.envelopeFollower);
+      this.envelopeFollower.connect(this.envScaler);
+      this.envScaler.connect(this.filter.frequency);
+    } catch (e) {
+      console.warn('AutoWahEffect: envelope-follower worklet not available', e);
+    }
+
+    // Audio signal chain: input → filter → wetGain → output
+    this.input.connect(this.filter);
     this.filter.connect(this.wetGain);
     this.wetGain.connect(this.output);
-    
+
     // Dry signal
     this.input.connect(this.dryGain);
     this.dryGain.connect(this.output);
-
-    // Start envelope follower
-    this.startEnvelopeFollower();
   }
 
-  startEnvelopeFollower() {
-    let currentFreq = this.filter.frequency.value;
-
-    const follow = () => {
-      if (this.bypassed) {
-        requestAnimationFrame(follow);
-        return;
-      }
-
-      this.analyser.getByteTimeDomainData(this.dataArray);
-
-      // Calculate envelope
-      let sum = 0;
-      for (let i = 0; i < this.dataArray.length; i++) {
-        const normalized = (this.dataArray[i] - 128) / 128;
-        sum += Math.abs(normalized);
-      }
-      const envelope = sum / this.dataArray.length;
-
-      // Map envelope to frequency
-      const targetFreq = this.minFreq + envelope * this.sensitivity * (this.maxFreq - this.minFreq);
-      
-      // Smooth transition
-      currentFreq += (targetFreq - currentFreq) * this.speed;
-      this.filter.frequency.value = currentFreq;
-
-      requestAnimationFrame(follow);
-    };
-
-    follow();
+  _updateEnvScaler() {
+    const range = (this.maxFreq - this.minFreq) * this.sensitivity;
+    const now = this.audioContext.currentTime;
+    this.envScaler.gain.setTargetAtTime(range, now, 0.02);
+    this.filter.frequency.setTargetAtTime(this.minFreq, now, 0.02);
   }
 
   updateParameter(parameter, value) {
     switch (parameter) {
       case 'sensitivity':
         this.sensitivity = value / 100;
+        if (this._workletReady) {
+          const now = this.audioContext.currentTime;
+          this.envelopeFollower.parameters.get('sensitivity').setTargetAtTime(
+            this.sensitivity * 5, now, 0.02
+          );
+        }
+        this._updateEnvScaler();
         break;
-      case 'resonance':
-        this.filter.Q.value = 5 + (value / 100) * 15;
+      case 'resonance': {
+        const now = this.audioContext.currentTime;
+        this.filter.Q.setTargetAtTime(5 + (value / 100) * 15, now, 0.02);
         break;
-      case 'speed':
-        this.speed = 0.05 + (value / 100) * 0.45; // 0.05 to 0.5
+      }
+      case 'speed': {
+        // Maps to attack/release responsiveness
+        this.attackTime = 0.005 + (1 - value / 100) * 0.095; // Faster speed = shorter attack
+        this.releaseTime = 0.02 + (1 - value / 100) * 0.28;
+        if (this._workletReady) {
+          const now = this.audioContext.currentTime;
+          this.envelopeFollower.parameters.get('attack').setTargetAtTime(this.attackTime, now, 0.02);
+          this.envelopeFollower.parameters.get('release').setTargetAtTime(this.releaseTime, now, 0.02);
+        }
         break;
+      }
       case 'range':
         this.maxFreq = 1000 + (value / 100) * 3000; // 1000Hz to 4000Hz
+        this._updateEnvScaler();
         break;
       default:
         break;
@@ -89,12 +101,13 @@ class AutoWahEffect extends BaseEffect {
   }
 
   disconnect() {
-    this.inputGain.disconnect();
-    this.analyser.disconnect();
-    this.filter.disconnect();
+    if (this._workletReady && this.envelopeFollower) {
+      try { this.envelopeFollower.disconnect(); } catch (e) {}
+    }
+    try { this.envScaler.disconnect(); } catch (e) {}
+    try { this.filter.disconnect(); } catch (e) {}
     super.disconnect();
   }
 }
 
 export default AutoWahEffect;
-

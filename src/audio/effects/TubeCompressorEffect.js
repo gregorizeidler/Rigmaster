@@ -26,7 +26,7 @@ class TubeCompressorEffect extends BaseEffect {
     
     // Post-compression tube harmonics
     this.tubeHarmonics = audioContext.createWaveShaper();
-    this.tubeHarmonics.oversample = '2x';
+    this.tubeHarmonics.oversample = '4x';
     this.tubeHarmonics.curve = this.makeHarmonicsCurve();
     
     // Lowpass filter (tube warmth)
@@ -39,15 +39,29 @@ class TubeCompressorEffect extends BaseEffect {
     this.makeupGain = audioContext.createGain();
     this.makeupGain.gain.value = 2.0; // Auto makeup
     
+    // Anti-aliasing filter before tubeSaturation (lowpass 18kHz)
+    this.antiAlias = audioContext.createBiquadFilter();
+    this.antiAlias.type = 'lowpass';
+    this.antiAlias.frequency.value = 18000;
+    this.antiAlias.Q.value = 0.707;
+    
+    // DC blocker after tubeSaturation (highpass 10Hz)
+    this.dcBlocker = audioContext.createBiquadFilter();
+    this.dcBlocker.type = 'highpass';
+    this.dcBlocker.frequency.value = 10;
+    this.dcBlocker.Q.value = 0.707;
+    
     // Output level
     this.outputLevel = audioContext.createGain();
     this.outputLevel.gain.value = 0.8;
     
-    // ROUTING: input -> inputGain -> tubeSaturation -> compressor 
+    // ROUTING: input -> inputGain -> antiAlias -> tubeSaturation -> dcBlocker -> compressor 
     // -> tubeHarmonics -> warmth -> makeupGain -> outputLevel -> wetGain -> output
     this.input.connect(this.inputGain);
-    this.inputGain.connect(this.tubeSaturation);
-    this.tubeSaturation.connect(this.compressor);
+    this.inputGain.connect(this.antiAlias);
+    this.antiAlias.connect(this.tubeSaturation);
+    this.tubeSaturation.connect(this.dcBlocker);
+    this.dcBlocker.connect(this.compressor);
     this.compressor.connect(this.tubeHarmonics);
     this.tubeHarmonics.connect(this.warmth);
     this.warmth.connect(this.makeupGain);
@@ -61,7 +75,7 @@ class TubeCompressorEffect extends BaseEffect {
   }
 
   makeTubeCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     
     for (let i = 0; i < samples; i++) {
@@ -87,7 +101,7 @@ class TubeCompressorEffect extends BaseEffect {
   }
 
   makeHarmonicsCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     
     for (let i = 0; i < samples; i++) {
@@ -130,7 +144,9 @@ class TubeCompressorEffect extends BaseEffect {
   disconnect() {
     super.disconnect();
     this.inputGain.disconnect();
+    this.antiAlias.disconnect();
     this.tubeSaturation.disconnect();
+    this.dcBlocker.disconnect();
     this.compressor.disconnect();
     this.tubeHarmonics.disconnect();
     this.warmth.disconnect();

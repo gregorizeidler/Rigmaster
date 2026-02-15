@@ -74,7 +74,7 @@ class BossCE1Effect extends BaseEffect {
         this.wetR.gain.setTargetAtTime(value / 100, now, 0.01);
         break;
       case 'mix':
-        this.updateMix(value);
+        this.setMix(value / 100);
         break;
       default:
         break;

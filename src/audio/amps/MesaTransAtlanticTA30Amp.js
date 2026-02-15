@@ -220,7 +220,7 @@ class MesaTransAtlanticTA30Amp extends BaseAmp {
     // ============================================
     this.phaseInverter = audioContext.createWaveShaper();
     this.phaseInverter.curve = this.makePhaseInverterCurve();
-    this.phaseInverter.oversample = '2x';
+    this.phaseInverter.oversample = '4x';
     
     // PI high-pass and mid boost
     this.piHighPass = audioContext.createBiquadFilter();
@@ -820,7 +820,7 @@ class MesaTransAtlanticTA30Amp extends BaseAmp {
   }
   
   makeTransAtlanticPreampCurve({stage=1, drive=7.0, asym=1.05} = {}) {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       let x = (i * 2) / samples - 1;
@@ -860,7 +860,7 @@ class MesaTransAtlanticTA30Amp extends BaseAmp {
   }
   
   makePhaseInverterCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -883,7 +883,7 @@ class MesaTransAtlanticTA30Amp extends BaseAmp {
   }
   
   makePowerAmpCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -1293,7 +1293,7 @@ class MesaTransAtlanticTA30Amp extends BaseAmp {
   }
   
   makePhaseInverterCurveWithAsymmetry(asym = 1.06) {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;

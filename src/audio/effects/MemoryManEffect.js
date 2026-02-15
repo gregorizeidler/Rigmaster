@@ -30,6 +30,18 @@ class MemoryManEffect extends BaseEffect {
     this.modDepth.gain.value = 0.003; // 3ms modulation
     this.modLFO.start();
     
+    // Highpass filter (60Hz) in feedback loop to prevent bass buildup
+    this.hpFeedback = audioContext.createBiquadFilter();
+    this.hpFeedback.type = 'highpass';
+    this.hpFeedback.frequency.value = 60;
+    this.hpFeedback.Q.value = 0.707;
+    
+    // DC blocker (highpass 10Hz) after feedback path
+    this.dcBlocker = audioContext.createBiquadFilter();
+    this.dcBlocker.type = 'highpass';
+    this.dcBlocker.frequency.value = 10;
+    this.dcBlocker.Q.value = 0.707;
+    
     // Mix
     this.wetGainNode = audioContext.createGain();
     this.wetGainNode.gain.value = 0.5;
@@ -37,10 +49,12 @@ class MemoryManEffect extends BaseEffect {
     // Chain
     this.input.connect(this.delay);
     this.delay.connect(this.filter);
-    this.filter.connect(this.feedbackGain);
+    this.filter.connect(this.hpFeedback);
+    this.hpFeedback.connect(this.feedbackGain);
     this.feedbackGain.connect(this.delay); // Feedback loop
     
-    this.filter.connect(this.wetGainNode);
+    this.filter.connect(this.dcBlocker);
+    this.dcBlocker.connect(this.wetGainNode);
     this.wetGainNode.connect(this.wetGain);
     this.wetGain.connect(this.output);
     
@@ -73,7 +87,7 @@ class MemoryManEffect extends BaseEffect {
         this.modDepth.gain.setTargetAtTime(value / 100 * 0.01, now, 0.01);
         break;
       case 'mix':
-        this.updateMix(value);
+        this.setMix(value / 100);
         break;
       default:
         break;
@@ -86,6 +100,8 @@ class MemoryManEffect extends BaseEffect {
       this.delay.disconnect();
       this.feedbackGain.disconnect();
       this.filter.disconnect();
+      this.hpFeedback.disconnect();
+      this.dcBlocker.disconnect();
       this.modLFO.stop();
       this.modLFO.disconnect();
       this.modDepth.disconnect();

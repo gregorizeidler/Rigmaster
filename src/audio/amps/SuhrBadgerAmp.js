@@ -137,9 +137,6 @@ class SuhrBadgerAmp extends BaseAmp {
     this.dcBlock.frequency.value = 20;
     this.dcBlock.Q.value = 0.707;
     
-    // Cabinet IR convolver
-    this.cabIR = audioContext.createConvolver();
-    
     // ============================================
     // CABINET SIMULATOR
     // ============================================
@@ -194,7 +191,6 @@ class SuhrBadgerAmp extends BaseAmp {
     // ============================================
     this.setupBothChannels();
     this.applyInitialSettings();
-    this.loadDefaultCabinetIR();
     this.recreateCabinet();
   }
   
@@ -279,10 +275,9 @@ class SuhrBadgerAmp extends BaseAmp {
     this.powerAmp.connect(this.powerSaturation);
     this.powerSaturation.connect(this.powerComp);
     
-    // DC block + Cabinet IR
+    // DC block + Cabinet
     this.powerComp.connect(this.dcBlock);
-    this.dcBlock.connect(this.cabIR);
-    this.cabIR.connect(this.preCabinet);
+    this.dcBlock.connect(this.preCabinet);
     // preCabinet → cabinet → postCabinet (configured in recreateCabinet())
     this.postCabinet.connect(this.variacToneLPF);
     this.variacToneLPF.connect(this.presence);
@@ -337,7 +332,6 @@ class SuhrBadgerAmp extends BaseAmp {
       this.powerAmp.disconnect();
       this.powerSaturation.disconnect();
       this.dcBlock.disconnect();
-      this.cabIR.disconnect();
       this.preCabinet.disconnect();
       this.postCabinet.disconnect();
       this.presence.disconnect();
@@ -362,89 +356,8 @@ class SuhrBadgerAmp extends BaseAmp {
     this.master.gain.value = lin2log(0.70);
   }
   
-  /**
-   * Load default Suhr Badger cabinet IR (2×12 with Celestion V30)
-   * Creates a synthetic IR mimicking a 2×12 cabinet with V30 speakers, SM57 mic on-axis
-   */
-  loadDefaultCabinetIR() {
-    const sampleRate = this.audioContext.sampleRate;
-    const irLength = Math.floor(0.035 * sampleRate); // 35ms IR
-    const irBuffer = this.audioContext.createBuffer(1, irLength, sampleRate);
-    const irData = irBuffer.getChannelData(0);
-    
-    // SUHR BADGER 2×12 CABINET CHARACTERISTICS
-    // - Celestion Vintage 30 speakers (scooped mids, aggressive highs)
-    // - Open-back design (less bass, more breathe)
-    // - Tight bottom end typical of British-style cabs
-    
-    for (let i = 0; i < irLength; i++) {
-      const t = i / sampleRate;
-      let sample = 0;
-      
-      // Initial transient (speaker attack)
-      sample += Math.exp(-t * 180) * Math.sin(t * Math.PI * 4800);
-      
-      // V30 characteristic frequencies
-      // Low-mids (British punch)
-      sample += 0.4 * Math.exp(-t * 65) * Math.sin(t * Math.PI * 280);
-      sample += 0.35 * Math.exp(-t * 75) * Math.sin(t * Math.PI * 420);
-      
-      // Upper mids (V30 presence)
-      sample += 0.5 * Math.exp(-t * 95) * Math.sin(t * Math.PI * 1800);
-      sample += 0.45 * Math.exp(-t * 105) * Math.sin(t * Math.PI * 2400);
-      
-      // High frequencies (V30 aggression)
-      sample += 0.3 * Math.exp(-t * 140) * Math.sin(t * Math.PI * 4200);
-      sample += 0.2 * Math.exp(-t * 160) * Math.sin(t * Math.PI * 5800);
-      
-      // Open-back cabinet reflections
-      sample += 0.12 * Math.exp(-t * 45) * Math.sin(t * Math.PI * 180);
-      
-      // Room reflections (small)
-      if (i > sampleRate * 0.008) {
-        sample += 0.08 * Math.exp(-t * 35) * Math.sin(t * Math.PI * 320);
-      }
-      
-      // Smooth envelope
-      const envelope = Math.exp(-t * 55);
-      irData[i] = sample * envelope * 0.65;
-    }
-    
-    this.cabIR.buffer = irBuffer;
-    console.log('✅ Suhr Badger: Default 2×12 cabinet IR loaded (V30, 35ms)');
-  }
-  
-  /**
-   * Load a custom Impulse Response file for the cabinet simulation
-   * @param {string|ArrayBuffer} irData - URL to IR file or ArrayBuffer containing IR data
-   * Recommended: 2×12 Suhr cabinet with V30 or Greenback speakers (mono, 20-50ms)
-   */
-  async loadIR(irData) {
-    try {
-      let audioData;
-      
-      if (typeof irData === 'string') {
-        // Load from URL
-        const response = await fetch(irData);
-        audioData = await response.arrayBuffer();
-      } else {
-        // Use provided ArrayBuffer
-        audioData = irData;
-      }
-      
-      const audioBuffer = await this.audioContext.decodeAudioData(audioData);
-      this.cabIR.buffer = audioBuffer;
-      
-      console.log(`✅ Suhr Badger: Custom cabinet IR loaded (${audioBuffer.duration.toFixed(3)}s)`);
-      return true;
-    } catch (error) {
-      console.error('❌ Suhr Badger: Failed to load IR:', error);
-      return false;
-    }
-  }
-  
   makeSuhrPreampCurve({drive = 5, asym = 1.06} = {}) {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -473,7 +386,7 @@ class SuhrBadgerAmp extends BaseAmp {
   }
   
   makePowerAmpCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -660,7 +573,6 @@ class SuhrBadgerAmp extends BaseAmp {
     this.powerAmp.disconnect();
     this.powerSaturation.disconnect();
     this.dcBlock.disconnect();
-    this.cabIR.disconnect();
     this.preCabinet.disconnect();
     this.postCabinet.disconnect();
     if (this.cabinet && this.cabinet.input) {

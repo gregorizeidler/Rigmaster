@@ -75,10 +75,22 @@ class TimelineDelayEffect extends BaseEffect {
 
     // Grit/tape saturation
     this.gritL = ctx.createWaveShaper(); this.gritR = ctx.createWaveShaper();
-    this.gritL.oversample='2x'; this.gritR.oversample='2x';
+    this.gritL.oversample='4x'; this.gritR.oversample='4x';
     this.gritL.curve=this.makeGritCurve(0); this.gritR.curve=this.makeGritCurve(0);
     this.gritGainL = ctx.createGain(); this.gritGainR = ctx.createGain();
     this.gritGainL.gain.value=1.0; this.gritGainR.gain.value=1.0;
+
+    // Anti-aliasing filters before grit waveshapers (lowpass 18kHz)
+    this.gritAntiAliasL = ctx.createBiquadFilter(); this.gritAntiAliasR = ctx.createBiquadFilter();
+    this.gritAntiAliasL.type='lowpass'; this.gritAntiAliasR.type='lowpass';
+    this.gritAntiAliasL.frequency.value=18000; this.gritAntiAliasR.frequency.value=18000;
+    this.gritAntiAliasL.Q.value=0.707; this.gritAntiAliasR.Q.value=0.707;
+
+    // DC blockers after grit waveshapers (highpass 10Hz)
+    this.gritDCBlockL = ctx.createBiquadFilter(); this.gritDCBlockR = ctx.createBiquadFilter();
+    this.gritDCBlockL.type='highpass'; this.gritDCBlockR.type='highpass';
+    this.gritDCBlockL.frequency.value=10; this.gritDCBlockR.frequency.value=10;
+    this.gritDCBlockL.Q.value=0.707; this.gritDCBlockR.Q.value=0.707;
 
     // Cheap bit/sample reducer (optional for lofi)
     this.lofiSR = ctx.createBiquadFilter(); this.lofiSR.type='lowpass'; this.lofiSR.frequency.value=16000;
@@ -165,9 +177,9 @@ class TimelineDelayEffect extends BaseEffect {
     }
   }
 
-  makeRectifier(ctx){ const s=ctx.createWaveShaper(); const curve=new Float32Array(65536); for(let i=0;i<65536;i++){ const x=(i-32768)/32768; curve[i]=Math.abs(x);} s.curve=curve; s.oversample='2x'; return s; }
+  makeRectifier(ctx){ const s=ctx.createWaveShaper(); const curve=new Float32Array(65536); for(let i=0;i<65536;i++){ const x=(i-32768)/32768; curve[i]=Math.abs(x);} s.curve=curve; s.oversample='4x'; return s; }
 
-  makeGritCurve(amount){ const samples=44100; const curve=new Float32Array(samples); const drive=1+(amount/20); for(let i=0;i<samples;i++){ const x=(i*2)/samples-1; let y=Math.tanh(x*drive); y+=0.03*Math.tanh(x*drive*3); y+=0.02*Math.tanh(x*drive*5); curve[i]=y*0.92;} return curve; }
+  makeGritCurve(amount){ const samples=65536; const curve=new Float32Array(samples); const drive=1+(amount/20); for(let i=0;i<samples;i++){ const x=(i*2)/samples-1; let y=Math.tanh(x*drive); y+=0.03*Math.tanh(x*drive*3); y+=0.02*Math.tanh(x*drive*5); curve[i]=y*0.92;} return curve; }
 
   setupRouting(){
     const ctx=this.audioContext;
@@ -177,10 +189,10 @@ class TimelineDelayEffect extends BaseEffect {
     // Duck detector from dry input
     this.input.connect(this.duckRect); this.duckRect.connect(this.duckDetLP);
 
-    // LEFT chain: input -> delayL -> grit -> lp -> hp -> pk -> swell -> trem -> feedback/cross -> out(L)
+    // LEFT chain: input -> delayL -> antiAlias -> grit -> dcBlock -> lp -> hp -> pk -> swell -> trem -> feedback/cross -> out(L)
     this.splitter.connect(this.delayL,0);
-    this.delayL.connect(this.gritGainL); this.gritGainL.connect(this.gritL);
-    this.gritL.connect(this.lpL); this.lpL.connect(this.hpL); this.hpL.connect(this.pkL);
+    this.delayL.connect(this.gritAntiAliasL); this.gritAntiAliasL.connect(this.gritGainL); this.gritGainL.connect(this.gritL);
+    this.gritL.connect(this.gritDCBlockL); this.gritDCBlockL.connect(this.lpL); this.lpL.connect(this.hpL); this.hpL.connect(this.pkL);
     this.pkL.connect(this.swellL); this.swellL.connect(this.tremGainL);
     this.tremGainL.connect(this.feedbackL); this.feedbackL.connect(this.delayL);
     this.tremGainL.connect(this.crossFeedL2R); this.crossFeedL2R.connect(this.delayR);
@@ -195,8 +207,8 @@ class TimelineDelayEffect extends BaseEffect {
 
     // RIGHT chain
     this.splitter.connect(this.delayR,1);
-    this.delayR.connect(this.gritGainR); this.gritGainR.connect(this.gritR);
-    this.gritR.connect(this.lpR); this.lpR.connect(this.hpR); this.hpR.connect(this.pkR);
+    this.delayR.connect(this.gritAntiAliasR); this.gritAntiAliasR.connect(this.gritGainR); this.gritGainR.connect(this.gritR);
+    this.gritR.connect(this.gritDCBlockR); this.gritDCBlockR.connect(this.lpR); this.lpR.connect(this.hpR); this.hpR.connect(this.pkR);
     this.pkR.connect(this.swellR); this.swellR.connect(this.tremGainR);
     this.tremGainR.connect(this.feedbackR); this.feedbackR.connect(this.delayR);
     this.tremGainR.connect(this.crossFeedR2L); this.crossFeedR2L.connect(this.delayL);
@@ -343,6 +355,8 @@ class TimelineDelayEffect extends BaseEffect {
       this.modLFO?.stop(); this.modLFO2?.stop(); this.tremLFO?.stop(); this.tremLFO2?.stop(); 
       if (this.iceUpL) this.iceUpL.disconnect();
       if (this.iceUpR) this.iceUpR.disconnect();
+      this.gritAntiAliasL?.disconnect(); this.gritAntiAliasR?.disconnect();
+      this.gritDCBlockL?.disconnect(); this.gritDCBlockR?.disconnect();
     }catch(e){
       console.warn('Error disconnecting Timeline:', e);
     }

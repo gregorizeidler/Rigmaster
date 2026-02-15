@@ -54,7 +54,7 @@ class FuzzEffect extends BaseEffect {
   }
 
   createFuzzCurve(amount) {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     const threshold = amount / 150; // 0.66 - 0.01 range
     

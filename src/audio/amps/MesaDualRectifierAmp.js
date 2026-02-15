@@ -937,7 +937,7 @@ class MesaDualRectifierAmp extends BaseAmp {
   _makeCurve(key, fn) {
     if (!MesaDualRectifierAmp._curveCache[key]) {
       // Use 32k samples max (sufficient quality, avoids huge arrays at 96kHz)
-      const samples = Math.min(32768, this.audioContext.sampleRate);
+      const samples = 65536;
       const curve = new Float32Array(samples);
       for (let i = 0; i < samples; i++) {
         const x = (i * 2) / samples - 1;

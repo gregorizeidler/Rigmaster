@@ -3,96 +3,108 @@ import BaseEffect from './BaseEffect';
 class WhammyEffect extends BaseEffect {
   constructor(audioContext, id) {
     super(audioContext, id, 'Whammy', 'whammy');
-    
-    // Pitch shifter using granular synthesis simulation
-    this.delay1 = audioContext.createDelay();
-    this.delay2 = audioContext.createDelay();
-    this.pitchGain = audioContext.createGain();
-    this.directGain = audioContext.createGain();
-    
-    // Filters to help with pitch quality
-    this.filter1 = audioContext.createBiquadFilter();
-    this.filter2 = audioContext.createBiquadFilter();
-    this.filter1.type = 'bandpass';
-    this.filter2.type = 'bandpass';
-    this.filter1.frequency.value = 1000;
-    this.filter2.frequency.value = 1000;
-    
-    this.pitchGain.gain.value = 0.7;
-    this.directGain.gain.value = 0.5;
-    
-    // Pitch shift amount (semitones)
-    this.pitchShift = 12; // One octave up by default
-    
-    // Connect paths
-    this.input.connect(this.directGain);
-    this.input.connect(this.delay1);
-    this.input.connect(this.delay2);
-    
-    this.delay1.connect(this.filter1);
-    this.delay2.connect(this.filter2);
-    this.filter1.connect(this.pitchGain);
-    this.filter2.connect(this.pitchGain);
-    
-    const mixer = audioContext.createGain();
-    this.directGain.connect(mixer);
-    this.pitchGain.connect(mixer);
-    
-    mixer.connect(this.wetGain);
+
+    // Whammy mode determines how the expression pedal position maps to pitch
+    this.mode = 'up';
+    this.position = 0; // Expression pedal position: 0-100
+
+    // Pitch shifter AudioWorklet node
+    this.pitchShifterNode = null;
+
+    try {
+      this.pitchShifterNode = new AudioWorkletNode(audioContext, 'pitch-shifter');
+      // Worklet mix = 1.0 (fully wet internally); external wet/dry handled by BaseEffect
+      this.pitchShifterNode.parameters.get('mix').value = 1.0;
+      this.pitchShifterNode.parameters.get('pitch').value = 0;
+      this.pitchShifterNode.parameters.get('grain').value = 40; // Tighter grain for responsive whammy sweep
+    } catch (e) {
+      console.warn(
+        'WhammyEffect: pitch-shifter AudioWorklet not available. Effect will pass audio through unprocessed.',
+        e
+      );
+    }
+
+    // Wet signal chain: input → pitchShifterNode → wetGain → output
+    if (this.pitchShifterNode) {
+      this.input.connect(this.pitchShifterNode);
+      this.pitchShifterNode.connect(this.wetGain);
+    } else {
+      this.input.connect(this.wetGain);
+    }
     this.wetGain.connect(this.output);
-    
-    // Dry signal
+
+    // Dry signal chain: input → dryGain → output
     this.input.connect(this.dryGain);
     this.dryGain.connect(this.output);
-    
-    this.updatePitchShift();
+
+    // Default: mostly wet (like a real Whammy pedal)
     this.setMix(0.8);
   }
 
-  updatePitchShift() {
-    // Approximate pitch shifting with delay modulation
-    const ratio = Math.pow(2, this.pitchShift / 12);
-    const delayTime = 0.001 / ratio;
-    
-    this.delay1.delayTime.value = Math.max(0.0001, Math.min(0.1, delayTime));
-    this.delay2.delayTime.value = Math.max(0.0001, Math.min(0.1, delayTime * 1.1));
-    
-    // Adjust filters
-    const filterFreq = 1000 * ratio;
-    this.filter1.frequency.value = filterFreq;
-    this.filter2.frequency.value = filterFreq * 1.1;
+  /**
+   * Maps expression pedal position (0-100) to pitch semitones based on current mode.
+   * @returns {number} Pitch shift in semitones
+   */
+  _mapPitchByMode(position) {
+    const t = position / 100; // Normalize to 0.0-1.0
+    switch (this.mode) {
+      case 'up':
+        return t * 24;                  // 0 to +24 semitones (2 octaves up)
+      case 'down':
+        return -t * 24;                 // 0 to -24 semitones (2 octaves down)
+      case 'detune':
+        return (t - 0.5) * 1;           // -0.5 to +0.5 semitones (subtle detune)
+      case 'harmony':
+        return Math.round(t * 12);      // 0 to +12, snapped to nearest semitone
+      default:
+        return (t - 0.5) * 48;          // -24 to +24 (full range)
+    }
+  }
+
+  /**
+   * Recalculates and applies the pitch based on current position and mode.
+   */
+  _updatePitch() {
+    if (!this.pitchShifterNode) return;
+    const now = this.audioContext.currentTime;
+    const semitones = this._mapPitchByMode(this.position);
+    // Smooth ramp for expression pedal feel
+    this.pitchShifterNode.parameters.get('pitch').setTargetAtTime(semitones, now, 0.02);
   }
 
   updateParameter(parameter, value) {
-    const now = this.audioContext.currentTime;
-    
     switch (parameter) {
-      case 'pitch':
-        // -24 to +24 semitones (2 octaves range)
-        this.pitchShift = -24 + (value / 100) * 48;
-        this.updatePitchShift();
+      case 'pitch': {
+        // Expression pedal position: 0-100
+        this.position = Math.max(0, Math.min(100, value));
+        this._updatePitch();
         break;
-      case 'mix':
+      }
+      case 'mode': {
+        // Accept string ('up','down','detune','harmony') or numeric (0-3)
+        if (typeof value === 'string') {
+          this.mode = value;
+        } else {
+          const modes = ['up', 'down', 'detune', 'harmony'];
+          this.mode = modes[Math.max(0, Math.min(3, Math.floor(value)))] || 'up';
+        }
+        this._updatePitch(); // Recalculate pitch for new mode
+        break;
+      }
+      case 'mix': {
+        // 0-100 → 0.0-1.0
         this.setMix(value / 100);
         break;
-      case 'dry':
-        this.directGain.gain.setTargetAtTime(value / 100, now, 0.01);
-        break;
+      }
       default:
         break;
     }
   }
 
   disconnect() {
-    this.delay1.disconnect();
-    this.delay2.disconnect();
-    this.pitchGain.disconnect();
-    this.directGain.disconnect();
-    this.filter1.disconnect();
-    this.filter2.disconnect();
+    try { if (this.pitchShifterNode) this.pitchShifterNode.disconnect(); } catch (e) {}
     super.disconnect();
   }
 }
 
 export default WhammyEffect;
-

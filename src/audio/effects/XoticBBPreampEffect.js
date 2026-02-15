@@ -33,6 +33,12 @@ class XoticBBPreampEffect extends BaseEffect {
     this.inputGain = audioContext.createGain();
     this.inputGain.gain.value = 1.2;
     
+    // Anti-alias pré-clip
+    this.antiAliasLPF = audioContext.createBiquadFilter();
+    this.antiAliasLPF.type = 'lowpass';
+    this.antiAliasLPF.frequency.value = 18000;
+    this.antiAliasLPF.Q.value = 0.707;
+
     // Preamp saturation (op-amp + diode clipping)
     this.preampShaper = audioContext.createWaveShaper();
     this.preampShaper.curve = this.makePreampCurve(35, 0.12);
@@ -82,7 +88,8 @@ class XoticBBPreampEffect extends BaseEffect {
     // Connect the signal chain
     this.input.connect(this.preHPF);
     this.preHPF.connect(this.inputGain);
-    this.inputGain.connect(this.preampShaper);
+    this.inputGain.connect(this.antiAliasLPF);
+    this.antiAliasLPF.connect(this.preampShaper);
     this.preampShaper.connect(this.dcBlock);
     this.dcBlock.connect(this.postLPF);
     this.postLPF.connect(this.bassFilter);
@@ -104,7 +111,7 @@ class XoticBBPreampEffect extends BaseEffect {
    * @param {number} asym - Asymmetry factor (0-0.2)
    */
   makePreampCurve(drive = 35, asym = 0.12) {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     const gain = 1 + drive / 25;
     
@@ -174,6 +181,7 @@ class XoticBBPreampEffect extends BaseEffect {
     try {
       this.preHPF.disconnect();
       this.inputGain.disconnect();
+      this.antiAliasLPF.disconnect();
       this.preampShaper.disconnect();
       this.dcBlock.disconnect();
       this.postLPF.disconnect();

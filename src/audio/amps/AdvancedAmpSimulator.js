@@ -437,7 +437,7 @@ class AdvancedAmpSimulator extends BaseEffect {
   // ============== TRANSFER FUNCTIONS ==============
   
   makeCleanCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     
     for (let i = 0; i < samples; i++) {
@@ -449,7 +449,7 @@ class AdvancedAmpSimulator extends BaseEffect {
   }
   
   makeCrunchCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     
     for (let i = 0; i < samples; i++) {
@@ -466,7 +466,7 @@ class AdvancedAmpSimulator extends BaseEffect {
   }
   
   makeLeadCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     
     for (let i = 0; i < samples; i++) {
@@ -484,7 +484,7 @@ class AdvancedAmpSimulator extends BaseEffect {
   }
   
   makeMetalCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     
     for (let i = 0; i < samples; i++) {
@@ -509,7 +509,7 @@ class AdvancedAmpSimulator extends BaseEffect {
   // Power amp curves (with transformer saturation)
   
   makeCleanPowerAmpCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     
     for (let i = 0; i < samples; i++) {
@@ -521,7 +521,7 @@ class AdvancedAmpSimulator extends BaseEffect {
   }
   
   makeCrunchPowerAmpCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     
     for (let i = 0; i < samples; i++) {
@@ -538,7 +538,7 @@ class AdvancedAmpSimulator extends BaseEffect {
   }
   
   makeLeadPowerAmpCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     
     for (let i = 0; i < samples; i++) {
@@ -553,7 +553,7 @@ class AdvancedAmpSimulator extends BaseEffect {
   }
   
   makeMetalPowerAmpCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     
     for (let i = 0; i < samples; i++) {

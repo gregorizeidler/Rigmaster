@@ -52,9 +52,16 @@ class TubeScreamerEffect extends BaseEffect {
     this.postHPF.type = 'highpass';
     this.postHPF.frequency.value = 40;
 
-    this.antiAliasLPF = audioContext.createBiquadFilter(); // suaviza arestas
+    this.antiAliasLPF = audioContext.createBiquadFilter(); // anti-alias pré-clip
     this.antiAliasLPF.type = 'lowpass';
-    this.antiAliasLPF.frequency.value = 12000;
+    this.antiAliasLPF.frequency.value = 18000;
+    this.antiAliasLPF.Q.value = 0.707;
+
+    // DC blocker pós-clip
+    this.dcBlocker = audioContext.createBiquadFilter();
+    this.dcBlocker.type = 'highpass';
+    this.dcBlocker.frequency.value = 10;
+    this.dcBlocker.Q.value = 0.707;
 
     // ========= Shelves auxiliares (fat / bright) =========
     this.lowShelf = audioContext.createBiquadFilter();
@@ -76,14 +83,15 @@ class TubeScreamerEffect extends BaseEffect {
     this.input.connect(this.inHPF);
     this.inHPF.connect(this.hpfTS);
     this.hpfTS.connect(this.midHump);
-    this.midHump.connect(this.preGain);
+    this.midHump.connect(this.antiAliasLPF);
+    this.antiAliasLPF.connect(this.preGain);
     this.preGain.connect(this.clip);
-    this.clip.connect(this.toneLPF);
+    this.clip.connect(this.dcBlocker);
+    this.dcBlocker.connect(this.toneLPF);
     this.toneLPF.connect(this.postHPF);
     this.postHPF.connect(this.lowShelf);
     this.lowShelf.connect(this.highShelf);
-    this.highShelf.connect(this.antiAliasLPF);
-    this.antiAliasLPF.connect(this.postGain);
+    this.highShelf.connect(this.postGain);
     this.postGain.connect(this.wetGain);
     this.wetGain.connect(this.output);
 
@@ -123,7 +131,7 @@ class TubeScreamerEffect extends BaseEffect {
 
   // Curva de clip: controlável por "drive", "asym", "hard" e modo de diodo
   makeClipCurve(driveVal = 50, asym = 12, hard = 35, diode = 'si') {
-    const n = 44100;
+    const n = 65536;
     const c = new Float32Array(n);
 
     // ganho/curvatura base
@@ -264,6 +272,7 @@ class TubeScreamerEffect extends BaseEffect {
       this.lowShelf.disconnect();
       this.highShelf.disconnect();
       this.antiAliasLPF.disconnect();
+      this.dcBlocker.disconnect();
       this.postGain.disconnect();
     } catch (e) {}
   }

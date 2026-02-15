@@ -31,9 +31,22 @@ class AnalogChorusEffect extends BaseEffect {
     this.lfoGain1.gain.value = 0.003; // 3ms modulation
     this.lfoGain2.gain.value = 0.003;
     
-    // BBD characteristics (noise and filtering)
-    this.bbdNoise = audioContext.createGain();
-    this.bbdNoise.gain.value = 0.002; // Subtle noise
+    // BBD noise floor simulation - very subtle white noise mixed in
+    this.bbdNoiseSource = audioContext.createBufferSource();
+    const noiseLength = 2 * audioContext.sampleRate;
+    const noiseBuffer = audioContext.createBuffer(1, noiseLength, audioContext.sampleRate);
+    const noiseData = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < noiseLength; i++) {
+      noiseData[i] = Math.random() * 2 - 1;
+    }
+    this.bbdNoiseSource.buffer = noiseBuffer;
+    this.bbdNoiseSource.loop = true;
+    
+    this.bbdNoiseGain = audioContext.createGain();
+    this.bbdNoiseGain.gain.value = 0.001; // ~-60dB noise floor
+    
+    this.bbdNoiseSource.connect(this.bbdNoiseGain);
+    this.bbdNoiseSource.start();
     
     // BBD lowpass (typical BBD rolloff)
     this.bbdFilter = audioContext.createBiquadFilter();
@@ -41,16 +54,23 @@ class AnalogChorusEffect extends BaseEffect {
     this.bbdFilter.frequency.value = 8000;
     this.bbdFilter.Q.value = 0.5;
     
-    // Warm saturation (BBD characteristic)
+    // Warm saturation (BBD characteristic) with 4x oversampling
     this.saturation = audioContext.createWaveShaper();
-    this.saturation.curve = this.makeBBDCurve();
+    this.saturation.oversample = '4x';
+    this.saturation.curve = this._makeBBDCurve(1.2);
+    
+    // DC blocker (high-pass at ~10Hz)
+    this.dcBlocker = audioContext.createBiquadFilter();
+    this.dcBlocker.type = 'highpass';
+    this.dcBlocker.frequency.value = 10;
+    this.dcBlocker.Q.value = 0.7071;
     
     // Routing
     this.input.connect(this.inputGain);
     this.inputGain.connect(this.dryGain);
     this.dryGain.connect(this.outputGain);
     
-    // Wet signal path 1
+    // Wet signal path 1 (through BBD filter + saturation)
     this.inputGain.connect(this.delay1);
     this.lfo1.connect(this.lfoGain1);
     this.lfoGain1.connect(this.delay1.delayTime);
@@ -64,7 +84,12 @@ class AnalogChorusEffect extends BaseEffect {
     this.lfoGain2.connect(this.delay2.delayTime);
     this.delay2.connect(this.wetGain);
     
-    this.wetGain.connect(this.outputGain);
+    // Mix BBD noise into wet signal
+    this.bbdNoiseGain.connect(this.wetGain);
+    
+    // Wet → DC blocker → output
+    this.wetGain.connect(this.dcBlocker);
+    this.dcBlocker.connect(this.outputGain);
     this.outputGain.connect(this.output);
     
     // Start LFOs
@@ -86,13 +111,13 @@ class AnalogChorusEffect extends BaseEffect {
     };
   }
   
-  makeBBDCurve() {
-    const samples = 1024;
+  _makeBBDCurve(drive = 1.2) {
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
       // Soft saturation (BBD warmth)
-      curve[i] = Math.tanh(x * 1.2);
+      curve[i] = Math.tanh(x * drive);
     }
     return curve;
   }
@@ -119,9 +144,9 @@ class AnalogChorusEffect extends BaseEffect {
         this.bbdFilter.frequency.setTargetAtTime(freq, now, 0.01);
         break;
       case 'warmth':
-        // Adjust saturation amount
+        // Adjust saturation amount (regenerate curve with new drive)
         const warmth = 1 + (value / 100) * 0.5;
-        this.saturation.curve = this.makeBBDCurve(warmth);
+        this.saturation.curve = this._makeBBDCurve(warmth);
         break;
     }
     
@@ -132,6 +157,7 @@ class AnalogChorusEffect extends BaseEffect {
     super.disconnect();
     this.lfo1.stop();
     this.lfo2.stop();
+    try { this.bbdNoiseSource.stop(); } catch (e) {}
     this.inputGain.disconnect();
     this.delay1.disconnect();
     this.delay2.disconnect();
@@ -141,6 +167,9 @@ class AnalogChorusEffect extends BaseEffect {
     this.lfoGain2.disconnect();
     this.bbdFilter.disconnect();
     this.saturation.disconnect();
+    this.bbdNoiseSource.disconnect();
+    this.bbdNoiseGain.disconnect();
+    this.dcBlocker.disconnect();
     this.wetGain.disconnect();
     this.dryGain.disconnect();
     this.outputGain.disconnect();
@@ -148,4 +177,3 @@ class AnalogChorusEffect extends BaseEffect {
 }
 
 export default AnalogChorusEffect;
-

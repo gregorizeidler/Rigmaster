@@ -208,7 +208,7 @@ class EventideH9Effect extends BaseEffect {
     
     // Bit crusher
     this.bitcrusher = audioContext.createWaveShaper();
-    this.bitcrusher.oversample = 'none';
+    this.bitcrusher.oversample = '4x';
     this.bitcrusher.curve = this.makeBitCrushCurve(16);
     
     // Resonator
@@ -279,7 +279,7 @@ class EventideH9Effect extends BaseEffect {
   }
   
   makeDistortionCurve(amount) {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     const drive = 1 + (amount / 10);
     

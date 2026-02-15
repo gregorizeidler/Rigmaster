@@ -47,7 +47,7 @@ class FenderBassmanAmp extends BaseAmp {
     // Cathode Follower (buffer before tone stack, like real 5F6-A)
     this.cathodeFollower = audioContext.createWaveShaper();
     this.cathodeFollower.curve = this.makeCathodeFollowerCurve();
-    this.cathodeFollower.oversample = '2x';
+    this.cathodeFollower.oversample = '4x';
     
     // ============================================
     // TONE STACK (Bassman tone stack - THE most copied in history)
@@ -73,15 +73,6 @@ class FenderBassmanAmp extends BaseAmp {
     // VOLUME CONTROLS
     // ============================================
     this.volume = audioContext.createGain();
-    
-    // ============================================
-    // RECTIFIER SAG (GZ34 - musical compression)
-    // ============================================
-    this.rectifierSag = audioContext.createDynamicsCompressor();
-    this.rectifierSag.threshold.value = -22;
-    this.rectifierSag.ratio.value = 2.2;
-    this.rectifierSag.attack.value = 0.004;
-    this.rectifierSag.release.value = 0.12;
     
     // ============================================
     // POWER AMP (4x 6L6 tubes - Class AB push-pull)
@@ -214,15 +205,14 @@ class FenderBassmanAmp extends BaseAmp {
     this.treble.connect(this.tweedHonk);
     
     // ============================================
-    // VOLUME -> RECTIFIER SAG -> POWER AMP
+    // VOLUME -> POWER SUPPLY SAG -> POWER AMP
     // ============================================
     this.tweedHonk.connect(this.volume);
-    this.volume.connect(this.rectifierSag);
     if (this.powerSag) {
-      this.rectifierSag.connect(this.powerSag);
+      this.volume.connect(this.powerSag);
       this.powerSag.connect(this.powerAmp);
     } else {
-      this.rectifierSag.connect(this.powerAmp);
+      this.volume.connect(this.powerAmp);
     }
     this.powerAmp.connect(this.powerSaturation);
     
@@ -259,7 +249,6 @@ class FenderBassmanAmp extends BaseAmp {
       this.treble.disconnect();
       this.tweedHonk.disconnect();
       this.volume.disconnect();
-      this.rectifierSag.disconnect();
       this.powerComp.disconnect();
       this.powerAmp.disconnect();
       this.powerSaturation.disconnect();
@@ -327,7 +316,7 @@ class FenderBassmanAmp extends BaseAmp {
   
   makePreampCurve() {
     // 12AY7 tubes - lower gain than 12AX7, with tweed "bark"
-    const n = 44100;
+    const n = 65536;
     const curve = new Float32Array(n);
     for (let i = 0; i < n; i++) {
       const x = i / n * 2 - 1;
@@ -353,7 +342,7 @@ class FenderBassmanAmp extends BaseAmp {
   
   makePowerAmpCurve() {
     // 4x 6L6 tubes in Class AB push-pull, with light NFB
-    const n = 44100;
+    const n = 65536;
     const curve = new Float32Array(n);
     for (let i = 0; i < n; i++) {
       const x = i / n * 2 - 1;
@@ -525,14 +514,12 @@ class FenderBassmanAmp extends BaseAmp {
     this.treble.disconnect();
     this.tweedHonk.disconnect();
     this.volume.disconnect();
-    this.rectifierSag.disconnect();
     this.powerComp.disconnect();
     this.powerAmp.disconnect();
     this.powerSaturation.disconnect();
     this.presence.disconnect();
-    this.postHPF.disconnect();
-    this.cabinetMid.disconnect();
-    this.postLPF.disconnect();
+    this.preCabinet.disconnect();
+    this.postCabinet.disconnect();
     this.master.disconnect();
   }
 }

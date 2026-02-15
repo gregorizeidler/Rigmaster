@@ -3,56 +3,80 @@ import BaseEffect from './BaseEffect.js';
 class VolumePedalEffect extends BaseEffect {
   constructor(audioContext, id) {
     super(audioContext, id, 'Volume Pedal', 'volume');
-    
+
     // VOLUME PEDAL (Expression pedal)
-    
+
     this.inputGain = audioContext.createGain();
     this.outputGain = audioContext.createGain();
     this.volumeControl = audioContext.createGain();
-    
+
     // Routing
     this.input.connect(this.inputGain);
     this.inputGain.connect(this.volumeControl);
     this.volumeControl.connect(this.outputGain);
     this.outputGain.connect(this.output);
-    
+
     this.volumeControl.gain.value = 1.0;
-    
+
     this.params = { volume: 100, curve: 0, min: 0, max: 100 };
   }
-  
-  updateParameter(parameter, value) {
-    const now = this.audioContext.currentTime;
-    
-    switch (parameter) {
-      case 'volume':
-        // Apply curve (linear, log, or exp)
-        let adjustedValue = value / 100;
-        
-        if (this.params.curve === 1) {
-          // Logarithmic (audio taper)
-          adjustedValue = Math.pow(adjustedValue, 2);
-        } else if (this.params.curve === 2) {
-          // Exponential
-          adjustedValue = Math.sqrt(adjustedValue);
-        }
-        
-        this.volumeControl.gain.setTargetAtTime(adjustedValue, now, 0.01);
+
+  _applyVolume(rawValue) {
+    // rawValue is 0..100
+    let normalized = rawValue / 100;
+
+    // Apply min/max range
+    const minVol = (this.params.min || 0) / 100;
+    const maxVol = (this.params.max || 100) / 100;
+
+    // Apply curve
+    let curved;
+    switch (this.params.curve) {
+      case 1:
+        // Audio taper (logarithmic) - perceived linear volume
+        // Math.pow(x, 0.4) approximates human hearing perception
+        curved = Math.pow(normalized, 0.4);
         break;
-      case 'curve':
-        // 0=linear, 1=log, 2=exp
+      case 2:
+        // Reverse audio taper (exponential feel)
+        curved = Math.pow(normalized, 2.5);
         break;
-      case 'min':
-        // Minimum volume
-        break;
-      case 'max':
-        // Maximum volume
+      default:
+        // Linear
+        curved = normalized;
         break;
     }
-    
-    this.params[parameter] = value;
+
+    // Scale to min/max range
+    const finalValue = minVol + curved * (maxVol - minVol);
+
+    const now = this.audioContext.currentTime;
+    this.volumeControl.gain.setTargetAtTime(finalValue, now, 0.01);
   }
-  
+
+  updateParameter(parameter, value) {
+    switch (parameter) {
+      case 'volume':
+        this.params.volume = value;
+        this._applyVolume(value);
+        break;
+      case 'curve':
+        // 0=linear, 1=audio taper (log), 2=reverse taper (exp)
+        this.params.curve = value;
+        // Re-apply current volume with new curve
+        this._applyVolume(this.params.volume);
+        break;
+      case 'min':
+        this.params.min = value;
+        this._applyVolume(this.params.volume);
+        break;
+      case 'max':
+        this.params.max = value;
+        this._applyVolume(this.params.volume);
+        break;
+    }
+  }
+
   disconnect() {
     super.disconnect();
     this.inputGain.disconnect();
@@ -62,4 +86,3 @@ class VolumePedalEffect extends BaseEffect {
 }
 
 export default VolumePedalEffect;
-

@@ -166,12 +166,12 @@ class MarshallPlexiSuperLead100Amp extends BaseAmp {
     // Phase inverter stage (adds harmonic richness)
     this.phaseInverter = audioContext.createWaveShaper();
     this.phaseInverter.curve = this.makePhaseInverterCurve();
-    this.phaseInverter.oversample = '2x';
+    this.phaseInverter.oversample = '4x';
     
     // Output transformer saturation (vintage iron core)
     this.outputTransformer = audioContext.createWaveShaper();
     this.outputTransformer.curve = this.makePlexiTransformerCurve();
-    this.outputTransformer.oversample = '2x';
+    this.outputTransformer.oversample = '4x';
     
     // Transformer resonance (adds low-end punch and high-end air)
     this.transformerResonance = audioContext.createBiquadFilter();
@@ -446,7 +446,7 @@ class MarshallPlexiSuperLead100Amp extends BaseAmp {
   // ============================================
   
   makePlexiPreampCurve(stage) {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     
     for (let i = 0; i < samples; i++) {
@@ -501,7 +501,7 @@ class MarshallPlexiSuperLead100Amp extends BaseAmp {
   }
   
   makePlexiPowerAmpCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     
     for (let i = 0; i < samples; i++) {
@@ -537,7 +537,7 @@ class MarshallPlexiSuperLead100Amp extends BaseAmp {
   }
   
   makePhaseInverterCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     
     for (let i = 0; i < samples; i++) {
@@ -559,7 +559,7 @@ class MarshallPlexiSuperLead100Amp extends BaseAmp {
   }
   
   makePlexiTransformerCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     
     for (let i = 0; i < samples; i++) {

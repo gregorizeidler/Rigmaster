@@ -73,15 +73,6 @@ class FenderProJuniorAmp extends BaseAmp {
     this.midBump.gain.value = 1.6; // 2.5 → 1.6 dB (mais sutil)
     
     // ============================================
-    // RECTIFIER SAG (5Y3 tube rectifier - vintage sag)
-    // ============================================
-    this.rectifierSag = audioContext.createDynamicsCompressor();
-    this.rectifierSag.threshold.value = -18; // -24 → -18 (menos compressão)
-    this.rectifierSag.ratio.value = 1.6; // 2.4 → 1.6 (mais natural)
-    this.rectifierSag.attack.value = 0.008; // +8ms
-    this.rectifierSag.release.value = 0.12;
-    
-    // ============================================
     // POWER AMP (2x EL84 - Class AB push-pull)
     // ============================================
     // POWER SUPPLY SAG - AUDIOWORKLET (5Y3 tube rectifier)
@@ -226,13 +217,12 @@ class FenderProJuniorAmp extends BaseAmp {
     this.tone.connect(this.toneShelf);
     this.toneShelf.connect(this.midBump);
     
-    // Rectifier sag → Power supply sag (AudioWorklet)
-    this.midBump.connect(this.rectifierSag);
+    // Power supply sag (AudioWorklet)
     if (this.powerSag) {
-      this.rectifierSag.connect(this.powerSag);
+      this.midBump.connect(this.powerSag);
       this.powerSag.connect(this.powerAmp);
     } else {
-      this.rectifierSag.connect(this.powerAmp);
+      this.midBump.connect(this.powerAmp);
     }
     
     // Power amp section
@@ -272,7 +262,6 @@ class FenderProJuniorAmp extends BaseAmp {
       this.tone.disconnect();
       this.toneShelf.disconnect();
       this.midBump.disconnect();
-      this.rectifierSag.disconnect();
       this.powerAmp.disconnect();
       this.powerSaturation.disconnect();
       this.powerComp.disconnect();
@@ -533,7 +522,6 @@ class FenderProJuniorAmp extends BaseAmp {
       this.tone.disconnect();
       this.toneShelf.disconnect();
       this.midBump.disconnect();
-      this.rectifierSag.disconnect();
       if (this.powerSag) this.powerSag.disconnect();
       this.powerAmp.disconnect();
       this.powerSaturation.disconnect();

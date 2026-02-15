@@ -7,7 +7,7 @@ import BaseEffect from './BaseEffect';
  * TonePrint technology
  * 
  * Features:
- * - 10 reverb types
+ * - 10 reverb types (algorithmic, no random noise IRs)
  * - Simple 3-knob control
  * - Pristine sound quality
  */
@@ -16,104 +16,149 @@ class TCHallOfFameEffect extends BaseEffect {
   constructor(audioContext, id) {
     super(audioContext, id, 'TC Hall of Fame', 'tchalloffame');
     
-    // Convolver
-    this.convolver = audioContext.createConvolver();
+    // Type presets: delay scaling, feedback, damping frequency, pre-delay
+    this.typePresets = {
+      'spring':  { delayScale: 0.6,  feedback: 0.75, damping: 3000,  preDelay: 0.01  },
+      'hall':    { delayScale: 1.0,  feedback: 0.88, damping: 7000,  preDelay: 0.03  },
+      'plate':   { delayScale: 0.8,  feedback: 0.86, damping: 9000,  preDelay: 0.01  },
+      'room':    { delayScale: 0.5,  feedback: 0.72, damping: 4500,  preDelay: 0.005 },
+      'church':  { delayScale: 1.5,  feedback: 0.92, damping: 6000,  preDelay: 0.05  },
+      'mod':     { delayScale: 0.9,  feedback: 0.85, damping: 7000,  preDelay: 0.02  },
+      'tile':    { delayScale: 0.4,  feedback: 0.68, damping: 10000, preDelay: 0.003 },
+      'ambient': { delayScale: 1.3,  feedback: 0.90, damping: 5000,  preDelay: 0.04  },
+      'lo-fi':   { delayScale: 0.7,  feedback: 0.80, damping: 2500,  preDelay: 0.02  },
+      'gate':    { delayScale: 0.3,  feedback: 0.55, damping: 8000,  preDelay: 0.0   }
+    };
+    
+    // Base comb filter delay times (scaled by type preset)
+    this.baseCombDelayTimes = [
+      0.0297, 0.0371, 0.0411, 0.0437,
+      0.0253, 0.0269, 0.0290, 0.0307
+    ];
+    
+    // Allpass delay times
+    this.allpassDelayTimes = [0.0051, 0.0067, 0.0083, 0.0097];
     
     // Pre-delay
     this.preDelay = audioContext.createDelay(0.5);
-    this.preDelay.delayTime.value = 0;
+    this.preDelay.delayTime.value = 0.03;
     
-    // Tone control
+    // Create 8 comb filters with per-comb damping
+    this.combFilters = [];
+    this.combGains = [];
+    for (let i = 0; i < 8; i++) {
+      const delay = audioContext.createDelay(0.2);
+      const feedback = audioContext.createGain();
+      const damping = audioContext.createBiquadFilter();
+      damping.type = 'lowpass';
+      damping.frequency.value = 7000;
+      damping.Q.value = 0.707;
+      const combGain = audioContext.createGain();
+      
+      delay.delayTime.value = this.baseCombDelayTimes[i];
+      feedback.gain.value = 0.88;
+      combGain.gain.value = 0.125;
+      
+      this.combFilters.push({ delay, feedback, damping });
+      this.combGains.push(combGain);
+    }
+    
+    // Comb mixer
+    this.combMixer = audioContext.createGain();
+    
+    // Create 4 allpass filters (correct Schroeder structure)
+    this.allpassFilters = [];
+    for (let i = 0; i < 4; i++) {
+      const apInput = audioContext.createGain();
+      const apOutput = audioContext.createGain();
+      const delay = audioContext.createDelay(0.1);
+      const fbGain = audioContext.createGain();
+      const ffGain = audioContext.createGain();
+      
+      delay.delayTime.value = this.allpassDelayTimes[i];
+      fbGain.gain.value = 0.7;
+      ffGain.gain.value = -0.7;
+      
+      apInput.connect(ffGain);
+      ffGain.connect(apOutput);
+      apInput.connect(delay);
+      delay.connect(apOutput);
+      delay.connect(fbGain);
+      fbGain.connect(apInput);
+      
+      this.allpassFilters.push({ input: apInput, output: apOutput, delay, fbGain, ffGain });
+    }
+    
+    // Tone control (post-reverb EQ)
     this.toneFilter = audioContext.createBiquadFilter();
     this.toneFilter.type = 'lowpass';
     this.toneFilter.frequency.value = 10000;
     this.toneFilter.Q.value = 0.707;
     
-    // Decay (via feedback)
-    this.decayGain = audioContext.createGain();
-    this.decayGain.gain.value = 0.5;
+    // DC blocker
+    this.dcBlocker = audioContext.createBiquadFilter();
+    this.dcBlocker.type = 'highpass';
+    this.dcBlocker.frequency.value = 10;
+    this.dcBlocker.Q.value = 0.707;
     
-    // Mix
+    // Level control
     this.reverbGain = audioContext.createGain();
     this.reverbGain.gain.value = 0.3;
     
     // Current type
     this.reverbType = 'hall';
     
-    // Generate IR
-    this.generateIR(this.reverbType);
+    // === ROUTING ===
     
-    // Connect
+    // Input → pre-delay → comb filters
     this.input.connect(this.preDelay);
-    this.preDelay.connect(this.convolver);
-    this.convolver.connect(this.toneFilter);
-    this.toneFilter.connect(this.decayGain);
-    this.decayGain.connect(this.reverbGain);
+    
+    for (let i = 0; i < 8; i++) {
+      const { delay, feedback, damping } = this.combFilters[i];
+      const combGain = this.combGains[i];
+      
+      this.preDelay.connect(delay);
+      delay.connect(damping);
+      damping.connect(feedback);
+      feedback.connect(delay);
+      delay.connect(combGain);
+      combGain.connect(this.combMixer);
+    }
+    
+    // Allpass in series
+    this.combMixer.connect(this.allpassFilters[0].input);
+    for (let i = 0; i < 3; i++) {
+      this.allpassFilters[i].output.connect(this.allpassFilters[i + 1].input);
+    }
+    
+    // Output chain: allpass → DC blocker → tone → level → wet → output
+    this.allpassFilters[3].output.connect(this.dcBlocker);
+    this.dcBlocker.connect(this.toneFilter);
+    this.toneFilter.connect(this.reverbGain);
     this.reverbGain.connect(this.wetGain);
     this.wetGain.connect(this.output);
     
     // Dry
     this.input.connect(this.dryGain);
     this.dryGain.connect(this.output);
+    
+    // Apply initial type preset
+    this.applyTypePreset(this.reverbType);
   }
   
-  generateIR(type) {
-    const sampleRate = this.audioContext.sampleRate;
-    let duration, decay, character;
+  applyTypePreset(type) {
+    const now = this.audioContext.currentTime;
+    const preset = this.typePresets[type] || this.typePresets['hall'];
     
-    const types = {
-      'spring': { duration: 0.8, decay: 0.4, metallic: true },
-      'hall': { duration: 3.0, decay: 2.5, smooth: true },
-      'plate': { duration: 2.5, decay: 2.0, dense: true },
-      'room': { duration: 1.0, decay: 0.8, tight: true },
-      'church': { duration: 5.0, decay: 4.0, smooth: true },
-      'mod': { duration: 2.0, decay: 1.5, modulated: true },
-      'tile': { duration: 1.5, decay: 1.0, bright: true },
-      'ambient': { duration: 4.0, decay: 3.5, spacious: true },
-      'lo-fi': { duration: 1.5, decay: 1.0, degraded: true },
-      'gate': { duration: 0.5, decay: 0.3, gated: true }
-    };
-    
-    const settings = types[type] || types['hall'];
-    duration = settings.duration;
-    decay = settings.decay;
-    
-    const length = Math.floor(duration * sampleRate);
-    const buffer = this.audioContext.createBuffer(2, length, sampleRate);
-    
-    for (let channel = 0; channel < 2; channel++) {
-      const data = buffer.getChannelData(channel);
-      
-      for (let i = 0; i < length; i++) {
-        let envelope = Math.exp(-i / (sampleRate * decay));
-        
-        if (settings.gated && i > length * 0.5) {
-          envelope *= Math.exp(-((i - length * 0.5) / (sampleRate * 0.1)));
-        }
-        
-        let sample = (Math.random() * 2 - 1) * envelope;
-        
-        if (settings.metallic) {
-          sample += Math.sin(i * 0.05) * 0.3 * envelope;
-        }
-        
-        if (settings.dense) {
-          sample *= Math.random() * 0.9;
-        }
-        
-        if (settings.modulated) {
-          sample *= 1 + Math.sin(i * 0.001) * 0.2;
-        }
-        
-        if (settings.degraded) {
-          if (i % 10 === 0) sample *= 0.5;
-        }
-        
-        data[i] = sample;
-      }
+    for (let i = 0; i < 8; i++) {
+      this.combFilters[i].delay.delayTime.setTargetAtTime(
+        this.baseCombDelayTimes[i] * preset.delayScale, now, 0.02
+      );
+      this.combFilters[i].feedback.gain.setTargetAtTime(preset.feedback, now, 0.02);
+      this.combFilters[i].damping.frequency.setTargetAtTime(preset.damping, now, 0.02);
     }
     
-    this.convolver.buffer = buffer;
+    this.preDelay.delayTime.setTargetAtTime(preset.preDelay, now, 0.02);
   }
   
   updateParameter(param, value) {
@@ -121,7 +166,14 @@ class TCHallOfFameEffect extends BaseEffect {
     
     switch (param) {
       case 'decay':
-        this.decayGain.gain.setTargetAtTime(value / 100, now, 0.01);
+        // Scale feedback around the current type's baseline
+        const preset = this.typePresets[this.reverbType] || this.typePresets['hall'];
+        const baseFb = preset.feedback;
+        // Allow +/- 0.1 range around baseline
+        const feedback = Math.max(0.4, Math.min(0.95, baseFb - 0.1 + (value / 100) * 0.2));
+        for (let i = 0; i < 8; i++) {
+          this.combFilters[i].feedback.gain.setTargetAtTime(feedback, now, 0.01);
+        }
         break;
         
       case 'tone':
@@ -138,11 +190,32 @@ class TCHallOfFameEffect extends BaseEffect {
         
       case 'type':
         this.reverbType = value;
-        this.generateIR(value);
+        this.applyTypePreset(value);
         break;
     }
+  }
+  
+  disconnect() {
+    super.disconnect();
+    this.preDelay.disconnect();
+    for (let i = 0; i < 8; i++) {
+      this.combFilters[i].delay.disconnect();
+      this.combFilters[i].feedback.disconnect();
+      this.combFilters[i].damping.disconnect();
+      this.combGains[i].disconnect();
+    }
+    this.combMixer.disconnect();
+    for (let i = 0; i < 4; i++) {
+      this.allpassFilters[i].input.disconnect();
+      this.allpassFilters[i].output.disconnect();
+      this.allpassFilters[i].delay.disconnect();
+      this.allpassFilters[i].fbGain.disconnect();
+      this.allpassFilters[i].ffGain.disconnect();
+    }
+    this.toneFilter.disconnect();
+    this.dcBlocker.disconnect();
+    this.reverbGain.disconnect();
   }
 }
 
 export default TCHallOfFameEffect;
-

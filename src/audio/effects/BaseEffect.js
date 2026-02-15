@@ -6,6 +6,13 @@ class BaseEffect {
     this.type = type || 'effect';
     this.bypassed = false;
     
+    // Crossfade time for click-free bypass (seconds)
+    this._bypassFadeTime = 0.02; // 20ms crossfade
+    
+    // Current mix values (for restoring after bypass)
+    this._currentWetLevel = 1.0;
+    this._currentDryLevel = 0.0;
+    
     // Create input and output nodes
     this.input = audioContext.createGain();
     this.output = audioContext.createGain();
@@ -44,17 +51,27 @@ class BaseEffect {
 
   toggleBypass() {
     this.bypassed = !this.bypassed;
-    console.log(`🔇 ${this.name} (${this.id}): toggleBypass -> ${this.bypassed ? 'BYPASSED' : 'ACTIVE'}`);
+    const now = this.audioContext.currentTime;
+    const fadeEnd = now + this._bypassFadeTime;
+    
+    // Cancel any scheduled ramps to prevent conflicts
+    this.wetGain.gain.cancelScheduledValues(now);
+    this.dryGain.gain.cancelScheduledValues(now);
+    
+    // Set current value as starting point
+    this.wetGain.gain.setValueAtTime(this.wetGain.gain.value, now);
+    this.dryGain.gain.setValueAtTime(this.dryGain.gain.value, now);
+    
     if (this.bypassed) {
-      this.wetGain.gain.value = 0.0;
-      this.dryGain.gain.value = 1.0;
+      // Crossfade to bypass: wet → 0, dry → 1
+      this.wetGain.gain.linearRampToValueAtTime(0.0, fadeEnd);
+      this.dryGain.gain.linearRampToValueAtTime(1.0, fadeEnd);
     } else {
-      // Quando reativado, voltar ao valor padrão (100% wet)
-      // Nota: Efeitos com mix customizado devem sobrescrever este método
-      this.wetGain.gain.value = 1.0;
-      this.dryGain.gain.value = 0.0;
+      // Crossfade to active: restore saved mix levels
+      this.wetGain.gain.linearRampToValueAtTime(this._currentWetLevel, fadeEnd);
+      this.dryGain.gain.linearRampToValueAtTime(this._currentDryLevel, fadeEnd);
     }
-    console.log(`   wet: ${this.wetGain.gain.value}, dry: ${this.dryGain.gain.value}`);
+    
     return this.bypassed;
   }
 
@@ -64,8 +81,18 @@ class BaseEffect {
 
   setMix(value) {
     // value from 0 to 1
-    this.wetGain.gain.value = value;
-    this.dryGain.gain.value = 1 - value;
+    this._currentWetLevel = value;
+    this._currentDryLevel = 1 - value;
+    
+    if (!this.bypassed) {
+      const now = this.audioContext.currentTime;
+      this.wetGain.gain.cancelScheduledValues(now);
+      this.dryGain.gain.cancelScheduledValues(now);
+      this.wetGain.gain.setValueAtTime(this.wetGain.gain.value, now);
+      this.dryGain.gain.setValueAtTime(this.dryGain.gain.value, now);
+      this.wetGain.gain.linearRampToValueAtTime(value, now + 0.02);
+      this.dryGain.gain.linearRampToValueAtTime(1 - value, now + 0.02);
+    }
   }
 }
 

@@ -338,7 +338,7 @@ class FenderVibroKingAmp extends BaseAmp {
     // Transformer saturation (very subtle for clean amp)
     this.transformerSat = audioContext.createWaveShaper();
     this.transformerSat.curve = this.makeTransformerCurve();
-    this.transformerSat.oversample = '2x';
+    this.transformerSat.oversample = '4x';
     
     // ============================================
     // DC BLOCKER

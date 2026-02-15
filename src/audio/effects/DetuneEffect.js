@@ -4,68 +4,92 @@ class DetuneEffect extends BaseEffect {
   constructor(audioContext, id) {
     super(audioContext, id, 'Detune', 'detune');
     
-    // DETUNE (Subtle pitch detuning for thickening)
+    // TRUE DETUNE using pitch-shifter AudioWorklet
+    // Two voices: one shifted up, one shifted down by N cents
+    // Mixed with the direct signal for thickening
     
     this.inputGain = audioContext.createGain();
     this.outputGain = audioContext.createGain();
-    this.wetGain = audioContext.createGain();
-    this.dryGain = audioContext.createGain();
     
-    // Two slightly detuned voices
-    this.delay1 = audioContext.createDelay(0.1);
-    this.delay2 = audioContext.createDelay(0.1);
+    // Voice gains
+    this.voice1Gain = audioContext.createGain(); // pitch up voice
+    this.voice2Gain = audioContext.createGain(); // pitch down voice
+    this.directGain = audioContext.createGain(); // direct signal
     
-    this.voice1Gain = audioContext.createGain();
-    this.voice2Gain = audioContext.createGain();
+    // Mixer for all voices
+    this.mixer = audioContext.createGain();
+    this.mixer.gain.value = 1.0;
     
-    // LFO for subtle modulation
-    this.lfo1 = audioContext.createOscillator();
-    this.lfo2 = audioContext.createOscillator();
-    this.lfo1.type = 'sine';
-    this.lfo2.type = 'sine';
-    this.lfo1.frequency.value = 0.3;
-    this.lfo2.frequency.value = 0.35;
-    
-    this.lfoGain1 = audioContext.createGain();
-    this.lfoGain2 = audioContext.createGain();
-    this.lfoGain1.gain.value = 0.0002;
-    this.lfoGain2.gain.value = 0.0002;
-    
-    // Routing
-    this.input.connect(this.inputGain);
-    this.inputGain.connect(this.dryGain);
-    this.dryGain.connect(this.outputGain);
-    
-    // Voice 1 (slightly sharp)
-    this.inputGain.connect(this.delay1);
-    this.lfo1.connect(this.lfoGain1);
-    this.lfoGain1.connect(this.delay1.delayTime);
-    this.delay1.connect(this.voice1Gain);
-    this.voice1Gain.connect(this.wetGain);
-    
-    // Voice 2 (slightly flat)
-    this.inputGain.connect(this.delay2);
-    this.lfo2.connect(this.lfoGain2);
-    this.lfoGain2.connect(this.delay2.delayTime);
-    this.delay2.connect(this.voice2Gain);
-    this.voice2Gain.connect(this.wetGain);
-    
-    this.wetGain.connect(this.outputGain);
-    this.outputGain.connect(this.output);
-    
-    this.lfo1.start();
-    this.lfo2.start();
-    
-    // Detune amounts (+/- 10 cents)
-    this.delay1.delayTime.value = 0.0105;
-    this.delay2.delayTime.value = 0.0095;
-    
-    this.wetGain.gain.value = 0.5;
-    this.dryGain.gain.value = 1.0;
     this.voice1Gain.gain.value = 0.5;
     this.voice2Gain.gain.value = 0.5;
+    this.directGain.gain.value = 0.5;
     
-    this.params = { amount: 10, mix: 50, spread: 50 };
+    // Pitch shifter nodes (created async)
+    this.pitchShifter1 = null;
+    this.pitchShifter2 = null;
+    this._workletReady = false;
+    
+    // Default detune in cents
+    this._detuneCents = 10;
+    
+    // Routing (basic path - upgraded when worklet loads)
+    this.input.connect(this.inputGain);
+    
+    // Direct signal path
+    this.inputGain.connect(this.directGain);
+    this.directGain.connect(this.mixer);
+    
+    // Mixer → wet → output
+    this.mixer.connect(this.wetGain);
+    this.wetGain.connect(this.output);
+    
+    // Dry signal
+    this.input.connect(this.dryGain);
+    this.dryGain.connect(this.output);
+    
+    // Initialize pitch shifter worklet
+    this._initWorklet(audioContext);
+    
+    this.params = { amount: 10, mix: 50 };
+  }
+  
+  async _initWorklet(audioContext) {
+    try {
+      // Ensure worklet module is loaded
+      await audioContext.audioWorklet.addModule('pitch-shifter-processor.js');
+    } catch (e) {
+      // Module may already be registered, that's fine
+    }
+    
+    try {
+      // Voice 1: pitch UP by +cents (converted to semitones)
+      this.pitchShifter1 = new AudioWorkletNode(audioContext, 'pitch-shifter');
+      this.pitchShifter1.parameters.get('pitch').value = this._detuneCents / 100;
+      this.pitchShifter1.parameters.get('mix').value = 1.0;
+      this.pitchShifter1.parameters.get('grain').value = 50;
+      
+      // Voice 2: pitch DOWN by -cents (converted to semitones)
+      this.pitchShifter2 = new AudioWorkletNode(audioContext, 'pitch-shifter');
+      this.pitchShifter2.parameters.get('pitch').value = -(this._detuneCents / 100);
+      this.pitchShifter2.parameters.get('mix').value = 1.0;
+      this.pitchShifter2.parameters.get('grain').value = 50;
+      
+      // Connect: input → pitchShifter1 → voice1Gain → mixer
+      this.inputGain.connect(this.pitchShifter1);
+      this.pitchShifter1.connect(this.voice1Gain);
+      this.voice1Gain.connect(this.mixer);
+      
+      // Connect: input → pitchShifter2 → voice2Gain → mixer
+      this.inputGain.connect(this.pitchShifter2);
+      this.pitchShifter2.connect(this.voice2Gain);
+      this.voice2Gain.connect(this.mixer);
+      
+      this._workletReady = true;
+    } catch (e) {
+      console.warn('DetuneEffect: pitch-shifter worklet not available, falling back to direct signal', e);
+      // Fallback: just pass direct signal through (no detune effect)
+      this._workletReady = false;
+    }
   }
   
   updateParameter(parameter, value) {
@@ -73,20 +97,17 @@ class DetuneEffect extends BaseEffect {
     
     switch (parameter) {
       case 'amount':
-        // Detune amount in cents (0-50)
-        const cents = (value / 100) * 50;
-        const ratio1 = Math.pow(2, cents / 1200);
-        const ratio2 = Math.pow(2, -cents / 1200);
-        this.delay1.delayTime.setTargetAtTime(0.01 * ratio1, now, 0.01);
-        this.delay2.delayTime.setTargetAtTime(0.01 * ratio2, now, 0.01);
+        // Detune amount: value 0-100 maps to 0-50 cents
+        this._detuneCents = (value / 100) * 50;
+        const semitones = this._detuneCents / 100;
+        if (this._workletReady && this.pitchShifter1 && this.pitchShifter2) {
+          this.pitchShifter1.parameters.get('pitch').setTargetAtTime(semitones, now, 0.01);
+          this.pitchShifter2.parameters.get('pitch').setTargetAtTime(-semitones, now, 0.01);
+        }
         break;
       case 'mix':
-        this.wetGain.gain.setTargetAtTime(value / 100, now, 0.01);
-        break;
-      case 'spread':
-        // Stereo spread
-        this.voice1Gain.gain.setTargetAtTime((value / 100) * 0.8, now, 0.01);
-        this.voice2Gain.gain.setTargetAtTime((value / 100) * 0.8, now, 0.01);
+        // Mix: 0-100 → 0.0-1.0, controls wet level
+        this.setMix(value / 100);
         break;
     }
     
@@ -95,22 +116,18 @@ class DetuneEffect extends BaseEffect {
   
   disconnect() {
     super.disconnect();
-    this.lfo1.stop();
-    this.lfo2.stop();
     this.inputGain.disconnect();
-    this.delay1.disconnect();
-    this.delay2.disconnect();
-    this.lfo1.disconnect();
-    this.lfo2.disconnect();
-    this.lfoGain1.disconnect();
-    this.lfoGain2.disconnect();
+    this.directGain.disconnect();
     this.voice1Gain.disconnect();
     this.voice2Gain.disconnect();
-    this.wetGain.disconnect();
-    this.dryGain.disconnect();
-    this.outputGain.disconnect();
+    this.mixer.disconnect();
+    if (this.pitchShifter1) {
+      try { this.pitchShifter1.disconnect(); } catch (e) {}
+    }
+    if (this.pitchShifter2) {
+      try { this.pitchShifter2.disconnect(); } catch (e) {}
+    }
   }
 }
 
 export default DetuneEffect;
-

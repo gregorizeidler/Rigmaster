@@ -61,11 +61,17 @@ class BossBD2Effect extends BaseEffect {
     this.bodyMid.Q.value = 0.9;
     this.bodyMid.gain.value = 0;
 
-    // ===== Anti-alias & saída =====
+    // ===== Anti-alias pré-clip =====
     this.antiAliasLPF = audioContext.createBiquadFilter();
     this.antiAliasLPF.type = 'lowpass';
-    this.antiAliasLPF.frequency.value = 9500;
-    this.antiAliasLPF.Q.value = 0.8;
+    this.antiAliasLPF.frequency.value = 18000;
+    this.antiAliasLPF.Q.value = 0.707;
+
+    // DC blocker pós-clip
+    this.dcBlocker = audioContext.createBiquadFilter();
+    this.dcBlocker.type = 'highpass';
+    this.dcBlocker.frequency.value = 10;
+    this.dcBlocker.Q.value = 0.707;
 
     this.outputGain = audioContext.createGain();
     this.outputGain.gain.value = 0.5;
@@ -74,13 +80,14 @@ class BossBD2Effect extends BaseEffect {
     this.input.connect(this.inHPF);
     this.inHPF.connect(this.inputGain);
     this.inputGain.connect(this.preEmphasis);
-    this.preEmphasis.connect(this.clipper);
-    this.clipper.connect(this.sagComp);
+    this.preEmphasis.connect(this.antiAliasLPF);
+    this.antiAliasLPF.connect(this.clipper);
+    this.clipper.connect(this.dcBlocker);
+    this.dcBlocker.connect(this.sagComp);
     this.sagComp.connect(this.toneLow);
     this.toneLow.connect(this.toneHigh);
     this.toneHigh.connect(this.bodyMid);
-    this.bodyMid.connect(this.antiAliasLPF);
-    this.antiAliasLPF.connect(this.outputGain);
+    this.bodyMid.connect(this.outputGain);
     this.outputGain.connect(this.wetGain);
     this.wetGain.connect(this.output);
 
@@ -98,7 +105,7 @@ class BossBD2Effect extends BaseEffect {
 
   // curva suave com joelho largo e leve assimetria (caráter BD-2)
   makeBD2Curve(amount) {
-    const n = 44100;
+    const n = 65536;
     const c = new Float32Array(n);
     const drive = 1 + amount / 25; // 1..5
 
@@ -175,6 +182,7 @@ class BossBD2Effect extends BaseEffect {
       this.toneHigh.disconnect();
       this.bodyMid.disconnect();
       this.antiAliasLPF.disconnect();
+      this.dcBlocker.disconnect();
       this.outputGain.disconnect();
     } catch (e) {}
   }

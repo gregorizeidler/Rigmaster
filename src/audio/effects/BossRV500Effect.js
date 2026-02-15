@@ -188,7 +188,7 @@ class BossRV500Effect extends BaseEffect {
     
     // === LO-FI (Bit crusher) ===
     this.lofiBitcrusher = audioContext.createWaveShaper();
-    this.lofiBitcrusher.oversample = 'none';
+    this.lofiBitcrusher.oversample = '4x';
     this.lofiBitcrusher.curve = this.makeBitCrushCurve(8);
     this.lofiLP = audioContext.createBiquadFilter();
     this.lofiLP.type = 'lowpass';

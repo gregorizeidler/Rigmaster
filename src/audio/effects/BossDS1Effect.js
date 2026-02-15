@@ -65,11 +65,17 @@ class BossDS1Effect extends BaseEffect {
     this.toneSum = audioContext.createGain();
     this.toneSum.gain.value = 1.0;
 
-    // ===== Anti-alias & saída =====
+    // ===== Anti-alias pré-clip =====
     this.antiAliasLPF = audioContext.createBiquadFilter();
     this.antiAliasLPF.type = 'lowpass';
-    this.antiAliasLPF.frequency.value = 9000;
-    this.antiAliasLPF.Q.value = 0.8;
+    this.antiAliasLPF.frequency.value = 18000;
+    this.antiAliasLPF.Q.value = 0.707;
+
+    // DC blocker pós-clip
+    this.dcBlocker = audioContext.createBiquadFilter();
+    this.dcBlocker.type = 'highpass';
+    this.dcBlocker.frequency.value = 10;
+    this.dcBlocker.Q.value = 0.707;
 
     this.outputGain = audioContext.createGain();
     this.outputGain.gain.value = 0.45;
@@ -79,11 +85,15 @@ class BossDS1Effect extends BaseEffect {
     this.inHPF.connect(this.inputGain);
     this.inputGain.connect(this.preComp);
     this.preComp.connect(this.preEmphasis);
-    this.preEmphasis.connect(this.clipper);
+    this.preEmphasis.connect(this.antiAliasLPF);
+    this.antiAliasLPF.connect(this.clipper);
+
+    // DC blocker pós-clip
+    this.clipper.connect(this.dcBlocker);
 
     // split para os dois ramos do TONE
-    this.clipper.connect(this.toneLPF);
-    this.clipper.connect(this.toneHPF);
+    this.dcBlocker.connect(this.toneLPF);
+    this.dcBlocker.connect(this.toneHPF);
 
     // crossfade
     this.toneLPF.connect(this.toneXFadeA);
@@ -92,8 +102,7 @@ class BossDS1Effect extends BaseEffect {
     this.toneXFadeB.connect(this.toneSum);
 
     // pós
-    this.toneSum.connect(this.antiAliasLPF);
-    this.antiAliasLPF.connect(this.outputGain);
+    this.toneSum.connect(this.outputGain);
     this.outputGain.connect(this.wetGain);
     this.wetGain.connect(this.output);
 
@@ -111,7 +120,7 @@ class BossDS1Effect extends BaseEffect {
 
   // Hard-clipping assimétrico com pequeno blend harmônico
   makeDS1Curve(amount, posKnee = 0.7, negKnee = 0.6) {
-    const n = 44100;
+    const n = 65536;
     const c = new Float32Array(n);
     const drive = 1 + amount / 10; // 1..11
 
@@ -210,6 +219,7 @@ class BossDS1Effect extends BaseEffect {
       this.toneXFadeB.disconnect();
       this.toneSum.disconnect();
       this.antiAliasLPF.disconnect();
+      this.dcBlocker.disconnect();
       this.outputGain.disconnect();
     } catch (e) {}
   }

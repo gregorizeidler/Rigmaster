@@ -511,7 +511,7 @@ class Peavey5150Amp extends BaseAmp {
     // gainFactor: tanh multiplier for gain amount
     // asymmetry: offset for asymmetric clipping (cathode follower behavior)
     
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     
     for (let i = 0; i < samples; i++) {
@@ -536,7 +536,7 @@ class Peavey5150Amp extends BaseAmp {
   }
   
   makeRhythmCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -558,7 +558,7 @@ class Peavey5150Amp extends BaseAmp {
   }
   
   makePowerAmpCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;

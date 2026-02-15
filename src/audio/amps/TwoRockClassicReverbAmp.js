@@ -326,11 +326,12 @@ class TwoRockClassicReverbAmp extends BaseAmp {
       this.reverbSend.disconnect();
       this.reverbReturn.disconnect();
       this.outputMixer.disconnect();
+      if (this.powerSag) this.powerSag.disconnect();
       this.powerComp.disconnect();
       this.powerAmp.disconnect();
       this.powerSaturation.disconnect();
-      this.dcBlock.disconnect();
-      this.cabIR.disconnect();
+      this.preCabinet.disconnect();
+      this.postCabinet.disconnect();
       this.presence.disconnect();
       this.depth.disconnect();
       this.master.disconnect();
@@ -363,7 +364,7 @@ class TwoRockClassicReverbAmp extends BaseAmp {
    * Create Two-Rock preamp curves with different drive and asymmetry per stage
    */
   makeTwoRockPreampCurve({drive=3.5, asym=1.05} = {}) {
-    const N = 44100;
+    const N = 65536;
     const c = new Float32Array(N);
     
     for (let i = 0; i < N; i++) {
@@ -393,7 +394,7 @@ class TwoRockClassicReverbAmp extends BaseAmp {
   }
   
   makePowerAmpCurve() {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
       const x = (i * 2) / samples - 1;
@@ -563,94 +564,6 @@ class TwoRockClassicReverbAmp extends BaseAmp {
     this.params[parameter] = value;
   }
   
-  /**
-   * Load a default synthetic cabinet IR (2×12 Two-Rock style with Jensen/EV)
-   * This ensures the cabinet simulation works out of the box
-   */
-  loadDefaultCabinetIR() {
-    const sampleRate = this.audioContext.sampleRate;
-    const duration = 0.038; // 38ms - typical close-mic 2×12 IR
-    const length = Math.floor(duration * sampleRate);
-    
-    // Create mono buffer
-    const buffer = this.audioContext.createBuffer(1, length, sampleRate);
-    const channelData = buffer.getChannelData(0);
-    
-    // Generate Two-Rock 2×12 style IR (Jensen C12K / EV-12L character)
-    // Clean, articulate, balanced frequency response
-    for (let i = 0; i < length; i++) {
-      const t = i / sampleRate;
-      
-      // Medium decay (balanced between tight 4×12 and loose 1×12)
-      const decay = Math.exp(-t / 0.010); // 10ms decay
-      
-      // Early reflections (open-back cabinet - more spacious)
-      const early = i < sampleRate * 0.0035 ? Math.random() * 0.5 : 0;
-      
-      // Main impulse with natural rolloff
-      let sample = (Math.random() * 2 - 1) * decay;
-      
-      // Add early reflection
-      sample += early * decay;
-      
-      // Jensen/EV speaker response (smooth, balanced mids and highs)
-      if (i > 0) {
-        // Smooth high-freq rolloff (~5.5kHz for clarity without harshness)
-        const alpha = 0.68;
-        sample = alpha * sample + (1 - alpha) * channelData[i - 1];
-      }
-      
-      // Emphasize 1-3kHz region (Two-Rock character - clarity and presence)
-      if (i > sampleRate * 0.0008 && i < sampleRate * 0.006) {
-        sample *= 1.1;
-      }
-      
-      // Normalize and store
-      channelData[i] = sample * 0.82;
-    }
-    
-    // Normalize the IR
-    let maxVal = 0;
-    for (let i = 0; i < length; i++) {
-      maxVal = Math.max(maxVal, Math.abs(channelData[i]));
-    }
-    if (maxVal > 0) {
-      for (let i = 0; i < length; i++) {
-        channelData[i] /= maxVal;
-      }
-    }
-    
-    this.cabIR.buffer = buffer;
-    console.log('✅ Two-Rock Classic Reverb: Default 2×12 (Jensen/EV) cabinet IR loaded (38ms)');
-  }
-  
-  /**
-   * Load an Impulse Response file for the cabinet simulation
-   * @param {string|ArrayBuffer} irData - URL to IR file or ArrayBuffer containing IR data
-   * Recommended: 2×12 open-back cabinet with Jensen C12K or EV-12L speakers (mono, 20-50ms)
-   */
-  async loadIR(irData) {
-    try {
-      let arrayBuffer;
-      
-      if (typeof irData === 'string') {
-        // Load from URL
-        const response = await fetch(irData);
-        arrayBuffer = await response.arrayBuffer();
-      } else {
-        // Use provided ArrayBuffer
-        arrayBuffer = irData;
-      }
-      
-      const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
-      this.cabIR.buffer = audioBuffer;
-      console.log('✅ Two-Rock: Custom cabinet IR loaded successfully');
-    } catch (error) {
-      console.error('❌ Two-Rock: Failed to load IR:', error);
-      console.log('↪️ Keeping default 2×12 cabinet IR');
-    }
-  }
-  
   disconnect() {
     super.disconnect();
     this.cleanChannel.disconnect();
@@ -679,11 +592,12 @@ class TwoRockClassicReverbAmp extends BaseAmp {
     this.revAP1.disconnect();
     this.revAP2.disconnect();
     this.outputMixer.disconnect();
+    if (this.powerSag) this.powerSag.disconnect();
     this.powerComp.disconnect();
     this.powerAmp.disconnect();
     this.powerSaturation.disconnect();
-    this.dcBlock.disconnect();
-    this.cabIR.disconnect();
+    this.preCabinet.disconnect();
+    this.postCabinet.disconnect();
     this.presence.disconnect();
     this.depth.disconnect();
     this.master.disconnect();

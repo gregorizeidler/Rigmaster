@@ -75,7 +75,7 @@ class MXRPhase90Effect extends BaseEffect {
         this.feedbackGain.gain.setTargetAtTime(value / 100, now, 0.01);
         break;
       case 'mix':
-        this.updateMix(value);
+        this.setMix(value / 100);
         break;
       default:
         break;

@@ -165,7 +165,7 @@ class EventideSpaceEffect extends BaseEffect {
     
     // === MANGLED VERB (Distorted) ===
     this.mangledDistortion = audioContext.createWaveShaper();
-    this.mangledDistortion.oversample = '2x';
+    this.mangledDistortion.oversample = '4x';
     this.mangledDistortion.curve = this.makeMangledCurve(30);
     this.mangledMix = audioContext.createGain();
     this.mangledMix.gain.value = 0;
@@ -234,7 +234,7 @@ class EventideSpaceEffect extends BaseEffect {
   }
   
   makeMangledCurve(amount) {
-    const samples = 44100;
+    const samples = 65536;
     const curve = new Float32Array(samples);
     const drive = 1 + (amount / 10);
     

@@ -7,43 +7,59 @@ class ReverbEffect extends BaseEffect {
     // Freeverb algorithm (Schroeder reverberator)
     // Uses 8 parallel comb filters + 4 series allpass filters
     
-    // Comb filter delays (tuned for natural sound)
+    // Comb filter delays (Freeverb tunings, all in proper 25-44ms range)
     this.combDelayTimes = [
       0.0297, 0.0371, 0.0411, 0.0437,
-      0.0050, 0.0017, 0.0013, 0.0011
+      0.0253, 0.0269, 0.0290, 0.0307
     ];
     
     // Allpass filter delays
     this.allpassDelayTimes = [0.0051, 0.0067, 0.0083, 0.0097];
     
-    // Create comb filters
+    // Create comb filters (each with its own damping filter to avoid cross-coupling)
     this.combFilters = [];
     this.combGains = [];
     for (let i = 0; i < 8; i++) {
       const delay = audioContext.createDelay(0.1);
       const feedback = audioContext.createGain();
+      const damping = audioContext.createBiquadFilter();
+      damping.type = 'lowpass';
+      damping.frequency.value = 5000;
+      damping.Q.value = 0.707;
       const combGain = audioContext.createGain();
       
       delay.delayTime.value = this.combDelayTimes[i];
       feedback.gain.value = 0.84; // Decay factor
       combGain.gain.value = 0.15; // Mix factor
       
-      this.combFilters.push({ delay, feedback });
+      this.combFilters.push({ delay, feedback, damping });
       this.combGains.push(combGain);
     }
     
-    // Create allpass filters
+    // Create allpass filters (correct Schroeder structure)
     this.allpassFilters = [];
     for (let i = 0; i < 4; i++) {
+      const apInput = audioContext.createGain();
+      const apOutput = audioContext.createGain();
       const delay = audioContext.createDelay(0.1);
-      const feedforward = audioContext.createGain();
-      const feedback = audioContext.createGain();
+      const fbGain = audioContext.createGain();
+      const ffGain = audioContext.createGain();
       
       delay.delayTime.value = this.allpassDelayTimes[i];
-      feedforward.gain.value = 0.7;
-      feedback.gain.value = -0.7;
+      fbGain.gain.value = 0.7;
+      ffGain.gain.value = -0.7; // Negative of feedback gain
       
-      this.allpassFilters.push({ delay, feedforward, feedback });
+      // Feed-forward path: input → ffGain → output
+      apInput.connect(ffGain);
+      ffGain.connect(apOutput);
+      // Delay path: input → delay → output
+      apInput.connect(delay);
+      delay.connect(apOutput);
+      // Feedback: delay → fbGain → input
+      delay.connect(fbGain);
+      fbGain.connect(apInput);
+      
+      this.allpassFilters.push({ input: apInput, output: apOutput, delay, fbGain, ffGain });
     }
     
     // Create mixer nodes
@@ -51,48 +67,37 @@ class ReverbEffect extends BaseEffect {
     this.reverbGain = audioContext.createGain();
     this.reverbGain.gain.value = 0.4;
     
-    // Damping filter (reduces high frequencies over time)
-    this.dampingFilter = audioContext.createBiquadFilter();
-    this.dampingFilter.type = 'lowpass';
-    this.dampingFilter.frequency.value = 5000;
-    this.dampingFilter.Q.value = 0.707;
+    // DC blocker (highpass at 10Hz to prevent DC accumulation in feedback loops)
+    this.dcBlocker = audioContext.createBiquadFilter();
+    this.dcBlocker.type = 'highpass';
+    this.dcBlocker.frequency.value = 10;
+    this.dcBlocker.Q.value = 0.707;
     
-    // Connect comb filters in parallel
+    // Connect comb filters in parallel (each with isolated feedback loop)
     for (let i = 0; i < 8; i++) {
-      const { delay, feedback } = this.combFilters[i];
+      const { delay, feedback, damping } = this.combFilters[i];
       const combGain = this.combGains[i];
       
+      // Input → delay
       this.input.connect(delay);
-      delay.connect(feedback);
-      feedback.connect(this.dampingFilter);
-      this.dampingFilter.connect(delay); // Feedback loop
+      // Feedback loop: delay → per-comb damping → feedback gain → delay
+      delay.connect(damping);
+      damping.connect(feedback);
+      feedback.connect(delay);
+      // Output: delay → combGain → mixer
       delay.connect(combGain);
       combGain.connect(this.combMixer);
     }
     
     // Connect allpass filters in series
-    let allpassInput = this.combMixer;
-    for (let i = 0; i < 4; i++) {
-      const { delay, feedforward, feedback } = this.allpassFilters[i];
-      
-      // Allpass structure: input -> delay -> output
-      //                     input -> feedforward -> output
-      //                     delay -> feedback -> input
-      const sumNode = audioContext.createGain();
-      
-      allpassInput.connect(delay);
-      allpassInput.connect(feedforward);
-      delay.connect(feedback);
-      
-      feedforward.connect(sumNode);
-      feedback.connect(sumNode);
-      delay.connect(sumNode);
-      
-      allpassInput = sumNode;
+    this.combMixer.connect(this.allpassFilters[0].input);
+    for (let i = 0; i < 3; i++) {
+      this.allpassFilters[i].output.connect(this.allpassFilters[i + 1].input);
     }
     
-    // Final output
-    allpassInput.connect(this.reverbGain);
+    // Final output through DC blocker
+    this.allpassFilters[3].output.connect(this.dcBlocker);
+    this.dcBlocker.connect(this.reverbGain);
     this.reverbGain.connect(this.wetGain);
     this.wetGain.connect(this.output);
     
@@ -123,9 +128,11 @@ class ReverbEffect extends BaseEffect {
         }
         break;
       case 'damping':
-        // Control high frequency damping
+        // Control high frequency damping on all comb filters
         const cutoff = 2000 + (value / 100) * 8000; // 2kHz to 10kHz
-        this.dampingFilter.frequency.setTargetAtTime(cutoff, now, 0.01);
+        for (let i = 0; i < 8; i++) {
+          this.combFilters[i].damping.frequency.setTargetAtTime(cutoff, now, 0.01);
+        }
         break;
       case 'mix':
         this.setMix(value / 100);
@@ -145,21 +152,23 @@ class ReverbEffect extends BaseEffect {
     for (let i = 0; i < 8; i++) {
       this.combFilters[i].delay.disconnect();
       this.combFilters[i].feedback.disconnect();
+      this.combFilters[i].damping.disconnect();
       this.combGains[i].disconnect();
     }
     
     // Disconnect all allpass filters
     for (let i = 0; i < 4; i++) {
+      this.allpassFilters[i].input.disconnect();
+      this.allpassFilters[i].output.disconnect();
       this.allpassFilters[i].delay.disconnect();
-      this.allpassFilters[i].feedforward.disconnect();
-      this.allpassFilters[i].feedback.disconnect();
+      this.allpassFilters[i].fbGain.disconnect();
+      this.allpassFilters[i].ffGain.disconnect();
     }
     
     this.combMixer.disconnect();
-    this.dampingFilter.disconnect();
+    this.dcBlocker.disconnect();
     this.reverbGain.disconnect();
   }
 }
 
 export default ReverbEffect;
-

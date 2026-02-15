@@ -818,7 +818,7 @@ class MesaTripleCrownAmp extends BaseAmp {
   
   _makeCurve(key, fn) {
     if (!MesaTripleCrownAmp._curveCache[key]) {
-      const samples = Math.min(32768, this.audioContext.sampleRate);
+      const samples = 65536;
       const curve = new Float32Array(samples);
       for (let i = 0; i < samples; i++) {
         const x = (i * 2) / samples - 1;

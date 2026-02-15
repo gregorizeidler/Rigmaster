@@ -407,7 +407,8 @@ class PresetManager {
   // ==========================================
   loadUserPresets() {
     try {
-      const stored = localStorage.getItem('guitrard_user_presets');
+      // Migrate from old key name + use new key
+      const stored = localStorage.getItem('rigmaster_user_presets') || localStorage.getItem('guitrard_user_presets');
       return stored ? JSON.parse(stored) : [];
     } catch (e) {
       console.warn('Error loading user presets:', e);
@@ -417,7 +418,7 @@ class PresetManager {
 
   saveUserPresets() {
     try {
-      localStorage.setItem('guitrard_user_presets', JSON.stringify(this.userPresets));
+      localStorage.setItem('rigmaster_user_presets', JSON.stringify(this.userPresets));
     } catch (e) {
       console.error('Error saving user presets:', e);
     }

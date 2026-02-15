@@ -30,6 +30,12 @@ class JHSSuperBoltEffect extends BaseEffect {
     this.inputGain = audioContext.createGain();
     this.inputGain.gain.value = 1.5;
 
+    // Anti-alias pré-clip
+    this.antiAliasLPF = audioContext.createBiquadFilter();
+    this.antiAliasLPF.type = 'lowpass';
+    this.antiAliasLPF.frequency.value = 18000;
+    this.antiAliasLPF.Q.value = 0.707;
+
     // Clipping 1 (op-amp style, base do crunch)
     this.clipA = audioContext.createWaveShaper();
     this.clipA.oversample = '4x';
@@ -96,7 +102,8 @@ class JHSSuperBoltEffect extends BaseEffect {
     // Roteamento
     this.input.connect(this.preHPF);
     this.preHPF.connect(this.inputGain);
-    this.inputGain.connect(this.clipA);
+    this.inputGain.connect(this.antiAliasLPF);
+    this.antiAliasLPF.connect(this.clipA);
     this.clipA.connect(this.dcBlock);
     this.dcBlock.connect(this.clipB);
     this.clipB.connect(this.postLPF);
@@ -129,7 +136,7 @@ class JHSSuperBoltEffect extends BaseEffect {
 
   // Soft clip "op-amp" com leve assimetria
   makeOpampCurve(drive = 35, asym = 0.12) {
-    const n = 44100, c = new Float32Array(n);
+    const n = 65536, c = new Float32Array(n);
     const g = 1 + drive / 25;
     for (let i = 0; i < n; i++) {
       const x = (i * 2) / n - 1;
@@ -144,7 +151,7 @@ class JHSSuperBoltEffect extends BaseEffect {
 
   // "Diodos" suaves para pares/texture
   makeDiodeCurve(drive = 28, asym = 0.10) {
-    const n = 44100, c = new Float32Array(n);
+    const n = 65536, c = new Float32Array(n);
     const g = 1 + drive / 22;
     for (let i = 0; i < n; i++) {
       const x = (i * 2) / n - 1;
@@ -262,6 +269,7 @@ class JHSSuperBoltEffect extends BaseEffect {
     try {
       this.preHPF.disconnect();
       this.inputGain.disconnect();
+      this.antiAliasLPF.disconnect();
       this.clipA.disconnect();
       this.dcBlock.disconnect();
       this.clipB.disconnect();
