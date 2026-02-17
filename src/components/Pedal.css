@@ -33,6 +33,27 @@
   align-self: center;
 }
 
+/* PROCO RAT — 3 knobs alinhados, sem knob “torto” pra fora */
+.pedal-procorat .pedal-controls {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  gap: 24px;
+  padding: 18px 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.pedal-procorat .pedal-controls > * {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
 /* LARGE PEDALS (Timeline, Bigsky, etc) */
 .pedal[data-size="large"] {
   width: 400px;

@@ -1234,9 +1234,9 @@ const Pedal = ({ effect, onUpdate, onBypass, onRemove }) => {
       case 'procorat':
         return (
           <>
-            <Knob label="Distortion" value={effect.params?.distortion || 50} onChange={handleKnobChange('distortion')} />
-            <Knob label="Filter" value={effect.params?.filter || 50} onChange={handleKnobChange('filter')} />
-            <Knob label="Volume" value={effect.params?.volume || 70} onChange={handleKnobChange('volume')} />
+            <Knob label="DISTORTION" value={effect.params?.distortion || 50} onChange={handleKnobChange('distortion')} />
+            <Knob label="FILTER" value={effect.params?.filter || 50} onChange={handleKnobChange('filter')} />
+            <Knob label="VOLUME" value={effect.params?.volume || 70} onChange={handleKnobChange('volume')} />
           </>
         );
       case 'fuzzface':
