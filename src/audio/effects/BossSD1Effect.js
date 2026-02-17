@@ -7,7 +7,7 @@ import BaseEffect from './BaseEffect';
  *  - Clipping assimétrico com joelho suave
  *  - Assimetria forte no ciclo negativo (característico)
  *  - Tilt-EQ (low-shelf + high-shelf complementares)
- *  - Mid-hump sutil em 750Hz
+ *  - Mid-hump sutil em 750Hz (pré-clip, para saturar médios)
  *  - Pré-ênfase para pick attack
  *  - Mix wet/dry
  *
@@ -21,7 +21,7 @@ class BossSD1Effect extends BaseEffect {
     // ===== Condicionamento de entrada =====
     this.inHPF = audioContext.createBiquadFilter();
     this.inHPF.type = 'highpass';
-    this.inHPF.frequency.value = 60; // aperta subgrave antes do gain
+    this.inHPF.frequency.value = 60; // 80–120 Hz = mais "tight" (corte SD-1 real)
 
     this.inputGain = audioContext.createGain();
     this.inputGain.gain.value = 1.8;
@@ -37,7 +37,7 @@ class BossSD1Effect extends BaseEffect {
     this.clipper.oversample = '4x';
     this.clipper.curve = this.makeSD1Curve(50);
 
-    // Mid-hump suave (empurra 750 Hz)
+    // Mid-hump pré-clip (empurra 750 Hz antes do clip, mais SD-1 "na veia")
     this.midHump = audioContext.createBiquadFilter();
     this.midHump.type = 'peaking';
     this.midHump.frequency.value = 750;
@@ -72,11 +72,11 @@ class BossSD1Effect extends BaseEffect {
     this.input.connect(this.inHPF);
     this.inHPF.connect(this.inputGain);
     this.inputGain.connect(this.preFilter);
-    this.preFilter.connect(this.antiAliasLPF);
+    this.preFilter.connect(this.midHump);
+    this.midHump.connect(this.antiAliasLPF);
     this.antiAliasLPF.connect(this.clipper);
     this.clipper.connect(this.dcBlocker);
-    this.dcBlocker.connect(this.midHump);
-    this.midHump.connect(this.toneLow);
+    this.dcBlocker.connect(this.toneLow);
     this.toneLow.connect(this.toneHigh);
     this.toneHigh.connect(this.outputGain);
     this.outputGain.connect(this.wetGain);
@@ -90,11 +90,35 @@ class BossSD1Effect extends BaseEffect {
     this.params = {
       drive: 50,
       tone: 50,
-      level: 70
+      level: 70,
+      mix: 100,
     };
+
+    // Cache da curva por drive (evita recalc a cada frame)
+    this._lastDrive = -1;
+    this._cachedCurve = null;
+
+    this.updateParameter('tone', 50);
+    this.updateParameter('level', 70);
+    this.updateParameter('mix', 100);
+  }
+
+  updateMix(value) {
+    const v = Math.max(0, Math.min(100, value));
+    if (this.params) this.params.mix = v;
+    const w = v / 100;
+    const now = this.audioContext.currentTime;
+    if (v >= 99.9) {
+      this.wetGain.gain.setTargetAtTime(1, now, 0.01);
+      this.dryGain.gain.setTargetAtTime(0, now, 0.01);
+    } else {
+      this.wetGain.gain.setTargetAtTime(Math.sin(w * Math.PI / 2), now, 0.01);
+      this.dryGain.gain.setTargetAtTime(Math.cos(w * Math.PI / 2), now, 0.01);
+    }
   }
 
   // Curva SD-1: assimetria forte no ciclo negativo e joelho mais musical.
+  // n=65536; para mobile, 16384 costuma bastar.
   makeSD1Curve(amount) {
     const n = 65536;
     const curve = new Float32Array(n);
@@ -122,11 +146,12 @@ class BossSD1Effect extends BaseEffect {
   }
 
   _applyToneTilt(value) {
-    // 0..100 → ±8 dB de tilt entre graves/agudos
-    const t = Math.max(0, Math.min(100, value)) / 100; // 0..1
-    const range = 8; // dB por banda
-    const lowGain = (1 - t) * range - range / 2;  // -4..+4 dB
-    const highGain = t * range - range / 2;       // -4..+4 dB
+    // Tilt de verdade: low e high opostos (-4..+4 dB)
+    const t = Math.max(0, Math.min(100, value)) / 100;
+    const range = 8;
+    const tilt = (t - 0.5) * range;  // -4..+4
+    const lowGain = -tilt;
+    const highGain = +tilt;
     const now = this.audioContext.currentTime;
     this.toneLow.gain.setTargetAtTime(lowGain, now, 0.02);
     this.toneHigh.gain.setTargetAtTime(highGain, now, 0.02);
@@ -140,11 +165,19 @@ class BossSD1Effect extends BaseEffect {
     }
 
     switch (parameter) {
-      case 'drive':
-        this.clipper.curve = this.makeSD1Curve(value);
-        // pouquinho de make-up com o drive
+      case 'drive': {
+        const d = Math.round(value);
+        if (d !== this._lastDrive) {
+          this._lastDrive = d;
+          this._cachedCurve = this.makeSD1Curve(d);
+        }
+        this.clipper.curve = this._cachedCurve ?? this.makeSD1Curve(d);
         this.inputGain.gain.setTargetAtTime(1.5 + value / 66, now, 0.01);
+        // mais drive → LPF mais baixo (menos fizz/areia); mínimo 12k
+        const cutoff = Math.max(12000, 18000 - (value / 100) * 6000);
+        this.antiAliasLPF.frequency.setTargetAtTime(cutoff, now, 0.01);
         break;
+      }
 
       case 'tone':
         // substitui o simples LPF por tilt (mais útil e musical)
@@ -152,6 +185,7 @@ class BossSD1Effect extends BaseEffect {
         break;
 
       case 'level':
+        // level como make-up (0..1); clip já normalizado em 0.86
         this.outputGain.gain.setTargetAtTime(value / 100, now, 0.01);
         break;
 
