@@ -27,10 +27,10 @@ class MXRDistortionPlusEffect extends BaseEffect {
     this.preHPF.frequency.value = 120;
     this.preHPF.Q.value = 0.707;
 
-    // Anti-alias pré-clip
+    // Anti-alias pré-clip (8k–14k dinâmico: mais drive → cutoff menor)
     this.antiAliasLPF = audioContext.createBiquadFilter();
     this.antiAliasLPF.type = 'lowpass';
-    this.antiAliasLPF.frequency.value = 18000;
+    this.antiAliasLPF.frequency.value = 11000;
     this.antiAliasLPF.Q.value = 0.707;
 
     // ===== Clipping (germanium-like, simétrico) =====
@@ -49,9 +49,9 @@ class MXRDistortionPlusEffect extends BaseEffect {
     this.dcBlock.type = 'highpass';
     this.dcBlock.frequency.value = 20;
 
-    // ===== Saída =====
+    // ===== Saída (inicial alinhado com output=70 → 70/125) =====
     this.outputGain = audioContext.createGain();
-    this.outputGain.gain.value = 0.4;
+    this.outputGain.gain.value = 70 / 125;
 
     // ===== Cadeia =====
     this.input.connect(this.inputGain);
@@ -68,28 +68,40 @@ class MXRDistortionPlusEffect extends BaseEffect {
     this.input.connect(this.dryGain);
     this.dryGain.connect(this.output);
     
-    // Inicializa params para UI
     this.params = {
       distortion: 50,
-      output: 70
+      output: 70,
+      mix: 100
     };
+    this.updateMix(100);
   }
 
-  // Curva com limiar ~0.33 (≈ 0,3V germanium), joelho suave e harmônicos extras
+  updateMix(value) {
+    const v = Math.max(0, Math.min(100, value));
+    if (this.params) this.params.mix = v;
+    const x = v / 100;
+    const wet = Math.sin((Math.PI / 2) * x);
+    const dry = Math.cos((Math.PI / 2) * x);
+    this._currentWetLevel = wet;
+    this._currentDryLevel = dry;
+    const now = this.audioContext.currentTime;
+    this.wetGain.gain.setTargetAtTime(wet, now, 0.02);
+    this.dryGain.gain.setTargetAtTime(dry, now, 0.02);
+  }
+
+  // Curva com limiar ~0.33 (≈ 0,3V germanium), joelho variável e harmônicos extras
   makeDistortionPlusCurve(amount) {
     const samples = 65536;
     const curve = new Float32Array(samples);
 
-    // "Distortion" do pedal ≈ ganho do op-amp; mantemos limiar fixo e subimos drive
-    const drive = 1 + amount / 12;      // faixa agressiva como o D+
-    const vt = 0.33;                    // "threshold" aproximado de diodo Ge
-    const kneeSoftness = 0.2;           // joelho para não serrilhar demais
+    const drive = 1 + amount / 12;
+    const vt = 0.33;
+    const kneeSoftness = Math.max(0.08, 0.22 - amount * 0.0012);
 
     for (let i = 0; i < samples; i++) {
-      const x = (i * 2) / samples - 1;
+      const x = (i / (samples - 1)) * 2 - 1;
       let y = x * drive;
 
-      // Região de transição suave ao redor de ±vt
       if (y > vt) {
         const over = y - vt;
         y = vt + Math.tanh(over / kneeSoftness) * kneeSoftness;
@@ -98,11 +110,10 @@ class MXRDistortionPlusEffect extends BaseEffect {
         y = -vt + Math.tanh(under / kneeSoftness) * kneeSoftness;
       }
 
-      // Um pouco do "fizz" típico do Dist+ (ímpares mais evidentes)
       y += 0.12 * Math.tanh(x * drive * 3.0);
       y += 0.05 * Math.tanh(x * drive * 5.0);
 
-      curve[i] = y * 0.80;
+      curve[i] = Math.max(-1, Math.min(1, y * 0.80));
     }
 
     return curve;
@@ -117,23 +128,27 @@ class MXRDistortionPlusEffect extends BaseEffect {
 
     switch (parameter) {
       case 'distortion': {
-        // Regera curve e ajusta ganho de entrada como no knob original
-        this.clipper.curve = this.makeDistortionPlusCurve(value);
-        this.inputGain.gain.setTargetAtTime(2 + value / 33, now, 0.01);
+        const d = Math.max(0, Math.min(100, Number(value) || 0));
+        if (this.params) this.params.distortion = d;
+        this.clipper.curve = this.makeDistortionPlusCurve(d);
+        this.inputGain.gain.setTargetAtTime(2 + d / 33, now, 0.01);
 
-        // Mais drive => baixa o LPF para domar aspereza
-        const fAA = 6000 + (100 - value) * 40; // ~6–10 kHz
-        this.postLPF.frequency.setTargetAtTime(fAA, now, 0.02);
+        const clampHz = (hz) => Math.max(500, Math.min(18000, hz));
+        const fPost = clampHz(6000 + (100 - d) * 40);
+        const fPre = clampHz(8000 + (100 - d) * 60);
+        this.postLPF.frequency.setTargetAtTime(fPost, now, 0.02);
+        this.antiAliasLPF.frequency.setTargetAtTime(fPre, now, 0.02);
         break;
       }
 
-      case 'output':
-        // Saída do pedal (o D+ tem bastante volume)
-        this.outputGain.gain.setTargetAtTime(value / 125, now, 0.01);
+      case 'output': {
+        const v = Math.max(0, Math.min(100, Number(value) || 0));
+        this.outputGain.gain.setTargetAtTime(v / 125, now, 0.01);
         break;
+      }
 
       case 'mix':
-        this.updateMix(value);
+        this.updateMix(Math.max(0, Math.min(100, value)));
         break;
 
       default:
