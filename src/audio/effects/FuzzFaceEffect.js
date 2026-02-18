@@ -33,11 +33,17 @@ class FuzzFaceEffect extends BaseEffect {
     this.preEmphasis.frequency.value = 1400;
     this.preEmphasis.gain.value = 1.5;
 
-    // Anti-alias pré-clip
     this.antiAliasLPF = audioContext.createBiquadFilter();
     this.antiAliasLPF.type = 'lowpass';
-    this.antiAliasLPF.frequency.value = 18000;
+    this.antiAliasLPF.frequency.value = 16000;
     this.antiAliasLPF.Q.value = 0.707;
+
+    this.touchComp = audioContext.createDynamicsCompressor();
+    this.touchComp.threshold.value = -24;
+    this.touchComp.knee.value = 24;
+    this.touchComp.ratio.value = 2;
+    this.touchComp.attack.value = 0.003;
+    this.touchComp.release.value = 0.08;
 
     // ===== Clipper germanium com bias/asym =====
     this.fuzzClip = audioContext.createWaveShaper();
@@ -52,24 +58,30 @@ class FuzzFaceEffect extends BaseEffect {
     this.outputLPF.frequency.value = 6000; // ajustável via 'tone'
     this.outputLPF.Q.value = 0.707;
 
-    // DC blocker para evitar offset depois do fuzz
     this.dcBlock = audioContext.createBiquadFilter();
     this.dcBlock.type = 'highpass';
     this.dcBlock.frequency.value = 20;
 
-    // ===== Saída =====
+    this.postAA = audioContext.createBiquadFilter();
+    this.postAA.type = 'lowpass';
+    this.postAA.frequency.value = 16000;
+    this.postAA.Q.value = 0.5;
+
     this.outputGain = audioContext.createGain();
-    this.outputGain.gain.value = 0.35;
+    const g0 = 70 / 100;
+    this.outputGain.gain.value = 0.02 + g0 * g0 * 0.85;
 
     // ===== Cadeia =====
     this.input.connect(this.inputPad);
     this.inputPad.connect(this.inputHPF);
     this.inputHPF.connect(this.preEmphasis);
     this.preEmphasis.connect(this.antiAliasLPF);
-    this.antiAliasLPF.connect(this.fuzzClip);
-    this.fuzzClip.connect(this.outputLPF);
-    this.outputLPF.connect(this.dcBlock);
-    this.dcBlock.connect(this.outputGain);
+    this.antiAliasLPF.connect(this.touchComp);
+    this.touchComp.connect(this.fuzzClip);
+    this.fuzzClip.connect(this.dcBlock);
+    this.dcBlock.connect(this.postAA);
+    this.postAA.connect(this.outputLPF);
+    this.outputLPF.connect(this.outputGain);
     this.outputGain.connect(this.wetGain);
     this.wetGain.connect(this.output);
 
@@ -77,33 +89,49 @@ class FuzzFaceEffect extends BaseEffect {
     this.input.connect(this.dryGain);
     this.dryGain.connect(this.output);
     
-    // Inicializa params para UI
     this.params = {
       fuzz: 50,
       bias: 50,
-      volume: 70
+      bass: 50,
+      tone: 50,
+      volume: 70,
+      mix: 100
     };
+    this.updateMix(100);
   }
 
-  // Curva germanium com joelho suave + assimetria controlada pelo 'bias'
+  updateMix(value) {
+    const v = Math.max(0, Math.min(100, Number(value) || 0));
+    if (this.params) this.params.mix = v;
+    if (typeof this.setMix === 'function') this.setMix(v / 100);
+    else {
+      const w = v / 100;
+      this._currentWetLevel = w;
+      this._currentDryLevel = 1 - w;
+      const now = this.audioContext.currentTime;
+      this.wetGain.gain.setTargetAtTime(w, now, 0.02);
+      this.dryGain.gain.setTargetAtTime(1 - w, now, 0.02);
+    }
+  }
+
+  // Curva germanium: joelho suave + assimetria por bias (sem IMD artificial)
   makeFuzzFaceCurve(amount = 50, bias = 50) {
-    const samples = 65536;
+    const samples = 16384;
     const curve = new Float32Array(samples);
 
-    // drive global
-    const drive = 1 + amount / 18; // ~1–6.5
+    const amt = Math.max(0, Math.min(100, amount));
+    const drive = 1 + amt / 18;
 
-    // bias: 0 = gating pesado; 50 = clássico; 100 = mais simétrico/aberto
-    const asym = (bias - 50) / 100; // -0.5..+0.5
-    const vtPos = 0.22 - asym * 0.06; // limiar + (germanium ~0.2V)
-    const vtNeg = 0.22 + asym * 0.06; // limiar - (move ao contrário)
+    const b = Math.max(0, Math.min(100, bias));
+    const asym = (b - 50) / 100;
+    const vtPos = Math.max(0.001, 0.22 - asym * 0.06);
+    const vtNeg = Math.max(0.001, 0.22 + asym * 0.06);
     const knee = 0.22;
 
     for (let i = 0; i < samples; i++) {
-      const x = (i * 2) / samples - 1;
+      const x = (i / (samples - 1)) * 2 - 1;
       let y = x * drive;
 
-      // clipping assimétrico com joelho suave
       if (y > vtPos) {
         const over = y - vtPos;
         y = vtPos + Math.tanh(over / knee) * knee;
@@ -112,55 +140,64 @@ class FuzzFaceEffect extends BaseEffect {
         y = -vtNeg + Math.tanh(under / knee) * knee;
       }
 
-      // compressão "transistor" + paridade (even harm) do germanium
       y = Math.tanh(y * 2.0);
-      y += 0.12 * Math.tanh(x * drive * 1.6); // even harmonics
+      y += 0.10 * Math.tanh(x * drive * 1.6);
 
-      // toque/cleanup: reduz ganho relativo nos picos (dinâmica)
-      const dyn = 1 - Math.min(0.25, Math.abs(x) * 0.22);
+      const dyn = 1 - Math.min(0.12, Math.abs(x) * 0.10);
       y *= dyn;
 
-      curve[i] = y * 0.9;
+      const gate = Math.max(0, Math.abs(asym) - 0.1);
+      if (Math.abs(y) < gate * 0.06) y *= 0.2;
+
+      curve[i] = Math.max(-1, Math.min(1, y * 0.9));
     }
     return curve;
   }
 
   updateParameter(parameter, value) {
     const now = this.audioContext.currentTime;
-    
-    if (this.params) {
-      this.params[parameter] = value;
-    }
 
     switch (parameter) {
-      case 'fuzz':
-        this.fuzzAmount = value;
+      case 'fuzz': {
+        const v = Math.max(0, Math.min(100, Number(value) || 0));
+        if (this.params) this.params.fuzz = v;
+        this.fuzzAmount = v;
         this.fuzzClip.curve = this.makeFuzzFaceCurve(this.fuzzAmount, this.bias);
-        // ganho de entrada também sobe, mas com curva suave (sente "sustentar")
-        this.inputPad.gain.setTargetAtTime(1.2 + value / 60, now, 0.015);
+        this.inputPad.gain.setTargetAtTime(1.2 + v / 60, now, 0.015);
         break;
+      }
 
-      case 'bias':
-        this.bias = value;
+      case 'bias': {
+        const v = Math.max(0, Math.min(100, Number(value) || 0));
+        if (this.params) this.params.bias = v;
+        this.bias = v;
         this.fuzzClip.curve = this.makeFuzzFaceCurve(this.fuzzAmount, this.bias);
         break;
+      }
 
-      case 'bass':
-        // 40–200 Hz útil para segurar embolo
-        const fBass = 40 + (value / 100) * 200;
+      case 'bass': {
+        const v = Math.max(0, Math.min(100, Number(value) || 0));
+        if (this.params) this.params.bass = v;
+        const fBass = 40 + (v / 100) * 160; // 40–200 Hz
         this.inputHPF.frequency.setTargetAtTime(fBass, now, 0.02);
         break;
+      }
 
-      case 'tone':
-        // 2 kHz (fechado) a 9 kHz (aberto)
-        const fTone = 2000 + (value / 100) * 7000;
+      case 'tone': {
+        const v = Math.max(0, Math.min(100, Number(value) || 0));
+        if (this.params) this.params.tone = v;
+        const fTone = 2000 + (v / 100) * 7000;
         this.outputLPF.frequency.setTargetAtTime(fTone, now, 0.02);
         break;
+      }
 
-      case 'volume':
-        // headroom alto para empurrar amp
-        this.outputGain.gain.setTargetAtTime(value / 120, now, 0.01);
+      case 'volume': {
+        const v = Math.max(0, Math.min(100, Number(value) || 0));
+        if (this.params) this.params.volume = v;
+        const g = v / 100;
+        this.outputGain.gain.setTargetAtTime(0.02 + g * g * 0.85, now, 0.01);
         break;
+      }
 
       case 'mix':
         this.updateMix(value);
@@ -179,9 +216,11 @@ class FuzzFaceEffect extends BaseEffect {
       this.inputHPF.disconnect();
       this.preEmphasis.disconnect();
       this.antiAliasLPF.disconnect();
+      this.touchComp.disconnect();
       this.fuzzClip.disconnect();
-      this.outputLPF.disconnect();
       this.dcBlock.disconnect();
+      this.postAA.disconnect();
+      this.outputLPF.disconnect();
       this.outputGain.disconnect();
     } catch (e) {}
   }
