@@ -152,6 +152,8 @@ class BadCatHotCatAmp extends BaseAmp {
     [this.rv1, this.rv2, this.rv3].forEach(d => d.connect(this.rvTone));
     this.rvTone.connect(this.rvFB);
     this.rvFB.connect(this.rv1);
+    this.rvFB.connect(this.rv2);
+    this.rvFB.connect(this.rv3);
     this.rvTone.connect(this.rvHPF);
     this.rvHPF.connect(this.rvReturn);
     this.rvReturn.connect(this.rvMix);
@@ -176,14 +178,6 @@ class BadCatHotCatAmp extends BaseAmp {
     this.powerSaturation = audioContext.createWaveShaper();
     this.powerSaturation.curve = this.makePowerAmpCurve();
     this.powerSaturation.oversample = '4x';
-    
-    // Class A compression (original)
-    this.classAComp = audioContext.createDynamicsCompressor();
-    this.classAComp.threshold.value = -20;
-    this.classAComp.knee.value = 15;
-    this.classAComp.ratio.value = 3;
-    this.classAComp.attack.value = 0.008;
-    this.classAComp.release.value = 0.12;
     
     // ============================================
     // CABINET SIMULATOR
@@ -368,14 +362,13 @@ class BadCatHotCatAmp extends BaseAmp {
       this.harmonics.disconnect();
       this.cut.disconnect();
       this.classASag.disconnect();
-      this.classAComp.disconnect();
-      this.rvSend.disconnect();
-      this.rvMix.disconnect();
       this.kMaster.disconnect();
       this.powerAmp.disconnect();
       this.powerSaturation.disconnect();
       this.outputLevel.disconnect();
       this.master.disconnect();
+      this.preCabinet.disconnect();
+      this.postCabinet.disconnect();
     } catch (e) {}
   }
   
@@ -385,67 +378,60 @@ class BadCatHotCatAmp extends BaseAmp {
     this.channel1.gain.value = 1.0;
     this.channel2.gain.value = 1.0;
     this.powerAmp.gain.value = 1.0;
-    this.master.gain.value = 0.7;
+    const p = this.params;
+    ['gain', 'ch1_volume', 'ch2_volume', 'k_master', 'output_level', 'bass', 'middle', 'treble', 'cut', 'bite', 'focus', 'ch2_mode', 'reverb', 'reverb_tone', 'reverb_mix', 'master', 'cabinet_enabled'].forEach(k => {
+      if (p[k] != null) this.updateParameter(k, p[k]);
+    });
+  }
+
+  reconnect() {
+    if (this.activeChannel === 1) this.setupChannel1();
+    else this.setupChannel2();
+    this.recreateCabinet();
+  }
+
+  getParameters() {
+    return { ...this.params };
   }
   
   makePreampCurve() {
-    const samples = 65536;
+    const samples = 16384;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
-      const x = (i * 2) / samples - 1;
+      const x = (i / (samples - 1)) * 2 - 1;
       let y = Math.tanh(x * 2.5);
-      
-      // BAD CAT "TOUCH SENSITIVITY" (dynamic response)
       y += 0.15 * Math.tanh(x * 5);
-      
-      // Harmonic richness
-      if (Math.abs(y) > 0.5) {
-        y *= 0.9;
-      }
-      
+      if (Math.abs(y) > 0.5) y *= 0.9;
       if (x > 0) y *= 1.1;
-      curve[i] = y * 0.87;
+      curve[i] = Math.max(-1, Math.min(1, y * 0.87));
     }
     return curve;
   }
   
   makePowerAmpCurve() {
-    const samples = 65536;
+    const samples = 16384;
     const curve = new Float32Array(samples);
     for (let i = 0; i < samples; i++) {
-      const x = (i * 2) / samples - 1;
+      const x = (i / (samples - 1)) * 2 - 1;
       let y = Math.tanh(x * 1.5);
-      
-      // EL84 Class A warmth
       y += 0.12 * Math.sin(x * Math.PI * 3);
       y += 0.08 * Math.sin(x * Math.PI * 2);
-      
       if (x > 0) y *= 1.12;
-      curve[i] = y * 0.88;
+      curve[i] = Math.max(-1, Math.min(1, y * 0.88));
     }
     return curve;
   }
   
   makeEF86Curve() {
-    // EF86 pentode: punch, 3D character, strong 2nd harmonic
-    const N = 65536;
-    const curve = new Float32Array(N);
-    for (let i = 0; i < N; i++) {
-      const x = (i * 2) / N - 1;
+    const samples = 16384;
+    const curve = new Float32Array(samples);
+    for (let i = 0; i < samples; i++) {
+      const x = (i / (samples - 1)) * 2 - 1;
       let y = Math.tanh(x * 3.2);
-      
-      // Strong 2nd harmonic (even-order distortion)
       y += 0.14 * Math.tanh(x * 6);
-      
-      // Sweet compression above 0.55
-      if (Math.abs(y) > 0.55) {
-        y *= 0.9;
-      }
-      
-      // Asymmetric (pentode character)
+      if (Math.abs(y) > 0.55) y *= 0.9;
       if (x > 0) y *= 1.08;
-      
-      curve[i] = y * 0.9;
+      curve[i] = Math.max(-1, Math.min(1, y * 0.9));
     }
     return curve;
   }
@@ -459,6 +445,7 @@ class BadCatHotCatAmp extends BaseAmp {
       } catch (e) {}
     }
     try { this.preCabinet.disconnect(); } catch (e) {}
+    try { this.postCabinet.disconnect(); } catch (e) {}
     
     if (this.cabinetEnabled) {
       this.cabinet = this.cabinetSimulator.createCabinet(
@@ -481,13 +468,17 @@ class BadCatHotCatAmp extends BaseAmp {
     const now = this.audioContext.currentTime;
     
     switch (parameter) {
-      case 'channel':
-        if (value === 1) {
-          this.setupChannel1();
-        } else {
-          this.setupChannel2();
-        }
+      case 'channel': {
+        const prevMaster = this.master.gain.value;
+        this.master.gain.setTargetAtTime(0, now, 0.003);
+        const ctx = this.audioContext;
+        setTimeout(() => {
+          if (value === 1) this.setupChannel1();
+          else this.setupChannel2();
+          this.master.gain.setTargetAtTime(prevMaster, ctx.currentTime, 0.02);
+        }, 15);
         break;
+      }
       
       // GAIN & VOLUME
       case 'gain': {
@@ -496,9 +487,8 @@ class BadCatHotCatAmp extends BaseAmp {
         
         // Bad Cat touch: adjust tone response based on gain
         if (this.activeChannel === 1) {
-          // Channel 1 more "clean chime" at low gain
           this.treble.frequency.setTargetAtTime(value < 40 ? 3200 : 2800, now, 0.02);
-          this.middle.gain.setTargetAtTime((value < 40 ? -1 : 0) + ((this.params.middle - 50) / 10), now, 0.02);
+          this.middle.gain.setTargetAtTime((value < 40 ? -1 : 0) + ((this.params.middle - 50) / 6), now, 0.02);
         } else {
           // Channel 2 lead: more harmonics at high gain
           this.harmonics.gain.setTargetAtTime(value > 70 ? 5 : 4, now, 0.02);
@@ -522,18 +512,18 @@ class BadCatHotCatAmp extends BaseAmp {
         this.outputLevel.gain.setTargetAtTime(value / 100, now, 0.01);
         break;
       
-      // TONE STACK
+      // TONE STACK (±10 dB bass/treble, ±8 dB middle)
       case 'bass':
-        this.bass.gain.setTargetAtTime((value - 50) / 10, now, 0.01);
+        this.bass.gain.setTargetAtTime((value - 50) / 5, now, 0.01);
         break;
       
       case 'middle':
       case 'mid':
-        this.middle.gain.setTargetAtTime((value - 50) / 10, now, 0.01);
+        this.middle.gain.setTargetAtTime((value - 50) / 6, now, 0.01);
         break;
       
       case 'treble':
-        this.treble.gain.setTargetAtTime((value - 50) / 10, now, 0.01);
+        this.treble.gain.setTargetAtTime((value - 50) / 5, now, 0.01);
         break;
       
       case 'cut': {
@@ -605,39 +595,42 @@ class BadCatHotCatAmp extends BaseAmp {
   
   disconnect() {
     super.disconnect();
-    this.focusHPF.disconnect();
-    this.biteShelf.disconnect();
-    this.channel1.disconnect();
-    this.channel2.disconnect();
-    this.preamp1.disconnect();
-    this.saturation1.disconnect();
-    this.preamp2.disconnect();
-    this.saturation2.disconnect();
-    this.saturation2_EF86.disconnect();
-    this.ch1Volume.disconnect();
-    this.ch2Volume.disconnect();
-    this.ch2Tilt.disconnect();
-    this.bass.disconnect();
-    this.middle.disconnect();
-    this.treble.disconnect();
-    this.harmonics.disconnect();
-    this.cut.disconnect();
-    this.classASag.disconnect();
-    this.classAComp.disconnect();
-    this.rvSend.disconnect();
-    this.rv1.disconnect();
-    this.rv2.disconnect();
-    this.rv3.disconnect();
-    this.rvTone.disconnect();
-    this.rvFB.disconnect();
-    this.rvHPF.disconnect();
-    this.rvReturn.disconnect();
-    this.rvMix.disconnect();
-    this.kMaster.disconnect();
-    this.powerAmp.disconnect();
-    this.powerSaturation.disconnect();
-    this.outputLevel.disconnect();
-    this.master.disconnect();
+    try {
+      this.focusHPF.disconnect();
+      this.biteShelf.disconnect();
+      this.channel1.disconnect();
+      this.channel2.disconnect();
+      this.preamp1.disconnect();
+      this.saturation1.disconnect();
+      this.preamp2.disconnect();
+      this.saturation2.disconnect();
+      this.saturation2_EF86.disconnect();
+      this.ch1Volume.disconnect();
+      this.ch2Volume.disconnect();
+      this.ch2Tilt.disconnect();
+      this.bass.disconnect();
+      this.middle.disconnect();
+      this.treble.disconnect();
+      this.harmonics.disconnect();
+      this.cut.disconnect();
+      this.classASag.disconnect();
+      this.rvSend.disconnect();
+      this.rv1.disconnect();
+      this.rv2.disconnect();
+      this.rv3.disconnect();
+      this.rvTone.disconnect();
+      this.rvFB.disconnect();
+      this.rvHPF.disconnect();
+      this.rvReturn.disconnect();
+      this.rvMix.disconnect();
+      this.kMaster.disconnect();
+      this.powerAmp.disconnect();
+      this.powerSaturation.disconnect();
+      this.outputLevel.disconnect();
+      this.master.disconnect();
+      this.preCabinet.disconnect();
+      this.postCabinet.disconnect();
+    } catch (e) {}
   }
 }
 
