@@ -63,9 +63,9 @@ class FulltoneOCDEffect extends BaseEffect {
     this.dcBlocker.frequency.value = 10;
     this.dcBlocker.Q.value = 0.707;
 
-    // Saída
+    // Saída (inicial alinhado com volume=70 → 0.7)
     this.outputGain = audioContext.createGain();
-    this.outputGain.gain.value = 0.6;
+    this.outputGain.gain.value = 0.7;
 
     // ===== Cadeia =====
     this.input.connect(this.inputGain);
@@ -84,13 +84,16 @@ class FulltoneOCDEffect extends BaseEffect {
     this.input.connect(this.dryGain);
     this.dryGain.connect(this.output);
     
-    // Inicializa params para UI
+    // Params completos para UI (mix incluído)
     this.params = {
       drive: 50,
       tone: 50,
       volume: 70,
-      mode: 50
+      mode: 50,
+      mix: 100
     };
+    this.updateMix(100);
+    this._driveCurveTimeout = null;
   }
 
   // MOSFET: híbrido hard/soft, crunch amp-like
@@ -99,9 +102,10 @@ class FulltoneOCDEffect extends BaseEffect {
     const curve = new Float32Array(samples);
     const drive = 1 + amount / 25;
     const knee = 0.7;
+    let maxAbs = 0;
 
     for (let i = 0; i < samples; i++) {
-      const x = (i * 2) / samples - 1;
+      const x = (i / (samples - 1)) * 2 - 1;
       let y = x * drive;
 
       if (Math.abs(y) > knee) {
@@ -112,7 +116,15 @@ class FulltoneOCDEffect extends BaseEffect {
 
       // Conteúdo harmônico típico do OCD
       y += 0.12 * Math.tanh(x * drive * 2.5);
-      curve[i] = y * 0.88;
+      y = y * 0.88;
+      // Clamp suave: evita clip > 1 (hard digital), soa mais “amp”
+      curve[i] = Math.tanh(y);
+      maxAbs = Math.max(maxAbs, Math.abs(curve[i]));
+    }
+
+    if (maxAbs > 0) {
+      const norm = maxAbs * 1.01;
+      for (let i = 0; i < samples; i++) curve[i] /= norm;
     }
 
     return curve;
@@ -127,11 +139,15 @@ class FulltoneOCDEffect extends BaseEffect {
 
     switch (parameter) {
       case 'drive':
-        this.clipper.curve = this.makeOCDCurve(value);
-        this.inputGain.gain.setTargetAtTime(1.5 + value / 50, now, 0.01);
-        // Com mais drive, baixa um pouco o anti-alias para controlar aspereza
-        const aa = 9000 + (100 - value) * 30; // ~9–12 kHz
+        this.inputGain.gain.setTargetAtTime(1.3 + value / 45, now, 0.01);
+        // Tone shaper: 11–15 kHz (mínimo mais alto preserva “air” em drive alto)
+        const aa = 11000 + (100 - value) * 40;
         this.antiAliasLPF.frequency.setTargetAtTime(aa, now, 0.02);
+        if (this._driveCurveTimeout != null) clearTimeout(this._driveCurveTimeout);
+        this._driveCurveTimeout = setTimeout(() => {
+          this.clipper.curve = this.makeOCDCurve(this.params.drive ?? value);
+          this._driveCurveTimeout = null;
+        }, 25);
         break;
 
       case 'tone':
@@ -140,26 +156,25 @@ class FulltoneOCDEffect extends BaseEffect {
         break;
 
       case 'volume':
-        this.outputGain.gain.setTargetAtTime(value / 100, now, 0.01);
+        this.outputGain.gain.setTargetAtTime(Math.max(0, Math.min(1, value / 100)), now, 0.01);
         break;
 
       case 'mode':
-        // 0..50 = LP | 51..100 = HP
+        // 0..50 = LP | 51..100 = HP (transição mais suave, tempo 0.04 = “switch de pedal”)
+        const tc = 0.04;
         if (value > 50) {
-          // HP: mais "apertado"/agressivo
-          this.hpFilter.frequency.setTargetAtTime(120, now, 0.01);
-          this.bassShelf.gain.setTargetAtTime(-3, now, 0.02); // corta um pouco do grave
-          this.presenceShelf.gain.setTargetAtTime(1.5, now, 0.02); // leve brilho
+          this.hpFilter.frequency.setTargetAtTime(120, now, tc);
+          this.bassShelf.gain.setTargetAtTime(-3, now, tc);
+          this.presenceShelf.gain.setTargetAtTime(1.5, now, tc);
         } else {
-          // LP: mais cheio e aberto
-          this.hpFilter.frequency.setTargetAtTime(60, now, 0.01);
-          this.bassShelf.gain.setTargetAtTime(2, now, 0.02);   // reforça low-end
-          this.presenceShelf.gain.setTargetAtTime(0, now, 0.02);
+          this.hpFilter.frequency.setTargetAtTime(60, now, tc);
+          this.bassShelf.gain.setTargetAtTime(2, now, tc);
+          this.presenceShelf.gain.setTargetAtTime(0, now, tc);
         }
         break;
 
       case 'mix':
-        this.updateMix(value);
+        this.updateMix(Math.max(0, Math.min(100, value)));
         break;
 
       default:
@@ -169,6 +184,10 @@ class FulltoneOCDEffect extends BaseEffect {
   }
 
   disconnect() {
+    if (this._driveCurveTimeout != null) {
+      clearTimeout(this._driveCurveTimeout);
+      this._driveCurveTimeout = null;
+    }
     super.disconnect();
     try {
       this.inputGain.disconnect();

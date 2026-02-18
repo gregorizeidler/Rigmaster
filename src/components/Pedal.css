@@ -19,18 +19,144 @@
   border: 1px solid rgba(0, 0, 0, 0.8);
 }
 
-/* FULLTONE OCD — knobs e footswitch alinhados no centro */
+/* FULLTONE OCD — retangular tipo SD-1 (compacto), placa recessada, VOL/DRIVE/TONE, toggle HP/LP */
 .pedal-fulltoneocd {
+  width: 220px;
+  padding: 16px 18px;
+  gap: 12px;
+  border-radius: 12px;
   align-items: center;
 }
 
 .pedal-fulltoneocd .pedal-controls {
-  width: fit-content;
+  width: 100%;
+  max-width: 200px;
   align-self: center;
 }
 
 .pedal-fulltoneocd .pedal-footswitch {
   align-self: center;
+}
+
+/* LED mais acima, quase encostando na parte superior do pedal (como no original) */
+.pedal-fulltoneocd .footswitch-led {
+  top: 6px;
+}
+
+/* Header OCD: placa recessada escura, FULLTONE pequeno, OCD grande */
+.pedal-fulltoneocd .pedal-header.pedal-header-ocd {
+  background: linear-gradient(180deg, #3a3a3a 0%, #2a2a2a 100%);
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px 10px;
+  margin: 0 -2px 2px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.pedal-fulltoneocd .pedal-header.pedal-header-ocd .pedal-brand {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  color: rgba(255,255,255,0.85);
+  margin-bottom: 2px;
+}
+
+/* OCD: fonte mais fina e espaçamento como no original */
+.pedal-fulltoneocd .pedal-header.pedal-header-ocd .pedal-name {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 4px;
+  color: #fff;
+  text-shadow: 0 0 6px rgba(255,255,255,0.25);
+  margin: 0;
+  font-family: inherit;
+}
+
+/* Layout controles OCD: linha VOL + toggle + DRIVE, depois TONE centralizado */
+.ocd-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.ocd-controls-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  width: 100%;
+  gap: 6px;
+}
+
+.ocd-controls-row .pedal-knob,
+.ocd-controls-row .knob {
+  flex: 0 0 auto;
+}
+
+.ocd-tone-row {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Toggle HP/LP horizontal como no original */
+.ocd-toggle-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 8px;
+}
+
+.ocd-toggle-label {
+  font-size: 8px;
+  font-weight: 700;
+  color: #2a2a2a;
+  letter-spacing: 0.5px;
+}
+
+.ocd-toggle-label.ocd-hp {
+  align-self: flex-start;
+  margin-top: 2px;
+}
+
+.ocd-toggle-label.ocd-lp {
+  align-self: flex-end;
+  margin-bottom: 2px;
+}
+
+.ocd-toggle {
+  width: 36px;
+  height: 18px;
+  border-radius: 10px;
+  background: #4a4a4a;
+  border: 2px solid #2a2a2a;
+  cursor: pointer;
+  padding: 0;
+  position: relative;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+  flex-shrink: 0;
+}
+
+.ocd-toggle-lever {
+  position: absolute;
+  top: 2px;
+  width: 12px;
+  height: 10px;
+  border-radius: 5px;
+  background: linear-gradient(180deg, #6a6a6a 0%, #3a3a3a 100%);
+  border: 1px solid #1a1a1a;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  transition: left 0.15s ease;
+}
+
+.ocd-toggle.ocd-toggle-hp .ocd-toggle-lever {
+  left: 2px;
+}
+
+.ocd-toggle.ocd-toggle-lp .ocd-toggle-lever {
+  left: 20px;
 }
 
 /* PROCO RAT — 3 knobs alinhados, sem knob “torto” pra fora */

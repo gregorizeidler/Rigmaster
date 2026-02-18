@@ -733,21 +733,21 @@ const Pedal = ({ effect, onUpdate, onBypass, onRemove }) => {
         style: 'psychedelic' // Insane, fun, experimental
       },
       
-      // FULLTONE OCD - Cream/Off-white
+      // FULLTONE OCD - Cream/Off-white (como o original: knobs pretos, indicador laranja)
       fulltoneocd: {
-        primary: '#2a2a2a', // Black text
+        primary: '#2a2a2a',
         secondary: '#1a1a1a',
-        bgColor: '#f5f0e8', // Cream/off-white metallic
+        bgColor: '#f5f0e8',
         bodyGradient: 'linear-gradient(145deg, #fffbf5 0%, #f5f0e8 50%, #e8dcc8 100%)',
-        metalColor: '#2a2a2a', // Black knobs
-        knobPointer: '#ffffff', // White pointer
-        ledColor: '#0066ff', // Blue LED
+        metalColor: '#2a2a2a',
+        knobPointer: '#ffffff', // Indicador branco tradicional (ou chicken head)
+        ledColor: '#0066ff',
         label: 'OCD',
         brand: 'Fulltone',
-        labelColor: '#2a2a2a', // Black labels
+        labelColor: '#2a2a2a',
         texture: 'metallic',
-        footswitchColor: '#c0c0c0', // Chrome footswitch
-        style: 'boutique' // Vintage boutique feel
+        footswitchColor: '#4a4a4a', // Dark grey footswitch como no original
+        style: 'boutique'
       },
       
       // XOTIC BB PREAMP - Metallic Orange
@@ -1325,33 +1325,25 @@ const Pedal = ({ effect, onUpdate, onBypass, onRemove }) => {
         );
       case 'fulltoneocd':
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center', width: '100%' }}>
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', gap: '5px' }}>
+          <div className="ocd-controls">
+            <div className="ocd-controls-row">
               <Knob label="Volume" value={effect.params?.volume || 70} onChange={handleKnobChange('volume')} />
-              <div className="toggle-switch" style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '2px',
-                padding: '4px 6px',
-                background: 'rgba(0,0,0,0.15)',
-                borderRadius: '4px',
-                border: '2px solid rgba(0,0,0,0.3)',
-                marginTop: '20px',
-                minWidth: '35px'
-              }}>
-                <span style={{ fontSize: '7px', color: '#2a2a2a', fontWeight: 'bold', opacity: 0.8 }}>HP</span>
-                <input
-                  type="checkbox"
-                  checked={effect.params?.mode > 50}
-                  onChange={(e) => onUpdate(effect.id, 'mode', e.target.checked ? 100 : 0)}
-                  style={{ transform: 'scale(0.8)', cursor: 'pointer' }}
-                />
-                <span style={{ fontSize: '7px', color: '#2a2a2a', fontWeight: 'bold', opacity: 0.8 }}>LP</span>
+              <div className="ocd-toggle-wrap">
+                <span className="ocd-toggle-label ocd-hp">HP</span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={effect.params?.mode > 50}
+                  className={`ocd-toggle ${effect.params?.mode > 50 ? 'ocd-toggle-hp' : 'ocd-toggle-lp'}`}
+                  onClick={() => onUpdate(effect.id, 'mode', effect.params?.mode > 50 ? 0 : 100)}
+                >
+                  <span className="ocd-toggle-lever" />
+                </button>
+                <span className="ocd-toggle-label ocd-lp">LP</span>
               </div>
               <Knob label="Drive" value={effect.params?.drive || 50} onChange={handleKnobChange('drive')} />
             </div>
-            <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+            <div className="ocd-tone-row">
               <Knob label="Tone" value={effect.params?.tone || 50} onChange={handleKnobChange('tone')} />
             </div>
           </div>
@@ -2610,11 +2602,20 @@ const Pedal = ({ effect, onUpdate, onBypass, onRemove }) => {
     >
       <button className="pedal-remove" onClick={() => onRemove(effect.id)}>×</button>
       
-      <div className="pedal-header">
-        <div className="pedal-brand">{config.brand || 'RIGMASTER'}</div>
-        <h3 className="pedal-name">{effect.name}</h3>
-        <div className="pedal-model">{config.label}</div>
-        {config.subtitle && <div className="pedal-subtitle">{config.subtitle}</div>}
+      <div className={`pedal-header ${effect.type === 'fulltoneocd' ? 'pedal-header-ocd' : ''}`}>
+        {effect.type === 'fulltoneocd' ? (
+          <>
+            <div className="pedal-brand">{config.brand}</div>
+            <h3 className="pedal-name">{config.label}</h3>
+          </>
+        ) : (
+          <>
+            <div className="pedal-brand">{config.brand || 'RIGMASTER'}</div>
+            <h3 className="pedal-name">{effect.name}</h3>
+            <div className="pedal-model">{config.label}</div>
+            {config.subtitle && <div className="pedal-subtitle">{config.subtitle}</div>}
+          </>
+        )}
       </div>
 
       {/* LCD/OLED DISPLAY for Rack Effects */}
