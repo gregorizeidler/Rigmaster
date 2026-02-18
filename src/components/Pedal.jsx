@@ -1392,8 +1392,8 @@ const Pedal = ({ effect, onUpdate, onBypass, onRemove }) => {
                   <div className="oled-content">
                     <div className="oled-machine-type">{(effect.params?.type || 'dtape').toUpperCase()}</div>
                     <div className="oled-params">
-                      <span>TIME: {Math.round(effect.params?.time || 500)}ms</span>
-                      <span>BPM: {effect.params?.bpm || 120}</span>
+                      <span>TIME: {effect.params?.timeMs != null ? effect.params.timeMs : Math.round((effect.params?.time ?? 50) / 100 * 4960 + 40)}ms</span>
+                      <span>BPM: {effect.params?.bpm ?? 120}</span>
                     </div>
                   </div>
                 </div>
